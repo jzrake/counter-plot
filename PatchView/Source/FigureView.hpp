@@ -75,6 +75,7 @@ public:
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
     Rectangle<int> getPlotAreaBounds() const;
+    RenderingSurface* getRenderingSurface() { return surface.get(); }
 
     //==========================================================================
     void paint (Graphics&) override;

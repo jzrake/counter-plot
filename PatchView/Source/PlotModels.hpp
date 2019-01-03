@@ -90,3 +90,31 @@ struct FigureModel
     Rectangle<int> getRightMargin (const Rectangle<int>& area) const;
     Rectangle<double> getDomain() const;
 };
+
+
+
+
+//==============================================================================
+/**
+ * This class provides helpers for loading color map data into a format compatible
+ * with GPU texture objects with a uint32 RGBA pixel format.
+ */
+class ColormapHelpers
+{
+public:
+    /**
+     * Load RGBA texture data from a whitespace-seperated ASCII table. The string
+     * must contain whitespace-separated entries e.g. r1 g1 b1 r2 g2 b2, where
+     * r, g, b are values in the range [0, 255].
+     */
+    static std::vector<uint32> fromRGBTable (const String& string);
+
+    /** Convert an array of JUCE colors to uint32 RGBA texture data. */
+    static std::vector<uint32> fromColours (const Array<Colour>& colours);
+
+    /**
+     * Return RBGA-formatted integer for the given JUCE::Colour. JUCE only
+     * provides an ARGB method for some reason.
+     */
+    static uint32 toRGBA (const Colour& c);
+};

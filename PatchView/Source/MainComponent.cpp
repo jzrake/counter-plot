@@ -122,7 +122,6 @@ public:
 
         vmin = *std::min_element (triangleScalars.begin(), triangleScalars.end());
         vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
-        // normalize (triangleScalars);
     }
 
     void render (RenderingSurface& surface)
@@ -131,18 +130,6 @@ public:
     }
 
 private:
-    
-//    void normalize (std::vector<simd::float1>& data)
-//    {
-//        float min = *std::min_element (data.begin(), data.end());
-//        float max = *std::max_element (data.begin(), data.end());
-//
-//        for (auto& x : data)
-//        {
-//            x = (x - min) / (max - min);
-//        }
-//    }
-
     float vmin = 0.f;
     float vmax = 1.f;
     std::vector<simd::float2> triangleVertices;
@@ -159,12 +146,7 @@ class MetalRenderingSurface : public RenderingSurface
 public:
     MetalRenderingSurface()
     {
-        std::vector<uint32> textureData;
-        textureData.push_back (toRGBA (Colours::red));
-        textureData.push_back (toRGBA (Colours::green));
-        textureData.push_back (toRGBA (Colours::blue));
-        texture = metal::Device::makeTexture1d (textureData.data(), textureData.size());
-
+        setColorMap (0);
         setInterceptsMouseClicks (false, false);
         addAndMakeVisible (metal);
     }
@@ -200,7 +182,7 @@ public:
         auto node = metal::Node();
         node.setVertexPositions (getOrCreateBuffer (vertices));
         node.setVertexScalars (getOrCreateBuffer (scalars));
-        node.setScalarMapping (texture);
+        node.setScalarMapping (colormap);
         node.setScalarDomain (vmin, vmax);
         node.setVertexCount (vertices.size());
         scene.addNode (node);
@@ -209,6 +191,29 @@ public:
     void resized() override
     {
         metal.setBounds (getLocalBounds());
+    }
+
+    void nextColorMap()
+    {
+        setColorMap ((colorMapIndex + 1) % 3);
+    }
+
+    void prevColorMap()
+    {
+        setColorMap ((colorMapIndex - 1 + 3) % 3);
+    }
+
+    void setColorMap (int index)
+    {
+        std::vector<uint32> data;
+
+        switch (colorMapIndex = index)
+        {
+            case 0: data = ColormapHelpers::fromRGBTable (BinaryData::dawn_cmap); break;
+            case 1: data = ColormapHelpers::fromRGBTable (BinaryData::fire_cmap); break;
+            case 2: data = ColormapHelpers::fromRGBTable (BinaryData::seashore_cmap); break;
+        }
+        colormap = metal::Device::makeTexture1d (data.data(), data.size());
     }
 
 private:
@@ -246,22 +251,15 @@ private:
         return newBuffer;
     }
 
-    static uint32 toRGBA (Colour c)
-    {
-        return
-          (c.getRed()   << 0)
-        | (c.getGreen() << 8)
-        | (c.getBlue()  << 16)
-        | (c.getAlpha() << 24);
-    }
-
     std::map<const std::vector<simd::float1>*, metal::Buffer> cachedBuffers1;
     std::map<const std::vector<simd::float2>*, metal::Buffer> cachedBuffers2;
     std::map<const std::vector<simd::float4>*, metal::Buffer> cachedBuffers4;
 
-    metal::Texture texture;
+    metal::Texture colormap;
     metal::Scene scene;
     metal::MetalComponent metal;
+    
+    int colorMapIndex = 0;
 };
 
 
@@ -294,6 +292,23 @@ void MainComponent::resized()
 {
     auto area = getLocalBounds().reduced (10);
     figure.setBounds (area);
+}
+
+bool MainComponent::keyPressed (const juce::KeyPress &key)
+{
+    if (key == KeyPress::leftKey)
+    {
+        dynamic_cast<MetalRenderingSurface&>(*figure.getRenderingSurface()).prevColorMap();
+        figure.setModel (model);
+        return true;
+    }
+    if (key == KeyPress::rightKey)
+    {
+        dynamic_cast<MetalRenderingSurface&>(*figure.getRenderingSurface()).nextColorMap();
+        figure.setModel (model);
+        return true;
+    }
+    return false;
 }
 
 

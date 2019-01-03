@@ -16,6 +16,7 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
+    bool keyPressed (const KeyPress& key) override;
 
     //==============================================================================
     void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;
