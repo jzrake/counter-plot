@@ -10,6 +10,7 @@
 namespace metal {
     class Buffer;
     class Device;
+    class Texture;
     class Node;
     class Scene;
     class MetalComponent;
@@ -20,8 +21,22 @@ namespace metal {
 
 
 // ===========================================================================
+class metal::Device
+{
+public:
+    static Buffer makeBuffer (const void* data, std::size_t size);
+    static Texture makeTexture1d (const uint32* data, std::size_t width);
+};
+
+
+
+
+// ===========================================================================
 class metal::Buffer
 {
+public:
+    Buffer();
+    bool empty();
 private:
     friend class Device;
     friend class Node;
@@ -33,10 +48,16 @@ private:
 
 
 // ===========================================================================
-class metal::Device
+class metal::Texture
 {
 public:
-    static Buffer makeBuffer (const void* data, std::size_t size);
+    Texture();
+    bool empty();
+private:
+    friend class Device;
+    friend class Node;
+    struct Impl;
+    std::shared_ptr<Impl> impl;
 };
 
 
@@ -49,6 +70,9 @@ public:
     Node();
     void setVertexPositions (Buffer data);
     void setVertexColors (Buffer data);
+    void setVertexScalars (Buffer data);
+    void setScalarMapping (Texture mapping);
+    void setScalarDomain (float lower, float upper);
     void setVertexCount (std::size_t numberOfVertices);
 private:
     friend class Scene;
@@ -72,6 +96,7 @@ private:
     struct Impl;
     std::shared_ptr<Impl> impl;
 };
+
 
 
 

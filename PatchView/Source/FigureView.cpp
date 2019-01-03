@@ -174,11 +174,10 @@ void FigureView::PlotArea::paint (Graphics& g)
     for (const auto& p : figure.model.content)
     {
         p->paint (g, *this);
-
-        if (figure.surface)
-        {
-            p->paint (*figure.surface, *this);
-        }
+//        if (figure.surface)
+//        {
+//            p->paint (*figure.surface, *this);
+//        }
     }
 }
 
@@ -310,17 +309,18 @@ FigureView::FigureView() : plotArea (*this)
     addAndMakeVisible (ylabel);
 }
 
-void FigureView::setRenderingSurface (RenderingSurface* surfaceToRenderInto)
+void FigureView::setRenderingSurface (std::unique_ptr<RenderingSurface> surfaceToRenderInto)
 {
     if (surface)
     {
-        removeChildComponent (surface);
+        removeChildComponent (surface.get());
     }
-    surface = surfaceToRenderInto;
+    surface = std::move (surfaceToRenderInto);
 
     if (surface)
     {
-        addAndMakeVisible (surface);
+        addAndMakeVisible (surface.get());
+        surface->setContent (model.content, plotArea);
     }
 }
 
@@ -332,6 +332,11 @@ void FigureView::setModel (const FigureModel& newModel)
     title .setText (model.title , NotificationType::dontSendNotification);
     layout();
     repaint();
+
+    if (surface)
+    {
+        surface->setContent (model.content, plotArea);
+    }
 }
 
 void FigureView::addListener (Listener* listener)

@@ -18,13 +18,23 @@ struct MetalDomain
 
 // =============================================================================
 @interface MetalNode : NSObject
+{
+    id<MTLBuffer> _vertexPositions;
+    id<MTLBuffer> _vertexColors;
+    id<MTLBuffer> _vertexScalars;
+    id<MTLTexture> _scalarMapping;
+    float _scalarDomainLower;
+    float _scalarDomainUpper;
+    size_t _vertexCount;
+}
 - (nonnull instancetype)init;
-- (void)setVertexPositions:(nullable id<MTLBuffer>)vertexPositions;
-- (void)setVertexColors:(nullable id<MTLBuffer>)vertexColors;
-- (void)setVertexCount:(size_t)vertexCount;
-- (nullable id<MTLBuffer>)vertexPositions;
-- (nullable id<MTLBuffer>)vertexColors;
-- (size_t)vertexCount;
+@property(nullable, retain) id<MTLBuffer> vertexPositions;
+@property(nullable, retain) id<MTLBuffer> vertexColors;
+@property(nullable, retain) id<MTLBuffer> vertexScalars;
+@property(nullable, retain) id<MTLTexture> scalarMapping;
+@property float scalarDomainLower;
+@property float scalarDomainUpper;
+@property size_t vertexCount;
 @end
 
 

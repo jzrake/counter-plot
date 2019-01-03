@@ -67,7 +67,7 @@ private:
 class PatchesQuadMeshArtist : public PlotArtist
 {
 public:
-    PatchesQuadMeshArtist (patches2d::Database model) : model (model)
+    PatchesQuadMeshArtist (const patches2d::Database& model)
     {
         for (auto patch : model.all (patches2d::Field::vert_coords))
         {
@@ -94,7 +94,7 @@ public:
                     const float y01 = r01 * std::cosf (q01);
                     const float y10 = r10 * std::cosf (q10);
                     const float y11 = r11 * std::cosf (q11);
-                    const float c = r00 / 10;//cells (i, j, 0);
+                    const float c = std::log10f (cells (i, j, 0));
 
                     triangleVertices.push_back (simd::float2 {x00, y00});
                     triangleVertices.push_back (simd::float2 {x01, y01});
@@ -109,20 +109,45 @@ public:
                     triangleColors.push_back (simd::float4 {c, c, c, 1.f});
                     triangleColors.push_back (simd::float4 {c, c, c, 1.f});
                     triangleColors.push_back (simd::float4 {c, c, c, 1.f});
+
+                    triangleScalars.push_back (simd::float1 (c));
+                    triangleScalars.push_back (simd::float1 (c));
+                    triangleScalars.push_back (simd::float1 (c));
+                    triangleScalars.push_back (simd::float1 (c));
+                    triangleScalars.push_back (simd::float1 (c));
+                    triangleScalars.push_back (simd::float1 (c));
                 }
             }
         }
+
+        vmin = *std::min_element (triangleScalars.begin(), triangleScalars.end());
+        vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
+        // normalize (triangleScalars);
     }
 
-    void paint (RenderingSurface& surface, const PlotTransformer& trans) override
+    void render (RenderingSurface& surface)
     {
-        surface.renderTriangles (triangleVertices, triangleColors, trans);
+        surface.renderTriangles (triangleVertices, triangleScalars, vmin, vmax);
     }
 
 private:
+    
+//    void normalize (std::vector<simd::float1>& data)
+//    {
+//        float min = *std::min_element (data.begin(), data.end());
+//        float max = *std::max_element (data.begin(), data.end());
+//
+//        for (auto& x : data)
+//        {
+//            x = (x - min) / (max - min);
+//        }
+//    }
+
+    float vmin = 0.f;
+    float vmax = 1.f;
     std::vector<simd::float2> triangleVertices;
     std::vector<simd::float4> triangleColors;
-    patches2d::Database model;
+    std::vector<simd::float1> triangleScalars;
 };
 
 
@@ -134,24 +159,51 @@ class MetalRenderingSurface : public RenderingSurface
 public:
     MetalRenderingSurface()
     {
+        std::vector<uint32> textureData;
+        textureData.push_back (toRGBA (Colours::red));
+        textureData.push_back (toRGBA (Colours::green));
+        textureData.push_back (toRGBA (Colours::blue));
+        texture = metal::Device::makeTexture1d (textureData.data(), textureData.size());
+
         setInterceptsMouseClicks (false, false);
         addAndMakeVisible (metal);
     }
 
+    void setContent (std::vector<std::shared_ptr<PlotArtist>> artists, const PlotTransformer& trans) override
+    {
+        scene.clear();
+        scene.setDomain (trans.getDomain());
+
+        for (auto artist : artists)
+        {
+            artist->render (*this);
+        }
+        metal.setScene (scene);
+    }
+
     void renderTriangles (const std::vector<simd::float2>& vertices,
-                          const std::vector<simd::float4>& colors,
-                          const PlotTransformer& trans) override
+                          const std::vector<simd::float4>& colors) override
     {
         assert(vertices.size() == colors.size());
-
-        auto scene = metal::Scene();
         auto node = metal::Node();
-        node.setVertexPositions (metal::Device::makeBuffer (vertices.data(), vertices.size() * sizeof (simd::float2)));
-        node.setVertexColors (metal::Device::makeBuffer (colors.data(), colors.size() * sizeof (simd::float4)));
+        node.setVertexPositions (getOrCreateBuffer (vertices));
+        node.setVertexColors (getOrCreateBuffer (colors));
         node.setVertexCount (vertices.size());
         scene.addNode (node);
-        scene.setDomain (trans.getDomain());
-        metal.setScene (scene);
+    }
+
+    void renderTriangles (const std::vector<simd::float2>& vertices,
+                          const std::vector<simd::float1>& scalars,
+                          float vmin, float vmax) override
+    {
+        assert(vertices.size() == scalars.size());
+        auto node = metal::Node();
+        node.setVertexPositions (getOrCreateBuffer (vertices));
+        node.setVertexScalars (getOrCreateBuffer (scalars));
+        node.setScalarMapping (texture);
+        node.setScalarDomain (vmin, vmax);
+        node.setVertexCount (vertices.size());
+        scene.addNode (node);
     }
 
     void resized() override
@@ -160,6 +212,55 @@ public:
     }
 
 private:
+
+    metal::Buffer getOrCreateBuffer (const std::vector<simd::float1>& data)
+    {
+        if (cachedBuffers1.count (&data))
+        {
+            return cachedBuffers1.at (&data);
+        }
+        auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float1));
+        cachedBuffers1[&data] = newBuffer;
+        return newBuffer;
+    }
+
+    metal::Buffer getOrCreateBuffer (const std::vector<simd::float2>& data)
+    {
+        if (cachedBuffers2.count (&data))
+        {
+            return cachedBuffers2.at (&data);
+        }
+        auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float2));
+        cachedBuffers2[&data] = newBuffer;
+        return newBuffer;
+    }
+
+    metal::Buffer getOrCreateBuffer (const std::vector<simd::float4>& data)
+    {
+        if (cachedBuffers4.count (&data))
+        {
+            return cachedBuffers4.at (&data);
+        }
+        auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float4));
+        cachedBuffers4[&data] = newBuffer;
+        return newBuffer;
+    }
+
+    static uint32 toRGBA (Colour c)
+    {
+        return
+          (c.getRed()   << 0)
+        | (c.getGreen() << 8)
+        | (c.getBlue()  << 16)
+        | (c.getAlpha() << 24);
+    }
+
+    std::map<const std::vector<simd::float1>*, metal::Buffer> cachedBuffers1;
+    std::map<const std::vector<simd::float2>*, metal::Buffer> cachedBuffers2;
+    std::map<const std::vector<simd::float4>*, metal::Buffer> cachedBuffers4;
+
+    metal::Texture texture;
+    metal::Scene scene;
     metal::MetalComponent metal;
 };
 
@@ -173,10 +274,10 @@ MainComponent::MainComponent()
     auto db = patches2d::Database::load (ser);
     model.content.push_back (std::make_shared<PatchesQuadMeshArtist> (db));
 
-    surface = std::make_unique<MetalRenderingSurface>();
     figure.addListener (this);
     figure.setModel (model);
-    figure.setRenderingSurface (surface.get());
+    figure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+
     addAndMakeVisible (figure);
     setSize (1024, 768);
 }

@@ -7,6 +7,15 @@
 
 
 //==============================================================================
+class RenderingSurface;
+class PlotTransformer;
+class PlotArtist;
+class FigureModel;
+
+
+
+
+//==============================================================================
 class PlotTransformer
 {
 public:
@@ -22,25 +31,28 @@ public:
 
 
 //==============================================================================
-class RenderingSurface : public Component
+class PlotArtist
 {
 public:
-    virtual ~RenderingSurface() {}
-    virtual void renderTriangles (const std::vector<simd::float2>& vertices,
-                                  const std::vector<simd::float4>& colors,
-                                  const PlotTransformer& trans) = 0;
+    virtual ~PlotArtist() {}
+    virtual void paint (Graphics& g, const PlotTransformer& trans) {}
+    virtual void render (RenderingSurface& surface) {}
 };
 
 
 
 
 //==============================================================================
-class PlotArtist
+class RenderingSurface : public Component
 {
 public:
-    virtual ~PlotArtist() {}
-    virtual void paint (Graphics& g, const PlotTransformer& trans) {}
-    virtual void paint (RenderingSurface& surface, const PlotTransformer& trans) {}
+    virtual ~RenderingSurface() {}
+    virtual void setContent (std::vector<std::shared_ptr<PlotArtist>> content, const PlotTransformer& trans) = 0;
+    virtual void renderTriangles (const std::vector<simd::float2>& vertices,
+                                  const std::vector<simd::float4>& colors) = 0;
+    virtual void renderTriangles (const std::vector<simd::float2>& vertices,
+                                  const std::vector<simd::float1>& scalars,
+                                  float vmin, float vmax) = 0;
 };
 
 

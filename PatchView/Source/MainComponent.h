@@ -1,7 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
 #include "FigureView.hpp"
-//#include "../Metal/MetalComponent.hpp"
 
 
 
@@ -27,7 +26,6 @@ public:
 
 private:
     //==============================================================================
-    std::unique_ptr<RenderingSurface> surface;
     FigureView figure;
     FigureModel model;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

@@ -74,7 +74,6 @@ public:
             centreWithSize (getWidth(), getHeight());
            #endif
 
-//            context.attachTo (*this);
             setVisible (true);
         }
 
@@ -84,7 +83,6 @@ public:
         }
 
     private:
-//        OpenGLContext context;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     };
 

@@ -70,7 +70,7 @@ public:
 
     //==========================================================================
     FigureView();
-    void setRenderingSurface (RenderingSurface* surfaceToRenderInto);
+    void setRenderingSurface (std::unique_ptr<RenderingSurface> surfaceToRenderInto);
     void setModel (const FigureModel&);
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
@@ -98,7 +98,7 @@ private:
     Label ylabel;
     Label title;
 
-    RenderingSurface* surface = nullptr;
+    std::unique_ptr<RenderingSurface> surface;
     ListenerList<Listener> listeners;
     bool annotateGeometry = false;
     bool allowPlotAreaResize = true;
