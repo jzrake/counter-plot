@@ -1,21 +1,13 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-  ==============================================================================
-*/
-
 #pragma once
+#include "JuceHeader.h"
+#include "FigureView.hpp"
+//#include "../Metal/MetalComponent.hpp"
 
-#include "../JuceLibraryCode/JuceHeader.h"
+
+
 
 //==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
-class MainComponent   : public Component
+class MainComponent : public Component, public FigureView::Listener
 {
 public:
     //==============================================================================
@@ -26,10 +18,17 @@ public:
     void paint (Graphics&) override;
     void resized() override;
 
+    //==============================================================================
+    void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;
+    void figureViewSetDomain (FigureView* figure, const Rectangle<double>& value) override;
+    void figureViewSetXlabel (FigureView* figure, const String& value) override;
+    void figureViewSetYlabel (FigureView* figure, const String& value) override;
+    void figureViewSetTitle (FigureView* figure, const String& value) override;
+
 private:
     //==============================================================================
-    // Your private member variables go here...
-
-
+    std::unique_ptr<RenderingSurface> surface;
+    FigureView figure;
+    FigureModel model;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
