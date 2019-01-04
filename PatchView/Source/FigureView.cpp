@@ -409,7 +409,7 @@ void FigureView::paintOverChildren (Graphics& g)
 
     // Draw the ticks and labels
     // =================================================================
-    g.setColour (Colours::black);
+    g.setColour (findColour (Label::textColourId));
     g.setFont (Font().withHeight (12));
     for (auto box : xtickBoxes) g.fillRect (box);
     for (auto box : ytickBoxes) g.fillRect (box);

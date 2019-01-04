@@ -57,8 +57,6 @@ static NSString* _Nonnull shaderSource = @""
 
 
 
-
-
 // =============================================================================
 @implementation MetalRenderer
 {
@@ -223,12 +221,8 @@ static NSString* _Nonnull shaderSource = @""
 - (void)setScene:(nullable MetalScene*)newScene
 {
     _renderer.scene = newScene;
-
-    // The render callback sometimes gets low priority using this:
     self.view.needsDisplay = true;
-
-    // This guarantees immediate rendering but fails on some systems:
-    // [_renderer drawInMTKView:(MTKView*)self.view];
+    // [(MTKView*)self.view draw];
 }
 
 @end

@@ -109,11 +109,13 @@ public:
      */
     static std::vector<uint32> fromRGBTable (const String& string);
 
-    /** Convert an array of JUCE colors to uint32 RGBA texture data. */
+    /**
+     * Convert an array of JUCE colours to uint32 RGBA texture data.
+     */
     static std::vector<uint32> fromColours (const Array<Colour>& colours);
 
     /**
-     * Return RBGA-formatted integer for the given JUCE::Colour. JUCE only
+     * Return an RBGA-formatted integer for the given JUCE::Colour. JUCE only
      * provides an ARGB method for some reason.
      */
     static uint32 toRGBA (const Colour& c);

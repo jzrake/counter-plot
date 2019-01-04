@@ -56,6 +56,7 @@ Rectangle<double> FigureModel::getDomain() const
 std::vector<uint32> ColormapHelpers::fromRGBTable (const juce::String &string)
 {
     auto tokens = StringArray::fromTokens (string, "\n ", "");
+    tokens.removeEmptyStrings();
 
     if (tokens.size() % 3 != 0)
     {
@@ -85,7 +86,7 @@ std::vector<uint32> ColormapHelpers::fromColours (const Array<Colour>& colours)
     return res;
 }
 
-uint32 ColormapHelpers::toRGBA(const juce::Colour &c)
+uint32 ColormapHelpers::toRGBA (const juce::Colour &c)
 {
     return (c.getRed() << 0) | (c.getGreen() << 8) | (c.getBlue() << 16) | (c.getAlpha() << 24);
 }
