@@ -279,13 +279,14 @@ MainComponent::MainComponent()
     model.backgroundColour = Colours::darkkhaki;
     model.marginColour = Colours::darkgrey;
 
+    directoryTree.setDirectoryToShow (File ("/Users/jzrake"));
     figure.addListener (this);
     figure.setModel (model);
     figure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
 
-    addAndMakeVisible (outline);
+    addAndMakeVisible (directoryTree);
     addAndMakeVisible (figure);
-    setSize (1024, 768);
+    setSize (1024, 768 - 64);
 }
 
 MainComponent::~MainComponent()
@@ -298,8 +299,8 @@ void MainComponent::paint (Graphics& g)
 
 void MainComponent::resized()
 {
-    auto area = getLocalBounds().reduced (10);
-    outline.setBounds (area.removeFromLeft(300));
+    auto area = getLocalBounds();
+    directoryTree.setBounds (area.removeFromLeft(300));
     figure.setBounds (area);
 }
 
@@ -356,47 +357,3 @@ void MainComponent::figureViewSetTitle (FigureView*, const String& value)
     model.title = value;
     figure.setModel (model);
 }
-
-
-
-
-
-//==============================================================================
-//class PatchesDatabaseListBox : public ListBox, public ListBoxModel
-//{
-//public:
-//    PatchesDatabaseListBox (Database database) : database (database)
-//    {
-//        for (auto item : database)
-//        {
-//            indexes.push_back (item.first);
-//        }
-//        setModel (this);
-//    }
-//
-//    int getNumRows()
-//    {
-//        return int (indexes.size());
-//    }
-//
-//    void paintListBoxItem (int rowNumber,
-//                           Graphics& g,
-//                           int width, int height,
-//                           bool rowIsSelected)
-//    {
-//        if (rowIsSelected)
-//        {
-//            g.setColour (Colours::lightblue);
-//            g.fillRect (0, 0, width, height);
-//        }
-//
-//        g.setColour (Colours::black);
-//        g.setFont (Font().withHeight (10));
-//        g.drawText (patches2d::to_string (indexes[rowNumber]), 8, 0, width, height, Justification::centredLeft);
-//    }
-//
-//private:
-//    std::vector<Database::Index> indexes;
-//    Database database;
-//};
-

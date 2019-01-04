@@ -13,14 +13,16 @@
       <FILE id="INelMr" name="viridis.cmap" compile="0" resource="1" file="../Resources/viridis.cmap"/>
     </GROUP>
     <GROUP id="{383CB217-B9DF-75A7-732C-A29573B05904}" name="Source">
+      <FILE id="ObubCE" name="DirectoryTree.cpp" compile="1" resource="0"
+            file="Source/DirectoryTree.cpp"/>
+      <FILE id="sUX2sY" name="DirectoryTree.hpp" compile="0" resource="0"
+            file="Source/DirectoryTree.hpp"/>
       <FILE id="DyI3dW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="CEylr8" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="L4fFDD" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="NTdkxG" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
       <FILE id="XnyaUu" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="L1Ck5z" name="OutlineView.cpp" compile="1" resource="0" file="Source/OutlineView.cpp"/>
-      <FILE id="kg84Po" name="OutlineView.hpp" compile="0" resource="0" file="Source/OutlineView.hpp"/>
       <FILE id="IqGgfM" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="dZDnm4" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
       <FILE id="RmYUmP" name="Shader.metal" compile="1" resource="0" file="../juce_metal/src/Shader.metal"/>
