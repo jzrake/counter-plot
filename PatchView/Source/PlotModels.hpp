@@ -58,6 +58,47 @@ public:
 
 
 
+//==========================================================================
+struct PlotGeometry
+{
+    Rectangle<int> marginT;
+    Rectangle<int> marginB;
+    Rectangle<int> marginL;
+    Rectangle<int> marginR;
+    Rectangle<int> xtickAreaT;
+    Rectangle<int> xtickAreaB;
+    Rectangle<int> ytickAreaL;
+    Rectangle<int> ytickAreaR;
+    Rectangle<int> xtickLabelAreaT;
+    Rectangle<int> xtickLabelAreaB;
+    Rectangle<int> ytickLabelAreaL;
+    Rectangle<int> ytickLabelAreaR;
+
+    //==========================================================================
+    static PlotGeometry compute (Rectangle<int> area, BorderSize<int> margin,
+                                 float tickLabelWidth, float tickLabelHeight,
+                                 float tickLabelPadding, float tickLength);
+    static Rectangle<int> topMargin    (Rectangle<int> area, BorderSize<int> margin);
+    static Rectangle<int> bottomMargin (Rectangle<int> area, BorderSize<int> margin);
+    static Rectangle<int> leftMargin   (Rectangle<int> area, BorderSize<int> margin);
+    static Rectangle<int> rightMargin  (Rectangle<int> area, BorderSize<int> margin);
+};
+
+
+
+
+//==============================================================================
+struct ColorbarModel
+{
+    Array<Colour> stops;
+    String title;
+    float lower = 0.f;
+    float upper = 1.f;
+};
+
+
+
+
 //==============================================================================
 struct FigureModel
 {
@@ -69,7 +110,7 @@ struct FigureModel
     String                  title            = "Figure";
     String                  xlabel           = "X Axis";
     String                  ylabel           = "Y Axis";
-    BorderSize<int>         margin           = BorderSize<int> (40, 90, 50, 30);
+    BorderSize<int>         margin           = BorderSize<int> (90, 90, 60, 60);
     float                   borderWidth      = 1.f;
     float                   axesWidth        = 1.f;
     float                   gridlinesWidth   = 1.f;
@@ -84,10 +125,6 @@ struct FigureModel
     Colour                  gridlinesColour  = Colours::lightgrey;
 
     //==========================================================================
-    Rectangle<int> getTopMargin (const Rectangle<int>& area) const;
-    Rectangle<int> getBottomMargin (const Rectangle<int>& area) const;
-    Rectangle<int> getLeftMargin (const Rectangle<int>& area) const;
-    Rectangle<int> getRightMargin (const Rectangle<int>& area) const;
     Rectangle<double> getDomain() const;
 };
 
@@ -102,12 +139,20 @@ struct FigureModel
 class ColormapHelpers
 {
 public:
+
+    /**
+     * Load a sequence of colors a whitespace-seperated ASCII table. The string
+     * must contain whitespace-separated entries e.g. r1 g1 b1 r2 g2 b2, where
+     * r, g, b are values in the range [0, 255].
+     */
+    static Array<Colour> coloursFromRGBTable (const String& string);
+
     /**
      * Load RGBA texture data from a whitespace-seperated ASCII table. The string
      * must contain whitespace-separated entries e.g. r1 g1 b1 r2 g2 b2, where
      * r, g, b are values in the range [0, 255].
      */
-    static std::vector<uint32> fromRGBTable (const String& string);
+    static std::vector<uint32> textureFromRGBTable (const String& string);
 
     /**
      * Convert an array of JUCE colours to uint32 RGBA texture data.

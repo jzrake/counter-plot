@@ -40,4 +40,3 @@ private:
     File currentDirectory;
     ListenerList<Listener> listeners;
 };
-

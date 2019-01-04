@@ -6,6 +6,15 @@
 
 
 //==============================================================================
+class ColorbarView : public Component
+{
+public:
+};
+
+
+
+
+//==============================================================================
 class FigureView : public Component, private Label::Listener
 {
 public:
@@ -20,19 +29,6 @@ public:
         virtual void figureViewSetXlabel (FigureView* figure, const String& value) = 0;
         virtual void figureViewSetYlabel (FigureView* figure, const String& value) = 0;
         virtual void figureViewSetTitle (FigureView* figure, const String& value) = 0;
-    };
-
-    //==========================================================================
-    struct Geometry
-    {
-        Rectangle<int> marginT;
-        Rectangle<int> marginB;
-        Rectangle<int> marginL;
-        Rectangle<int> marginR;
-        Rectangle<int> ytickAreaL;
-        Rectangle<int> xtickAreaB;
-        Rectangle<int> ytickLabelAreaL;
-        Rectangle<int> xtickLabelAreaB;
     };
 
     //==========================================================================
@@ -89,7 +85,7 @@ private:
     //==========================================================================
     void layout();
     void refreshModes();
-    Geometry computeGeometry() const;
+    PlotGeometry computeGeometry() const;
     void labelTextChanged (Label* labelThatHasChanged) override;
 
     //==========================================================================

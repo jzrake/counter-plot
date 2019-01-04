@@ -501,19 +501,11 @@ void FigureView::refreshModes()
     repaint();
 }
 
-FigureView::Geometry FigureView::computeGeometry() const
+PlotGeometry FigureView::computeGeometry() const
 {
-    auto area = getLocalBounds();
-    Geometry g;
-    g.marginT         = model.getTopMargin (area);
-    g.marginB         = model.getBottomMargin (area);
-    g.marginL         = model.getLeftMargin (area);
-    g.marginR         = model.getRightMargin (area);
-    g.ytickAreaL      = g.marginL.removeFromRight (model.tickLength);
-    g.ytickLabelAreaL = g.marginL.removeFromRight (model.tickLabelWidth).withTrimmedRight (model.tickLabelPadding);
-    g.xtickAreaB      = g.marginB.removeFromTop (model.tickLength);
-    g.xtickLabelAreaB = g.marginB.removeFromTop (model.tickLabelHeight).withTrimmedTop (model.tickLabelPadding);
-    return g;
+    return PlotGeometry::compute (getLocalBounds(), model.margin,
+                                  model.tickLabelWidth, model.tickLabelHeight,
+                                  model.tickLabelPadding, model.tickLength);
 }
 
 void FigureView::labelTextChanged (Label* label)

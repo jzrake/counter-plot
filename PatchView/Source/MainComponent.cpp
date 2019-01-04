@@ -211,14 +211,14 @@ public:
 
         switch (colorMapIndex = index)
         {
-            case 0: data = ColormapHelpers::fromRGBTable (BinaryData::cividis_cmap); break;
-            case 1: data = ColormapHelpers::fromRGBTable (BinaryData::dawn_cmap); break;
-            case 2: data = ColormapHelpers::fromRGBTable (BinaryData::fire_cmap); break;
-            case 3: data = ColormapHelpers::fromRGBTable (BinaryData::inferno_cmap); break;
-            case 4: data = ColormapHelpers::fromRGBTable (BinaryData::magma_cmap); break;
-            case 5: data = ColormapHelpers::fromRGBTable (BinaryData::plasma_cmap); break;
-            case 6: data = ColormapHelpers::fromRGBTable (BinaryData::seashore_cmap); break;
-            case 7: data = ColormapHelpers::fromRGBTable (BinaryData::viridis_cmap); break;
+            case 0: data = ColormapHelpers::textureFromRGBTable (BinaryData::cividis_cmap); break;
+            case 1: data = ColormapHelpers::textureFromRGBTable (BinaryData::dawn_cmap); break;
+            case 2: data = ColormapHelpers::textureFromRGBTable (BinaryData::fire_cmap); break;
+            case 3: data = ColormapHelpers::textureFromRGBTable (BinaryData::inferno_cmap); break;
+            case 4: data = ColormapHelpers::textureFromRGBTable (BinaryData::magma_cmap); break;
+            case 5: data = ColormapHelpers::textureFromRGBTable (BinaryData::plasma_cmap); break;
+            case 6: data = ColormapHelpers::textureFromRGBTable (BinaryData::seashore_cmap); break;
+            case 7: data = ColormapHelpers::textureFromRGBTable (BinaryData::viridis_cmap); break;
         }
         colormap = metal::Device::makeTexture1d (data.data(), data.size());
     }
