@@ -12,6 +12,9 @@
       <FILE id="eyIT1E" name="seashore.cmap" compile="0" resource="1" file="../resources/seashore.cmap"/>
       <FILE id="INelMr" name="viridis.cmap" compile="0" resource="1" file="../Resources/viridis.cmap"/>
     </GROUP>
+    <GROUP id="{D11203F9-963F-1C73-7148-7F81D61F5445}" name="Metal">
+      <FILE id="RmYUmP" name="Shader.metal" compile="1" resource="0" file="../juce_metal/src/Shader.metal"/>
+    </GROUP>
     <GROUP id="{383CB217-B9DF-75A7-732C-A29573B05904}" name="Source">
       <FILE id="ObubCE" name="DirectoryTree.cpp" compile="1" resource="0"
             file="Source/DirectoryTree.cpp"/>
@@ -20,12 +23,13 @@
       <FILE id="DyI3dW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="CEylr8" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="L4fFDD" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="VAyeBU" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
       <FILE id="NTdkxG" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
-      <FILE id="XnyaUu" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="XnyaUu" name="MainComponent.hpp" compile="0" resource="0"
+            file="Source/MainComponent.hpp"/>
       <FILE id="IqGgfM" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="dZDnm4" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
-      <FILE id="RmYUmP" name="Shader.metal" compile="1" resource="0" file="../juce_metal/src/Shader.metal"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

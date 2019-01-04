@@ -68,6 +68,7 @@ DirectoryTree::~DirectoryTree()
 
 void DirectoryTree::setDirectoryToShow (File directoryToShow)
 {
+    setMouseOverItem (nullptr);
     tree.setRootItem (nullptr);
     root = std::make_unique<Item> (*this, currentDirectory = directoryToShow);
     tree.setRootItem (root.get());

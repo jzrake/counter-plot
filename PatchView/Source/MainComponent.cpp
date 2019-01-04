@@ -1,4 +1,4 @@
-#include "MainComponent.h"
+#include "MainComponent.hpp"
 
 
 
@@ -279,7 +279,7 @@ MainComponent::MainComponent()
     model.backgroundColour = Colours::darkkhaki;
     model.marginColour = Colours::darkgrey;
 
-    directoryTree.setDirectoryToShow (File ("/Users/jzrake"));
+    directoryTree.setDirectoryToShow (File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory));
     figure.addListener (this);
     figure.setModel (model);
     figure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
@@ -291,6 +291,11 @@ MainComponent::MainComponent()
 
 MainComponent::~MainComponent()
 {
+}
+
+void MainComponent::setCurrentDirectory (File newCurrentDirectory)
+{
+    directoryTree.setDirectoryToShow (newCurrentDirectory);
 }
 
 void MainComponent::paint (Graphics& g)
