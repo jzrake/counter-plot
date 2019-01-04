@@ -23,6 +23,19 @@ public:
         return file.isDirectory();
     }
 
+    bool canBeSelected() const override
+    {
+        return true;
+    }
+
+    void itemSelectionChanged (bool isNowSelected) override
+    {
+        if (isNowSelected)
+        {
+            directory.sendSelectedFileChanged (file);
+        }
+    }
+
     void itemOpennessChanged (bool isNowOpen) override
     {
         if (isNowOpen)
@@ -37,10 +50,11 @@ public:
         }
         else
         {
+            directory.setMouseOverItem (nullptr);
             clearSubItems();
         }
     }
-    
+
 private:
     bool isMouseOver() const
     {
@@ -64,6 +78,16 @@ DirectoryTree::DirectoryTree()
 
 DirectoryTree::~DirectoryTree()
 {
+}
+
+void DirectoryTree::addListener (Listener* listener)
+{
+    listeners.add (listener);
+}
+
+void DirectoryTree::removeListener (Listener* listener)
+{
+    listeners.remove (listener);
 }
 
 void DirectoryTree::setDirectoryToShow (File directoryToShow)
@@ -99,4 +123,9 @@ void DirectoryTree::setMouseOverItem (TreeViewItem *newMouseOverItem)
     if (mouseOverItem) mouseOverItem->repaintItem();
     if (newMouseOverItem) newMouseOverItem->repaintItem();
     mouseOverItem = newMouseOverItem;
+}
+
+void DirectoryTree::sendSelectedFileChanged (juce::File file)
+{
+    listeners.call (&Listener::selectedFileChanged, this, file);
 }

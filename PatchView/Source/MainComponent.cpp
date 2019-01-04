@@ -144,6 +144,8 @@ private:
 class MetalRenderingSurface : public RenderingSurface
 {
 public:
+
+    //==========================================================================
     MetalRenderingSurface()
     {
         setColorMap (0);
@@ -222,7 +224,7 @@ public:
     }
 
 private:
-
+    //==========================================================================
     metal::Buffer getOrCreateBuffer (const std::vector<simd::float1>& data)
     {
         if (cachedBuffers1.count (&data))
@@ -273,9 +275,6 @@ private:
 //==============================================================================
 MainComponent::MainComponent()
 {
-    FileSystemSerializer ser ("/Users/jzrake/Work/jet-in-cloud/data/chkpt.0000");
-    auto db = patches2d::Database::load (ser);
-    model.content.push_back (std::make_shared<PatchesQuadMeshArtist> (db));
     model.backgroundColour = Colours::darkkhaki;
     model.marginColour = Colours::darkgrey;
 
@@ -283,6 +282,8 @@ MainComponent::MainComponent()
     figure.addListener (this);
     figure.setModel (model);
     figure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+    
+    directoryTree.addListener (this);
 
     addAndMakeVisible (directoryTree);
     addAndMakeVisible (figure);
@@ -361,4 +362,20 @@ void MainComponent::figureViewSetTitle (FigureView*, const String& value)
 {
     model.title = value;
     figure.setModel (model);
+}
+
+
+
+
+//==============================================================================
+void MainComponent::selectedFileChanged (DirectoryTree*, File file)
+{
+    if (FileSystemSerializer::looksLikeDatabase (file))
+    {
+        FileSystemSerializer ser (file);
+        auto db = patches2d::Database::load (ser);
+        model.content.clear();
+        model.content.push_back (std::make_shared<PatchesQuadMeshArtist> (db));
+        figure.setModel (model);
+    }
 }

@@ -7,7 +7,10 @@
 
 
 //==============================================================================
-class MainComponent : public Component, public FigureView::Listener
+class MainComponent
+: public Component
+, public FigureView::Listener
+, public DirectoryTree::Listener
 {
 public:
     //==============================================================================
@@ -21,11 +24,14 @@ public:
     bool keyPressed (const KeyPress& key) override;
 
     //==============================================================================
-    void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) override;
-    void figureViewSetDomain (FigureView* figure, const Rectangle<double>& value) override;
-    void figureViewSetXlabel (FigureView* figure, const String& value) override;
-    void figureViewSetYlabel (FigureView* figure, const String& value) override;
-    void figureViewSetTitle (FigureView* figure, const String& value) override;
+    void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
+    void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
+    void figureViewSetXlabel (FigureView*, const String&) override;
+    void figureViewSetYlabel (FigureView*, const String&) override;
+    void figureViewSetTitle (FigureView*, const String&) override;
+
+    //==============================================================================
+    void selectedFileChanged (DirectoryTree*, File) override;
 
 private:
     //==============================================================================
