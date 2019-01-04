@@ -134,6 +134,10 @@ static NSString* _Nonnull shaderSource = @""
 
 - (void)drawInMTKView:(nonnull MTKView*)view
 {
+    if (NSIsEmptyRect (view.frame))
+    {
+        return;
+    }
     MTLRenderPassDescriptor *renderPassDescriptor = view.currentRenderPassDescriptor;
 
     if (renderPassDescriptor == nil)
@@ -221,8 +225,8 @@ static NSString* _Nonnull shaderSource = @""
 - (void)setScene:(nullable MetalScene*)newScene
 {
     _renderer.scene = newScene;
-    self.view.needsDisplay = true;
-    // [(MTKView*)self.view draw];
+    // self.view.needsDisplay = true;
+    [(MTKView*)self.view draw];
 }
 
 @end

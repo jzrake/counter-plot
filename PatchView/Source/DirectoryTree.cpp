@@ -3,7 +3,7 @@
 
 
 
-//==============================================================================
+//=============================================================================
 class DirectoryTree::Item : public TreeViewItem
 {
 public:
@@ -68,7 +68,7 @@ private:
 
 
 
-//==============================================================================
+//=============================================================================
 DirectoryTree::DirectoryTree()
 {
     tree.setRootItemVisible (true);
@@ -105,7 +105,7 @@ void DirectoryTree::resized()
 
 void DirectoryTree::mouseEnter (const MouseEvent& e)
 {
-    setMouseOverItem (tree.getItemAt (e.position.y));
+    setMouseOverItem (tree.getItemAt (e.position.y - tree.getViewport()->getViewPositionY()));
 }
 
 void DirectoryTree::mouseExit (const MouseEvent& e)
@@ -115,7 +115,7 @@ void DirectoryTree::mouseExit (const MouseEvent& e)
 
 void DirectoryTree::mouseMove (const MouseEvent& e)
 {
-    setMouseOverItem (tree.getItemAt (e.position.y));
+    setMouseOverItem (tree.getItemAt (e.position.y - tree.getViewport()->getViewPositionY()));
 }
 
 void DirectoryTree::setMouseOverItem (TreeViewItem *newMouseOverItem)

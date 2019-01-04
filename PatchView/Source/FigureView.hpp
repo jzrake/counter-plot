@@ -5,21 +5,38 @@
 
 
 
-//==============================================================================
-class ColorbarView : public Component
+//=============================================================================
+class ColourGradientArtist : public PlotArtist
 {
 public:
+    ColourGradientArtist (ScalarMapping model);
+    void paint (Graphics& g, const PlotTransformer& trans) override;
+private:
+    ScalarMapping model;
 };
 
 
 
 
-//==============================================================================
+//=============================================================================
+class LinePlotArtist : public PlotArtist
+{
+public:
+    LinePlotArtist (LinePlotModel model);
+    void paint (Graphics& g, const PlotTransformer& trans) override;
+private:
+    LinePlotModel model;
+};
+
+
+
+
+//=============================================================================
 class FigureView : public Component, private Label::Listener
 {
 public:
 
-    //==========================================================================
+    //=========================================================================
     class Listener
     {
     public:
@@ -31,7 +48,7 @@ public:
         virtual void figureViewSetTitle (FigureView* figure, const String& value) = 0;
     };
 
-    //==========================================================================
+    //=========================================================================
     class PlotArea : public Component, public PlotTransformer
     {
     public:
@@ -42,20 +59,21 @@ public:
         void mouseDrag (const MouseEvent&) override;
         void mouseMagnify (const MouseEvent&, float) override;
 
-        //======================================================================
+        //=====================================================================
         double toDomainX (double x) const override;
         double toDomainY (double y) const override;
         double fromDomainX (double x) const override;
         double fromDomainY (double y) const override;
         std::array<float, 4> getDomain() const override;
+        Rectangle<int> getRange() const override;
 
     private:
-        //======================================================================
+        //=====================================================================
         BorderSize<int> computeMargin() const;
         void sendSetMarginIfNeeded();
         void sendSetDomain (const Rectangle<double>& domain);
 
-        //======================================================================
+        //=====================================================================
         FigureView& figure;
         ComponentBoundsConstrainer constrainer;
         ResizableBorderComponent resizer;
@@ -64,7 +82,7 @@ public:
         friend class FigureView;
     };
 
-    //==========================================================================
+    //=========================================================================
     FigureView();
     void setRenderingSurface (std::unique_ptr<RenderingSurface> surfaceToRenderInto);
     void setModel (const FigureModel&);
@@ -73,7 +91,7 @@ public:
     Rectangle<int> getPlotAreaBounds() const;
     RenderingSurface* getRenderingSurface() { return surface.get(); }
 
-    //==========================================================================
+    //=========================================================================
     void paint (Graphics&) override;
     void paintOverChildren (Graphics&) override;
     void resized() override;
@@ -82,13 +100,13 @@ public:
     void mouseDown (const MouseEvent&) override;
 
 private:
-    //==========================================================================
+    //=========================================================================
     void layout();
     void refreshModes();
     PlotGeometry computeGeometry() const;
     void labelTextChanged (Label* labelThatHasChanged) override;
 
-    //==========================================================================
+    //=========================================================================
     FigureModel model;
     PlotArea plotArea;
     Label xlabel;

@@ -28,6 +28,10 @@
             file="Source/MainComponent.cpp"/>
       <FILE id="XnyaUu" name="MainComponent.hpp" compile="0" resource="0"
             file="Source/MainComponent.hpp"/>
+      <FILE id="BjbHDA" name="MetalSurface.cpp" compile="1" resource="0"
+            file="Source/MetalSurface.cpp"/>
+      <FILE id="iYURxW" name="MetalSurface.hpp" compile="0" resource="0"
+            file="Source/MetalSurface.hpp"/>
       <FILE id="IqGgfM" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="dZDnm4" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
     </GROUP>

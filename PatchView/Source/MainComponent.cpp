@@ -1,69 +1,10 @@
 #include "MainComponent.hpp"
+#include "MetalSurface.hpp"
 
 
 
 
-//==============================================================================
-enum class LineStyle { none, solid, dash, dashdot };
-enum class MarkerStyle { none, circle, square, diamond, plus, cross };
-
-
-
-
-//==============================================================================
-struct LinePlotModel
-{
-    nd::ndarray<double, 1> x;
-    nd::ndarray<double, 1> y;
-    float         lineWidth    = 1.f;
-    float         markerSize   = 1.f;
-    Colour        lineColour   = Colours::black;
-    Colour        markerColour = Colours::black;
-    LineStyle     lineStyle    = LineStyle::solid;
-    MarkerStyle   markerStyle  = MarkerStyle::none;
-};
-
-
-
-
-//==============================================================================
-class LinePlotArtist : public PlotArtist
-{
-public:
-    LinePlotArtist (LinePlotModel model) : model (model)
-    {
-    }
-
-    void paint (Graphics& g, const PlotTransformer& trans) override
-    {
-        jassert (model.x.size() == model.y.size());
-
-        if (model.x.empty())
-        {
-            return;
-        }
-
-        Path p;
-        p.startNewSubPath (trans.fromDomainX (model.x(0)),
-                           trans.fromDomainY (model.y(0)));
-
-        for (int n = 1; n < model.x.size(); ++n)
-        {
-            p.lineTo (trans.fromDomainX (model.x(n)),
-                      trans.fromDomainY (model.y(n)));
-        }
-        g.setColour (model.lineColour);
-        g.strokePath (p, PathStrokeType (model.lineWidth));
-    }
-
-private:
-    LinePlotModel model;
-};
-
-
-
-
-//==============================================================================
+//=============================================================================
 class PatchesQuadMeshArtist : public PlotArtist
 {
 public:
@@ -124,9 +65,16 @@ public:
         vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
     }
 
-    void render (RenderingSurface& surface)
+    void render (RenderingSurface& surface) override
     {
         surface.renderTriangles (triangleVertices, triangleScalars, vmin, vmax);
+    }
+
+    bool isScalarMappable() const override { return true; }
+
+    ScalarMapping getScalarMapping() const override
+    {
+        return { ColourmapHelpers::coloursFromRGBTable (BinaryData::cividis_cmap) };
     }
 
 private:
@@ -140,139 +88,7 @@ private:
 
 
 
-//==============================================================================
-class MetalRenderingSurface : public RenderingSurface
-{
-public:
-
-    //==========================================================================
-    MetalRenderingSurface()
-    {
-        setColorMap (0);
-        setInterceptsMouseClicks (false, false);
-        addAndMakeVisible (metal);
-    }
-
-    void setContent (std::vector<std::shared_ptr<PlotArtist>> artists, const PlotTransformer& trans) override
-    {
-        scene.clear();
-        scene.setDomain (trans.getDomain());
-
-        for (auto artist : artists)
-        {
-            artist->render (*this);
-        }
-        metal.setScene (scene);
-    }
-
-    void renderTriangles (const std::vector<simd::float2>& vertices,
-                          const std::vector<simd::float4>& colors) override
-    {
-        assert(vertices.size() == colors.size());
-        auto node = metal::Node();
-        node.setVertexPositions (getOrCreateBuffer (vertices));
-        node.setVertexColors (getOrCreateBuffer (colors));
-        node.setVertexCount (vertices.size());
-        scene.addNode (node);
-    }
-
-    void renderTriangles (const std::vector<simd::float2>& vertices,
-                          const std::vector<simd::float1>& scalars,
-                          float vmin, float vmax) override
-    {
-        assert(vertices.size() == scalars.size());
-        auto node = metal::Node();
-        node.setVertexPositions (getOrCreateBuffer (vertices));
-        node.setVertexScalars (getOrCreateBuffer (scalars));
-        node.setScalarMapping (colormap);
-        node.setScalarDomain (vmin, vmax);
-        node.setVertexCount (vertices.size());
-        scene.addNode (node);
-    }
-
-    void resized() override
-    {
-        metal.setBounds (getLocalBounds());
-    }
-
-    void nextColorMap()
-    {
-        setColorMap ((colorMapIndex + 1) % 8);
-    }
-
-    void prevColorMap()
-    {
-        setColorMap ((colorMapIndex - 1 + 8) % 8);
-    }
-
-    void setColorMap (int index)
-    {
-        std::vector<uint32> data;
-
-        switch (colorMapIndex = index)
-        {
-            case 0: data = ColormapHelpers::textureFromRGBTable (BinaryData::cividis_cmap); break;
-            case 1: data = ColormapHelpers::textureFromRGBTable (BinaryData::dawn_cmap); break;
-            case 2: data = ColormapHelpers::textureFromRGBTable (BinaryData::fire_cmap); break;
-            case 3: data = ColormapHelpers::textureFromRGBTable (BinaryData::inferno_cmap); break;
-            case 4: data = ColormapHelpers::textureFromRGBTable (BinaryData::magma_cmap); break;
-            case 5: data = ColormapHelpers::textureFromRGBTable (BinaryData::plasma_cmap); break;
-            case 6: data = ColormapHelpers::textureFromRGBTable (BinaryData::seashore_cmap); break;
-            case 7: data = ColormapHelpers::textureFromRGBTable (BinaryData::viridis_cmap); break;
-        }
-        colormap = metal::Device::makeTexture1d (data.data(), data.size());
-    }
-
-private:
-    //==========================================================================
-    metal::Buffer getOrCreateBuffer (const std::vector<simd::float1>& data)
-    {
-        if (cachedBuffers1.count (&data))
-        {
-            return cachedBuffers1.at (&data);
-        }
-        auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float1));
-        cachedBuffers1[&data] = newBuffer;
-        return newBuffer;
-    }
-
-    metal::Buffer getOrCreateBuffer (const std::vector<simd::float2>& data)
-    {
-        if (cachedBuffers2.count (&data))
-        {
-            return cachedBuffers2.at (&data);
-        }
-        auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float2));
-        cachedBuffers2[&data] = newBuffer;
-        return newBuffer;
-    }
-
-    metal::Buffer getOrCreateBuffer (const std::vector<simd::float4>& data)
-    {
-        if (cachedBuffers4.count (&data))
-        {
-            return cachedBuffers4.at (&data);
-        }
-        auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float4));
-        cachedBuffers4[&data] = newBuffer;
-        return newBuffer;
-    }
-
-    std::map<const std::vector<simd::float1>*, metal::Buffer> cachedBuffers1;
-    std::map<const std::vector<simd::float2>*, metal::Buffer> cachedBuffers2;
-    std::map<const std::vector<simd::float4>*, metal::Buffer> cachedBuffers4;
-
-    metal::Texture colormap;
-    metal::Scene scene;
-    metal::MetalComponent metal;
-    
-    int colorMapIndex = 0;
-};
-
-
-
-
-//==============================================================================
+//=============================================================================
 MainComponent::MainComponent()
 {
     model.backgroundColour = Colours::darkkhaki;
@@ -282,10 +98,11 @@ MainComponent::MainComponent()
     figure.addListener (this);
     figure.setModel (model);
     figure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
-    
+
     directoryTree.addListener (this);
 
     addAndMakeVisible (directoryTree);
+    addChildComponent (imageView);
     addAndMakeVisible (figure);
     setSize (1024, 768 - 64);
 }
@@ -308,6 +125,7 @@ void MainComponent::resized()
     auto area = getLocalBounds();
     directoryTree.setBounds (area.removeFromLeft(300));
     figure.setBounds (area);
+    imageView.setBounds (area);
 }
 
 bool MainComponent::keyPressed (const juce::KeyPress &key)
@@ -330,7 +148,7 @@ bool MainComponent::keyPressed (const juce::KeyPress &key)
 
 
 
-//==============================================================================
+//=============================================================================
 void MainComponent::figureViewSetMargin (FigureView*, const BorderSize<int>& value)
 {
     model.margin = value;
@@ -367,7 +185,7 @@ void MainComponent::figureViewSetTitle (FigureView*, const String& value)
 
 
 
-//==============================================================================
+//=============================================================================
 void MainComponent::selectedFileChanged (DirectoryTree*, File file)
 {
     if (FileSystemSerializer::looksLikeDatabase (file))
@@ -377,5 +195,25 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
         model.content.clear();
         model.content.push_back (std::make_shared<PatchesQuadMeshArtist> (db));
         figure.setModel (model);
+
+        figure.setVisible (true);
+        imageView.setVisible (false);
+    }
+    else if (ColourmapHelpers::looksLikeRGBTable (file))
+    {
+        auto cb = ScalarMapping();
+        cb.stops = ColourmapHelpers::coloursFromRGBTable (file.loadFileAsString());
+        model.content.clear();
+        model.content.push_back (std::make_shared<ColourGradientArtist> (cb));
+        figure.setModel (model);
+
+        figure.setVisible (true);
+        imageView.setVisible (false);
+    }
+    else if (auto format = ImageFileFormat::findImageFormatForFileExtension (file))
+    {
+        imageView.setImage (format->loadFrom (file));
+        figure.setVisible (false);
+        imageView.setVisible (true);
     }
 }

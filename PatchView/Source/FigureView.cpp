@@ -3,7 +3,7 @@
 
 
 
-//==========================================================================
+//=============================================================================
 static std::vector<Rectangle<float>> makeRectanglesInColumn (const Rectangle<int>& column,
                                                              const std::vector<float>& midpoints,
                                                              float height)
@@ -53,7 +53,7 @@ public:
 
 
 
-//==========================================================================
+//=============================================================================
 std::vector<Ticker::Tick> Ticker::createTicks (double l0, double l1, int p0, int p1)
 {
     return formatTicks (locateTicks (l0, l1), l0, l1, p0, p1);
@@ -140,7 +140,64 @@ std::vector<float> Ticker::getPixelLocations (const std::vector<Tick>& ticks)
 
 
 
-//==========================================================================
+//=============================================================================
+LinePlotArtist::LinePlotArtist (LinePlotModel model) : model (model)
+{
+}
+
+void LinePlotArtist::paint (Graphics& g, const PlotTransformer& trans)
+{
+    jassert (model.x.size() == model.y.size());
+    
+    if (model.x.empty())
+    {
+        return;
+    }
+    
+    Path p;
+    p.startNewSubPath (trans.fromDomainX (model.x(0)),
+                       trans.fromDomainY (model.y(0)));
+    
+    for (int n = 1; n < model.x.size(); ++n)
+    {
+        p.lineTo (trans.fromDomainX (model.x(n)),
+                  trans.fromDomainY (model.y(n)));
+    }
+    g.setColour (model.lineColour);
+    g.strokePath (p, PathStrokeType (model.lineWidth));
+}
+
+
+
+
+//=============================================================================
+ColourGradientArtist::ColourGradientArtist (ScalarMapping model) : model (model)
+{
+}
+
+void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
+{
+    auto gradient = ColourGradient();
+    auto n = 0;
+    auto ds = 1.0 / (model.stops.size() - 1);
+    auto range = trans.getRange();
+    
+    for (auto c : model.stops)
+    {
+        gradient.addColour (n++ * ds, c);
+    }
+
+    gradient.point1 = range.getBottomLeft().toFloat();
+    gradient.point2 = range.getTopLeft().toFloat();
+
+    g.setGradientFill (gradient);
+    g.fillAll();
+}
+
+
+
+
+//=============================================================================
 FigureView::PlotArea::PlotArea (FigureView& figure)
 : figure (figure)
 , resizer (this, &constrainer)
@@ -163,21 +220,17 @@ void FigureView::PlotArea::paint (Graphics& g)
 
 
     // Draw gridlines
-    // =================================================================
+    // ========================================================================
     g.setColour (figure.model.gridlinesColour);
     for (const auto& tick : xticks) g.drawVerticalLine (tick.pixel, 0, getHeight());
     for (const auto& tick : yticks) g.drawHorizontalLine (tick.pixel, 0, getWidth());
 
 
     // Draw content
-    // =================================================================
+    // ========================================================================
     for (const auto& p : figure.model.content)
     {
         p->paint (g, *this);
-//        if (figure.surface)
-//        {
-//            p->paint (*figure.surface, *this);
-//        }
     }
 }
 
@@ -224,7 +277,7 @@ void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
 
 
 
-//==========================================================================
+//=============================================================================
 BorderSize<int> FigureView::PlotArea::computeMargin() const
 {
     return {getY(), getX(), getParentHeight() - getBottom(), getParentWidth() - getRight()};
@@ -258,6 +311,11 @@ std::array<float, 4> FigureView::PlotArea::getDomain() const
     };
 }
 
+Rectangle<int> FigureView::PlotArea::getRange() const
+{
+    return getLocalBounds();
+}
+
 void FigureView::PlotArea::sendSetMarginIfNeeded()
 {
     auto newMargin = computeMargin();
@@ -276,7 +334,7 @@ void FigureView::PlotArea::sendSetDomain (const Rectangle<double>& domain)
 
 
 
-//==========================================================================
+//=============================================================================
 FigureView::FigureView() : plotArea (*this)
 {
     xlabel.setJustificationType (Justification::centred);
@@ -327,16 +385,17 @@ void FigureView::setRenderingSurface (std::unique_ptr<RenderingSurface> surfaceT
 void FigureView::setModel (const FigureModel& newModel)
 {
     model = newModel;
-    xlabel.setText (model.xlabel, NotificationType::dontSendNotification);
-    ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
-    title .setText (model.title , NotificationType::dontSendNotification);
-    layout();
-    repaint();
 
     if (surface)
     {
         surface->setContent (model.content, plotArea);
     }
+
+    xlabel.setText (model.xlabel, NotificationType::dontSendNotification);
+    ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
+    title .setText (model.title , NotificationType::dontSendNotification);
+    layout();
+    repaint();
 }
 
 void FigureView::addListener (Listener* listener)
@@ -357,7 +416,7 @@ Rectangle<int> FigureView::getPlotAreaBounds() const
 
 
 
-//==========================================================================
+//=============================================================================
 void FigureView::paint (Graphics& g)
 {
     if (paintMarginsAndBackground)
@@ -372,7 +431,7 @@ void FigureView::paintOverChildren (Graphics& g)
 
 
     // Compute tick geometry data
-    // =================================================================
+    // ========================================================================
     auto xticks          = Ticker::createTicks (model.xmin, model.xmax, plotArea.getX(), plotArea.getRight());
     auto yticks          = Ticker::createTicks (model.ymin, model.ymax, plotArea.getBottom(), plotArea.getY());
     auto xtickPixels     = Ticker::getPixelLocations (xticks);
@@ -384,7 +443,7 @@ void FigureView::paintOverChildren (Graphics& g)
 
 
     // Extra geometry fills for debugging geometry
-    // =================================================================
+    // ========================================================================
     if (annotateGeometry)
     {
         g.setColour (Colours::blue.withAlpha (0.3f));
@@ -408,7 +467,7 @@ void FigureView::paintOverChildren (Graphics& g)
 
 
     // Draw the ticks and labels
-    // =================================================================
+    // ========================================================================
     g.setColour (findColour (Label::textColourId));
     g.setFont (Font().withHeight (12));
     for (auto box : xtickBoxes) g.fillRect (box);
@@ -473,7 +532,7 @@ void FigureView::mouseDown (const MouseEvent& e)
 
 
 
-//==============================================================================
+//=============================================================================
 void FigureView::layout()
 {
     auto g = computeGeometry();

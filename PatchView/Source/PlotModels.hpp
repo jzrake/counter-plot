@@ -6,7 +6,10 @@
 
 
 
-//==============================================================================
+//=============================================================================
+enum class LineStyle { none, solid, dash, dashdot };
+enum class MarkerStyle { none, circle, square, diamond, plus, cross };
+
 class RenderingSurface;
 class PlotTransformer;
 class PlotArtist;
@@ -15,7 +18,34 @@ class FigureModel;
 
 
 
-//==============================================================================
+//=============================================================================
+struct LinePlotModel
+{
+    nd::ndarray<double, 1> x;
+    nd::ndarray<double, 1> y;
+    float         lineWidth    = 1.f;
+    float         markerSize   = 1.f;
+    Colour        lineColour   = Colours::black;
+    Colour        markerColour = Colours::black;
+    LineStyle     lineStyle    = LineStyle::solid;
+    MarkerStyle   markerStyle  = MarkerStyle::none;
+};
+
+
+
+
+//=============================================================================
+struct ScalarMapping
+{
+    Array<Colour> stops;
+    float vmin = 0.f;
+    float vmax = 1.f;
+};
+
+
+
+
+//=============================================================================
 class PlotTransformer
 {
 public:
@@ -25,24 +55,27 @@ public:
     virtual double fromDomainX (double x) const = 0;
     virtual double fromDomainY (double y) const = 0;
     virtual std::array<float, 4> getDomain() const = 0;
+    virtual Rectangle<int> getRange() const = 0;
 };
 
 
 
 
-//==============================================================================
+//=============================================================================
 class PlotArtist
 {
 public:
     virtual ~PlotArtist() {}
     virtual void paint (Graphics& g, const PlotTransformer& trans) {}
     virtual void render (RenderingSurface& surface) {}
+    virtual bool isScalarMappable() const { return false; }
+    virtual ScalarMapping getScalarMapping() const { return ScalarMapping(); }
 };
 
 
 
 
-//==============================================================================
+//=============================================================================
 class RenderingSurface : public Component
 {
 public:
@@ -58,7 +91,7 @@ public:
 
 
 
-//==========================================================================
+//=============================================================================
 struct PlotGeometry
 {
     Rectangle<int> marginT;
@@ -74,7 +107,7 @@ struct PlotGeometry
     Rectangle<int> ytickLabelAreaL;
     Rectangle<int> ytickLabelAreaR;
 
-    //==========================================================================
+    //=========================================================================
     static PlotGeometry compute (Rectangle<int> area, BorderSize<int> margin,
                                  float tickLabelWidth, float tickLabelHeight,
                                  float tickLabelPadding, float tickLength);
@@ -87,21 +120,10 @@ struct PlotGeometry
 
 
 
-//==============================================================================
-struct ColorbarModel
-{
-    Array<Colour> stops;
-    String title;
-    float lower = 0.f;
-    float upper = 1.f;
-};
-
-
-
-
-//==============================================================================
+//=============================================================================
 struct FigureModel
 {
+    //=========================================================================
     std::vector<std::shared_ptr<PlotArtist>> content;
     double                  xmin             = 0.0;
     double                  xmax             = 1.0;
@@ -124,21 +146,27 @@ struct FigureModel
     Colour                  backgroundColour = Colours::white;
     Colour                  gridlinesColour  = Colours::lightgrey;
 
-    //==========================================================================
+    //=========================================================================
     Rectangle<double> getDomain() const;
 };
 
 
 
 
-//==============================================================================
+//=============================================================================
 /**
  * This class provides helpers for loading color map data into a format compatible
  * with GPU texture objects with a uint32 RGBA pixel format.
  */
-class ColormapHelpers
+class ColourmapHelpers
 {
 public:
+
+    /**
+     * Return true if the given file is likely an ASCII table of RGB values. This probably
+     * just checks that the file extension is ".cmap".
+     */
+    static bool looksLikeRGBTable (File);
 
     /**
      * Load a sequence of colors a whitespace-seperated ASCII table. The string

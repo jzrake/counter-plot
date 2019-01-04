@@ -4,13 +4,13 @@
 
 
 
-//==============================================================================
+//=============================================================================
 START_JUCE_APPLICATION (PatchViewApplication)
 
 
 
 
-//==============================================================================
+//=============================================================================
 PatchViewApplication::MainWindow::MainWindow (String name) : DocumentWindow (name, Colours::black, DocumentWindow::allButtons)
 {
     content = std::make_unique<MainComponent>();
@@ -35,7 +35,7 @@ void PatchViewApplication::MainWindow::closeButtonPressed()
 
 
 
-//==============================================================================
+//=============================================================================
 PatchViewApplication::MainMenu::MainMenu()
 {
     setApplicationCommandManagerToWatch (&getApp().commandManager);
@@ -61,7 +61,7 @@ void PatchViewApplication::MainMenu::menuItemSelected (int menuItemID, int /*top
 
 
 
-//==============================================================================
+//=============================================================================
 PatchViewApplication& PatchViewApplication::getApp()
 {
     return *dynamic_cast<PatchViewApplication*> (JUCEApplication::getInstance());
@@ -118,7 +118,7 @@ void PatchViewApplication::anotherInstanceStarted (const String& commandLine)
 
 
 
-//==========================================================================
+//=============================================================================
 void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
 {
     JUCEApplication::getAllCommands (commands);
@@ -155,7 +155,7 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
 
 
 
-//==========================================================================
+//=============================================================================
 void PatchViewApplication::configureLookAndFeel()
 {
     auto& laf = Desktop::getInstance().getDefaultLookAndFeel();
