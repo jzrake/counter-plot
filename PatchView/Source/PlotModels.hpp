@@ -85,7 +85,7 @@ public:
                                   const std::vector<simd::float4>& colors) = 0;
     virtual void renderTriangles (const std::vector<simd::float2>& vertices,
                                   const std::vector<simd::float1>& scalars,
-                                  float vmin, float vmax) = 0;
+                                  const ScalarMapping& mapping) = 0;
 };
 
 
@@ -154,16 +154,6 @@ struct FigureModel
 
     //=========================================================================
     Rectangle<double> getDomain() const;
-};
-
-
-
-
-//=============================================================================
-struct PageModel
-{
-    Array<FigureModel> figures;
-    Grid layout;
 };
 
 

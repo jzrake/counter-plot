@@ -104,6 +104,7 @@ void PatchViewApplication::initialise (const String& commandLine)
 
 void PatchViewApplication::shutdown()
 {
+    // Shutdown bug is not related to mac main menu
     mainWindow = nullptr;
     MenuBarModel::setMacMainMenu (nullptr, nullptr);
 }

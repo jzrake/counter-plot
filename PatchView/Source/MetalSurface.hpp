@@ -18,10 +18,7 @@ public:
                           const std::vector<simd::float4>& colors) override;
     void renderTriangles (const std::vector<simd::float2>& vertices,
                           const std::vector<simd::float1>& scalars,
-                          float vmin, float vmax) override;
-    void nextColorMap();
-    void prevColorMap();
-    void setColorMap (int index);
+                          const ScalarMapping& mapping) override;
 
     //=========================================================================
     void resized() override;
@@ -42,5 +39,4 @@ private:
     metal::MetalComponent metal;
 
     int maxBuffersInCache = 3;
-    int colorMapIndex = 0;
 };

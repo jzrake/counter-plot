@@ -6,7 +6,6 @@
 //=============================================================================
 MetalRenderingSurface::MetalRenderingSurface()
 {
-    setColorMap (0);
     setInterceptsMouseClicks (false, false);
     addAndMakeVisible (metal);
 }
@@ -36,44 +35,19 @@ void MetalRenderingSurface::renderTriangles (const std::vector<simd::float2>& ve
 
 void MetalRenderingSurface::renderTriangles (const std::vector<simd::float2>& vertices,
                                              const std::vector<simd::float1>& scalars,
-                                             float vmin, float vmax)
+                                             const ScalarMapping& mapping)
 {
     assert(vertices.size() == scalars.size());
+    auto data = ColourmapHelpers::fromColours (mapping.stops);
+    auto texture = metal::Device::makeTexture1d (data.data(), data.size());
     auto node = metal::Node();
+
     node.setVertexPositions (getOrCreateBuffer (vertices));
     node.setVertexScalars (getOrCreateBuffer (scalars));
-    node.setScalarMapping (colormap);
-    node.setScalarDomain (vmin, vmax);
+    node.setScalarMapping (texture);
+    node.setScalarDomain (mapping.vmin, mapping.vmax);
     node.setVertexCount (vertices.size());
     scene.addNode (node);
-}
-
-void MetalRenderingSurface::nextColorMap()
-{
-    setColorMap ((colorMapIndex + 1) % 8);
-}
-
-void MetalRenderingSurface::prevColorMap()
-{
-    setColorMap ((colorMapIndex - 1 + 8) % 8);
-}
-
-void MetalRenderingSurface::setColorMap (int index)
-{
-    std::vector<uint32> data;
-
-    switch (colorMapIndex = index)
-    {
-        case 0: data = ColourmapHelpers::textureFromRGBTable (BinaryData::cividis_cmap); break;
-        case 1: data = ColourmapHelpers::textureFromRGBTable (BinaryData::dawn_cmap); break;
-        case 2: data = ColourmapHelpers::textureFromRGBTable (BinaryData::fire_cmap); break;
-        case 3: data = ColourmapHelpers::textureFromRGBTable (BinaryData::inferno_cmap); break;
-        case 4: data = ColourmapHelpers::textureFromRGBTable (BinaryData::magma_cmap); break;
-        case 5: data = ColourmapHelpers::textureFromRGBTable (BinaryData::plasma_cmap); break;
-        case 6: data = ColourmapHelpers::textureFromRGBTable (BinaryData::seashore_cmap); break;
-        case 7: data = ColourmapHelpers::textureFromRGBTable (BinaryData::viridis_cmap); break;
-    }
-    colormap = metal::Device::makeTexture1d (data.data(), data.size());
 }
 
 
@@ -127,6 +101,7 @@ metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::
 
 void MetalRenderingSurface::cleanBufferCaches()
 {
+    // Is this causing #shutdownbug no...
     if (cachedBuffers1.size() >= maxBuffersInCache)
     {
         cachedBuffers1.clear();

@@ -257,6 +257,7 @@ void FigureView::PlotArea::mouseDrag (const MouseEvent& e)
 
 void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
 {
+    grabKeyboardFocus();
     const double xlim[2] = {figure.model.xmin, figure.model.xmax};
     const double ylim[2] = {figure.model.ymin, figure.model.ymax};
     const double Dx = getWidth();
@@ -349,8 +350,8 @@ void FigureView::setLookAndFeelDefaults (LookAndFeel& laf, ColourScheme scheme)
         case ColourScheme::dark:
             laf.setColour (marginColourId, Colours::darkgrey);
             laf.setColour (borderColourId, Colours::lightgrey);
-            laf.setColour (backgroundColourId, Colours::darkkhaki);
-            laf.setColour (gridlinesColourId, Colours::lightgrey);
+            laf.setColour (backgroundColourId, Colours::darkslategrey);
+            laf.setColour (gridlinesColourId, Colours::darkslategrey.brighter (0.05f));
             break;
     }
 }
