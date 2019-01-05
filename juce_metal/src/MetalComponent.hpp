@@ -116,7 +116,6 @@ public:
 
 private:
     class Impl;
-    std::unique_ptr<Impl> impl;
     juce::NSViewComponent view;
+    std::unique_ptr<Impl> impl;
 };
-

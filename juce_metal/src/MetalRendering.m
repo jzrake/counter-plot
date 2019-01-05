@@ -283,17 +283,17 @@ static NSString* _Nonnull shaderSource = @""
     return self;
 }
 
-- (void) clear
+- (void)clear
 {
     [_nodes removeAllObjects];
 }
 
-- (void) addNode:(nonnull MetalNode*)node
+- (void)addNode:(nonnull MetalNode *)node
 {
     [_nodes addObject:node];
 }
 
-- (nonnull NSMutableArray<MetalNode*>*) nodes
+- (nonnull NSMutableArray<MetalNode*> *)nodes
 {
     return _nodes;
 }

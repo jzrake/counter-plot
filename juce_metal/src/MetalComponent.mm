@@ -181,6 +181,7 @@ metal::MetalComponent::MetalComponent()
 
 metal::MetalComponent::~MetalComponent()
 {
+    view.setView (nullptr);
 }
 
 void metal::MetalComponent::setScene (metal::Scene sceneToDisplay)
