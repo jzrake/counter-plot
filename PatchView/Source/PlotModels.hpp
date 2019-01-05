@@ -135,6 +135,7 @@ struct FigureModel
     bool                    titleShowing     = true;
     bool                    xlabelShowing    = true;
     bool                    ylabelShowing    = true;
+    bool                    allowUserResize  = true;
     BorderSize<int>         margin           = BorderSize<int> (90, 90, 60, 60);
     float                   borderWidth      = 1.f;
     float                   axesWidth        = 1.f;

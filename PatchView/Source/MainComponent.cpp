@@ -7,30 +7,31 @@
 //=============================================================================
 PageView::PageView()
 {
-    layout.templateRows    = { Grid::TrackInfo (1_fr), Grid::TrackInfo (1_fr) };
-    layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (200_px) };
+    layout.templateRows    = { Grid::TrackInfo (1_fr) };
+    layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (80_px) };
 
     figures.add (new FigureView);
     figures.add (new FigureView);
-    figures.add (new FigureView);
-    figures.add (new FigureView);
+
+    FigureModel mainModel;
+    mainModel.margin.setRight (20);
+    figures[0]->setModel (mainModel);
+    // figures[0]->setRenderingSurface (std::make_unique<MetalRenderingSurface>());
 
     FigureModel colorbarModel;
+    colorbarModel.titleShowing = false;
     colorbarModel.xlabelShowing = false;
     colorbarModel.ylabelShowing = false;
-    colorbarModel.margin.setLeft (30);
+    colorbarModel.margin.setLeft (40);
     colorbarModel.margin.setRight (20);
     colorbarModel.gridlinesColour = Colours::transparentBlack;
     colorbarModel.xtickCount = 0;
+    colorbarModel.allowUserResize = false;
+    colorbarModel.content.push_back (std::make_shared<ColourGradientArtist> (ScalarMapping { ColourmapHelpers::coloursFromRGBTable (BinaryData::cividis_cmap) }));
     figures[1]->setModel (colorbarModel);
-
-    FigureModel mainModel;
-    mainModel.xtickCount = 0;
-    figures[0]->setModel (mainModel);
 
     for (const auto& figure : figures)
     {
-        // figure->setRenderingSurface (std::make_unique<MetalRenderingSurface>());
         figure->addListener (this);
         addAndMakeVisible (figure);
         layout.items.add (figure->getGridItem());

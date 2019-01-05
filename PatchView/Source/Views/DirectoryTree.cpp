@@ -1,4 +1,5 @@
 #include "DirectoryTree.hpp"
+#include "LookAndFeel.hpp"
 
 
 
@@ -14,7 +15,14 @@ public:
 
     void paintItem (Graphics& g, int width, int height) override
     {
-        g.setColour (isMouseOver() ? Colours::white : Colours::lightgrey);
+        Colour textColour;
+
+        if (file.isDirectory())    textColour = getOwnerView()->findColour (LookAndFeelHelpers::textColour0);
+        if (file.existsAsFile())   textColour = getOwnerView()->findColour (LookAndFeelHelpers::textColour1);
+        if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (LookAndFeelHelpers::textColour2);
+
+        g.setColour (isMouseOver() ? textColour.brighter (0.8f) : textColour);
+        g.setFont (isMouseOver() ? Font().withStyle (Font::underlined) : Font());
         g.drawText (file.getFileName(), 0, 0, width, height, Justification::centredLeft);
     }
 

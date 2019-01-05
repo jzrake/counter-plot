@@ -7,6 +7,8 @@
             file="Source/Views/DirectoryTree.cpp"/>
       <FILE id="SNzB4o" name="DirectoryTree.hpp" compile="0" resource="0"
             file="Source/Views/DirectoryTree.hpp"/>
+      <FILE id="MBpGoc" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/Views/LookAndFeel.cpp"/>
+      <FILE id="e3UJAs" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Views/LookAndFeel.hpp"/>
       <FILE id="tvvdLn" name="VariantView.cpp" compile="1" resource="0" file="Source/Views/VariantView.cpp"/>
       <FILE id="vC31Xm" name="VariantView.hpp" compile="0" resource="0" file="Source/Views/VariantView.hpp"/>
     </GROUP>

@@ -37,10 +37,10 @@ class FigureView : public Component, private Label::Listener
 public:
     enum ColourIds
     {
-        marginColourId     = 0x11647201,
-        borderColourId     = 0x11647202,
-        backgroundColourId = 0x11647203,
-        gridlinesColourId  = 0x11647204,
+        marginColourId     = 0x0771201,
+        borderColourId     = 0x0771202,
+        backgroundColourId = 0x0771203,
+        gridlinesColourId  = 0x0771204,
     };
 
     enum class ColourScheme
@@ -119,7 +119,7 @@ public:
 private:
     //=========================================================================
     void layout();
-    void refreshModes();
+    void refreshModes (bool alsoRepaint=true);
     PlotGeometry computeGeometry() const;
     void labelTextChanged (Label* labelThatHasChanged) override;
 

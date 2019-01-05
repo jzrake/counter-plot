@@ -203,7 +203,7 @@ FigureView::PlotArea::PlotArea (FigureView& figure)
 , resizer (this, &constrainer)
 {
     constrainer.setMinimumOnscreenAmounts (0xffffff, 0xffffff, 0xffffff, 0xffffff);
-    constrainer.setMinimumSize (100, 100);
+    constrainer.setMinimumSize (16, 16);
     addChildComponent (resizer);
 }
 
@@ -394,8 +394,6 @@ FigureView::FigureView() : plotArea (*this)
     gridItem.associatedComponent = this;
 
     setModel (model);
-    refreshModes();
-
     addAndMakeVisible (plotArea);
     addAndMakeVisible (title);
     addAndMakeVisible (xlabel);
@@ -425,15 +423,13 @@ void FigureView::setModel (const FigureModel& newModel)
     {
         surface->setContent (model.content, plotArea);
     }
-    setComponentColours (*this, model);
 
     xlabel.setText (model.xlabel, NotificationType::dontSendNotification);
     ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
     title .setText (model.title , NotificationType::dontSendNotification);
-    xlabel.setVisible (model.xlabelShowing);
-    ylabel.setVisible (model.ylabelShowing);
-    title .setVisible (model.titleShowing);
 
+    setComponentColours (*this, model);
+    refreshModes (false);
     layout();
     repaint();
 }
@@ -586,13 +582,17 @@ void FigureView::layout()
     }
 }
 
-void FigureView::refreshModes()
+void FigureView::refreshModes (bool alsoRepaint)
 {
-    plotArea.resizer.setVisible (allowPlotAreaResize);
-    xlabel.setVisible (paintAxisLabels);
-    ylabel.setVisible (paintAxisLabels);
-    title .setVisible (paintAxisLabels);
-    repaint();
+    plotArea.resizer.setVisible (model.allowUserResize && allowPlotAreaResize);
+    xlabel.setVisible (model.xlabelShowing && paintAxisLabels);
+    ylabel.setVisible (model.ylabelShowing && paintAxisLabels);
+    title .setVisible (model.titleShowing  && paintAxisLabels);
+
+    if (alsoRepaint)
+    {
+        repaint();
+    }
 }
 
 PlotGeometry FigureView::computeGeometry() const

@@ -1,6 +1,7 @@
 #include "Main.hpp"
 #include "MainComponent.hpp"
 #include "FigureView.hpp"
+#include "Views/LookAndFeel.hpp"
 
 
 
@@ -103,8 +104,8 @@ void PatchViewApplication::initialise (const String& commandLine)
 
 void PatchViewApplication::shutdown()
 {
-    MenuBarModel::setMacMainMenu (nullptr, nullptr);
     mainWindow = nullptr;
+    MenuBarModel::setMacMainMenu (nullptr, nullptr);
 }
 
 void PatchViewApplication::systemRequestedQuit()
@@ -176,7 +177,9 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
     laf.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);
     laf.setColour (TreeView::linesColourId, Colours::red);
-    FigureView::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
+
+    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels2);
+    FigureView        ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
 }
 
 bool PatchViewApplication::presentOpenDirectoryDialog()
