@@ -103,8 +103,10 @@ public:
     void setModel (const FigureModel&);
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
-    Rectangle<int> getPlotAreaBounds() const;
+    const FigureModel& getModel() const { return model; }
+    Rectangle<int> getPlotAreaBounds() const { return plotArea.getBounds(); }
     RenderingSurface* getRenderingSurface() { return surface.get(); }
+    GridItem& getGridItem() { return gridItem; }
 
     //=========================================================================
     void paint (Graphics&) override;
@@ -127,7 +129,7 @@ private:
     Label xlabel;
     Label ylabel;
     Label title;
-
+    GridItem gridItem;
     std::unique_ptr<RenderingSurface> surface;
     ListenerList<Listener> listeners;
     bool annotateGeometry = false;

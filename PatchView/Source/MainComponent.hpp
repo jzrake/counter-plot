@@ -8,13 +8,30 @@
 
 
 //=============================================================================
-class PageView : public Component
+class PageView : public Component, public FigureView::Listener
 {
 public:
+
+    //=========================================================================
     PageView();
+
+    //=========================================================================
     void resized() override;
+
+    //=========================================================================
+    void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
+    void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
+    void figureViewSetXlabel (FigureView*, const String&) override;
+    void figureViewSetYlabel (FigureView*, const String&) override;
+    void figureViewSetTitle (FigureView*, const String&) override;
+
 private:
-    std::vector<std::unique_ptr<FigureView>> figures;
+    void mutateFigure (FigureView* eventFigure, std::function<void(FigureModel&)> mutation);
+    void mutateFiguresInRow (FigureView* eventFigure, std::function<void(FigureModel&)> mutation);
+    void mutateFiguresInCol (FigureView* eventFigure, std::function<void(FigureModel&)> mutation);
+
+    Grid layout;
+    OwnedArray<FigureView> figures;
 };
 
 

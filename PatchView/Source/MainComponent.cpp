@@ -7,31 +7,139 @@
 //=============================================================================
 PageView::PageView()
 {
-    figures.push_back (std::make_unique<FigureView>());
-    figures.push_back (std::make_unique<FigureView>());
-    figures.push_back (std::make_unique<FigureView>());
-    figures.push_back (std::make_unique<FigureView>());
+    layout.templateRows    = { Grid::TrackInfo (1_fr), Grid::TrackInfo (1_fr) };
+    layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (200_px) };
+
+    figures.add (new FigureView);
+    figures.add (new FigureView);
+    figures.add (new FigureView);
+    figures.add (new FigureView);
+
+    FigureModel colorbarModel;
+    colorbarModel.xlabelShowing = false;
+    colorbarModel.ylabelShowing = false;
+    colorbarModel.margin.setLeft (30);
+    colorbarModel.margin.setRight (20);
+    colorbarModel.gridlinesColour = Colours::transparentBlack;
+    colorbarModel.xtickCount = 0;
+    figures[1]->setModel (colorbarModel);
+
+    FigureModel mainModel;
+    mainModel.xtickCount = 0;
+    figures[0]->setModel (mainModel);
 
     for (const auto& figure : figures)
     {
-        addAndMakeVisible (figure.get());
+        // figure->setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+        figure->addListener (this);
+        addAndMakeVisible (figure);
+        layout.items.add (figure->getGridItem());
     }
 }
 
 void PageView::resized()
 {
-    using Track = Grid::TrackInfo;
-    Grid layout;
-    layout.templateRows    = { Track (1_fr), Track (1_fr) };
-    layout.templateColumns = { Track (2_fr), Track (200_px) };
-
-    for (const auto& figure : figures)
-    {
-        GridItem item;
-        item.associatedComponent = figure.get();
-        layout.items.add (item);
-    }
     layout.performLayout (getLocalBounds());
+}
+
+
+
+
+//=============================================================================
+void PageView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& value)
+{
+    mutateFigure (figure, [value] (FigureModel& model)
+    {
+        model.margin = value;
+    });
+
+    mutateFiguresInRow (figure, [value] (FigureModel& model)
+    {
+        model.margin.setTop (value.getTop());
+        model.margin.setBottom (value.getBottom());
+    });
+
+    mutateFiguresInCol (figure, [value] (FigureModel& model)
+    {
+        model.margin.setLeft (value.getLeft());
+        model.margin.setRight (value.getRight());
+    });
+}
+
+void PageView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& value)
+{
+    mutateFigure (figure, [value] (FigureModel& model)
+    {
+        model.xmin = value.getX();
+        model.xmax = value.getRight();
+        model.ymin = value.getY();
+        model.ymax = value.getBottom();
+    });
+}
+
+void PageView::figureViewSetXlabel (FigureView* figure, const String& value)
+{
+    mutateFigure (figure, [value] (FigureModel& model)
+    {
+        model.xlabel = value;
+    });
+}
+
+void PageView::figureViewSetYlabel (FigureView* figure, const String& value)
+{
+    mutateFigure (figure, [value] (FigureModel& model)
+    {
+        model.ylabel = value;
+    });
+}
+
+void PageView::figureViewSetTitle (FigureView* figure, const String& value)
+{
+    mutateFigure (figure, [value] (FigureModel& model)
+    {
+        model.title = value;
+    });
+}
+
+void PageView::mutateFigure (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
+{
+    auto m = eventFigure->getModel();
+    mutation (m);
+    eventFigure->setModel (m);
+}
+
+void PageView::mutateFiguresInRow (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
+{
+    int sourceRow = figures.indexOf (eventFigure) / 2;
+    int n = 0;
+
+    for (const auto& f : figures)
+    {
+        if (n / 2 == sourceRow)
+        {
+            auto m = f->getModel();
+            mutation (m);
+            f->setModel (m);
+        }
+        ++n;
+    }
+}
+
+void PageView::mutateFiguresInCol (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
+{
+    int sourceCol = figures.indexOf (eventFigure) % 2;
+    int n = 0;
+
+    for (const auto& f : figures)
+    {
+        if (n % 2 == sourceCol)
+        {
+            auto m = f->getModel();
+            mutation (m);
+            f->setModel (m);
+        }
+        ++n;
+    }
 }
 
 
@@ -127,7 +235,9 @@ MainComponent::MainComponent()
     directoryTree.setDirectoryToShow (File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory));
     figure.addListener (this);
     figure.setModel (model);
-    figure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+
+    // NOTE: disabling hardware rendering to investigate shutdown bug
+    // figure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
 
     directoryTree.addListener (this);
 

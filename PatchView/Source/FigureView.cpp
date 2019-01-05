@@ -43,10 +43,10 @@ public:
         float pixel  = 0.f;      /**< position in pixels on axes content */
         std::string label;
     };
-    static std::vector<Tick> createTicks (double l0, double l1, int p0, int p1);
+    static std::vector<Tick> createTicks (double l0, double l1, int p0, int p1, int targetTickCount);
     static std::vector<Tick> formatTicks (const std::vector<double>& locations, double l0, double l1, int p0, int p1);
-    static std::vector<double> locateTicksLog (double l0, double l1);
-    static std::vector<double> locateTicks (double l0, double l1);
+    static std::vector<double> locateTicksLog (double l0, double l1, int targetTickCount);
+    static std::vector<double> locateTicks (double l0, double l1, int targetTickCount);
     static std::vector<float> getPixelLocations (const std::vector<Tick>& ticks);
 };
 
@@ -54,9 +54,9 @@ public:
 
 
 //=============================================================================
-std::vector<Ticker::Tick> Ticker::createTicks (double l0, double l1, int p0, int p1)
+std::vector<Ticker::Tick> Ticker::createTicks (double l0, double l1, int p0, int p1, int targetTickCount)
 {
-    return formatTicks (locateTicks (l0, l1), l0, l1, p0, p1);
+    return formatTicks (locateTicks (l0, l1, targetTickCount), l0, l1, p0, p1);
 }
 
 std::vector<Ticker::Tick> Ticker::formatTicks (const std::vector<double>& locations,
@@ -88,9 +88,9 @@ std::vector<Ticker::Tick> Ticker::formatTicks (const std::vector<double>& locati
     return ticks;
 }
 
-std::vector<double> Ticker::locateTicksLog (double l0, double l1)
+std::vector<double> Ticker::locateTicksLog (double l0, double l1, int targetTickCount)
 {
-    auto N0 = 8;
+    auto N0 = targetTickCount;
     auto x0 = std::floor (std::min (l0, l1));
     auto x1 = std::ceil  (std::max (l0, l1));
     auto decskip = 1 + (x1 - x0) / N0;
@@ -104,9 +104,9 @@ std::vector<double> Ticker::locateTicksLog (double l0, double l1)
     return loc;
 }
 
-std::vector<double> Ticker::locateTicks (double l0, double l1)
+std::vector<double> Ticker::locateTicks (double l0, double l1, int targetTickCount)
 {
-    auto N0 = 10;
+    auto N0 = targetTickCount;
     auto x0 = std::min (l0, l1);
     auto x1 = std::max (l0, l1);
     auto dx = std::pow (10, -1 + std::floor (std::log10 (x1 - x0) + 1e-8));
@@ -214,9 +214,9 @@ void FigureView::PlotArea::paint (Graphics& g)
         g.fillAll (figure.findColour (backgroundColourId));
     }
 
-
-    auto xticks = Ticker::createTicks (figure.model.xmin, figure.model.xmax, 0, getWidth());
-    auto yticks = Ticker::createTicks (figure.model.ymin, figure.model.ymax, getHeight(), 0);
+    const auto& m = figure.model;
+    auto xticks = Ticker::createTicks (m.xmin, m.xmax, 0, getWidth(),  m.xtickCount);
+    auto yticks = Ticker::createTicks (m.ymin, m.ymax, getHeight(), 0, m.ytickCount);
 
 
     // Draw gridlines
@@ -391,6 +391,7 @@ FigureView::FigureView() : plotArea (*this)
 
     // So that we get popup menu clicks
     plotArea.addMouseListener (this, false);
+    gridItem.associatedComponent = this;
 
     setModel (model);
     refreshModes();
@@ -447,11 +448,6 @@ void FigureView::removeListener (Listener* listener)
     listeners.remove (listener);
 }
 
-Rectangle<int> FigureView::getPlotAreaBounds() const
-{
-    return plotArea.getBounds();
-}
-
 
 
 
@@ -471,8 +467,8 @@ void FigureView::paintOverChildren (Graphics& g)
 
     // Compute tick geometry data
     // ========================================================================
-    auto xticks          = Ticker::createTicks (model.xmin, model.xmax, plotArea.getX(), plotArea.getRight());
-    auto yticks          = Ticker::createTicks (model.ymin, model.ymax, plotArea.getBottom(), plotArea.getY());
+    auto xticks          = Ticker::createTicks (model.xmin, model.xmax, plotArea.getX(), plotArea.getRight(),  model.xtickCount);
+    auto yticks          = Ticker::createTicks (model.ymin, model.ymax, plotArea.getBottom(), plotArea.getY(), model.ytickCount);
     auto xtickPixels     = Ticker::getPixelLocations (xticks);
     auto ytickPixels     = Ticker::getPixelLocations (yticks);
     auto xtickLabelBoxes = makeRectanglesInRow    (geom.xtickLabelAreaB, xtickPixels, model.tickLabelWidth);
