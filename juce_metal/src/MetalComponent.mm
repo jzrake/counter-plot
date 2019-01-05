@@ -181,6 +181,7 @@ metal::MetalComponent::MetalComponent()
 
 metal::MetalComponent::~MetalComponent()
 {
+    impl->controller.scene = nil;
     view.setView (nullptr);
 }
 

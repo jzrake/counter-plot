@@ -134,7 +134,7 @@ static NSString* _Nonnull shaderSource = @""
 
 - (void)drawInMTKView:(nonnull MTKView*)view
 {
-    if (NSIsEmptyRect (view.frame))
+    if (_scene == nil || NSIsEmptyRect (view.frame))
     {
         return;
     }
