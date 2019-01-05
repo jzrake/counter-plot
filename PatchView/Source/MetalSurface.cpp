@@ -96,6 +96,7 @@ metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::
         return cachedBuffers1.at (&data);
     }
     auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float1));
+    cleanBufferCaches();
     cachedBuffers1[&data] = newBuffer;
     return newBuffer;
 }
@@ -107,6 +108,7 @@ metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::
         return cachedBuffers2.at (&data);
     }
     auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float2));
+    cleanBufferCaches();
     cachedBuffers2[&data] = newBuffer;
     return newBuffer;
 }
@@ -118,6 +120,23 @@ metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::
         return cachedBuffers4.at (&data);
     }
     auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float4));
+    cleanBufferCaches();
     cachedBuffers4[&data] = newBuffer;
     return newBuffer;
+}
+
+void MetalRenderingSurface::cleanBufferCaches()
+{
+    if (cachedBuffers1.size() >= maxBuffersInCache)
+    {
+        cachedBuffers1.clear();
+    }
+    if (cachedBuffers2.size() >= maxBuffersInCache)
+    {
+        cachedBuffers2.clear();
+    }
+    if (cachedBuffers4.size() >= maxBuffersInCache)
+    {
+        cachedBuffers4.clear();
+    }
 }
