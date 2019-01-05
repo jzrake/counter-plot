@@ -2,6 +2,14 @@
 
 <JUCERPROJECT id="SNyzUC" name="PatchView" projectType="guiapp" jucerVersion="5.4.1">
   <MAINGROUP id="Iv1B3G" name="PatchView">
+    <GROUP id="{6EA5EAB6-53AF-3CB0-E496-7A5E1E6015C9}" name="Views">
+      <FILE id="Oy1lsd" name="DirectoryTree.cpp" compile="1" resource="0"
+            file="Source/Views/DirectoryTree.cpp"/>
+      <FILE id="SNzB4o" name="DirectoryTree.hpp" compile="0" resource="0"
+            file="Source/Views/DirectoryTree.hpp"/>
+      <FILE id="tvvdLn" name="VariantView.cpp" compile="1" resource="0" file="Source/Views/VariantView.cpp"/>
+      <FILE id="vC31Xm" name="VariantView.hpp" compile="0" resource="0" file="Source/Views/VariantView.hpp"/>
+    </GROUP>
     <GROUP id="{20D2690F-9E07-C6A9-1EA6-2EF9B1D6C816}" name="Resources">
       <FILE id="snk8h0" name="cividis.cmap" compile="0" resource="1" file="../Resources/cividis.cmap"/>
       <FILE id="q3gzrE" name="dawn.cmap" compile="0" resource="1" file="../resources/dawn.cmap"/>
@@ -16,10 +24,6 @@
       <FILE id="RmYUmP" name="Shader.metal" compile="1" resource="0" file="../juce_metal/src/Shader.metal"/>
     </GROUP>
     <GROUP id="{383CB217-B9DF-75A7-732C-A29573B05904}" name="Source">
-      <FILE id="ObubCE" name="DirectoryTree.cpp" compile="1" resource="0"
-            file="Source/DirectoryTree.cpp"/>
-      <FILE id="sUX2sY" name="DirectoryTree.hpp" compile="0" resource="0"
-            file="Source/DirectoryTree.hpp"/>
       <FILE id="DyI3dW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
       <FILE id="CEylr8" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="L4fFDD" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>

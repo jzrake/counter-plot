@@ -1,7 +1,21 @@
 #pragma once
 #include "JuceHeader.h"
 #include "FigureView.hpp"
-#include "DirectoryTree.hpp"
+#include "Views/DirectoryTree.hpp"
+#include "Views/VariantView.hpp"
+
+
+
+
+//=============================================================================
+class PageView : public Component
+{
+public:
+    PageView();
+    void resized() override;
+private:
+    std::vector<std::unique_ptr<FigureView>> figures;
+};
 
 
 
@@ -35,9 +49,12 @@ public:
 
 private:
     //=========================================================================
-    FigureView figure;
     FigureModel model;
+
+    FigureView figure;
     ImageComponent imageView;
+    VariantView variantView;
+    PageView page;
 
     DirectoryTree directoryTree;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

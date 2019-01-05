@@ -96,6 +96,7 @@ void DirectoryTree::setDirectoryToShow (File directoryToShow)
     tree.setRootItem (nullptr);
     root = std::make_unique<Item> (*this, currentDirectory = directoryToShow);
     tree.setRootItem (root.get());
+    root->setOpen (true);
 }
 
 void DirectoryTree::resized()

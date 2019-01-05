@@ -35,17 +35,32 @@ private:
 class FigureView : public Component, private Label::Listener
 {
 public:
+    enum ColourIds
+    {
+        marginColourId     = 0x11647201,
+        borderColourId     = 0x11647202,
+        backgroundColourId = 0x11647203,
+        gridlinesColourId  = 0x11647204,
+    };
+
+    enum class ColourScheme
+    {
+        dark, light
+    };
+
+    static void setLookAndFeelDefaults (LookAndFeel&, ColourScheme scheme);
+    static void setComponentColours (Component&, const FigureModel& model);
 
     //=========================================================================
     class Listener
     {
     public:
         virtual ~Listener() {}
-        virtual void figureViewSetMargin (FigureView* figure, const BorderSize<int>& value) = 0;
-        virtual void figureViewSetDomain (FigureView* figure, const Rectangle<double>& value) = 0;
-        virtual void figureViewSetXlabel (FigureView* figure, const String& value) = 0;
-        virtual void figureViewSetYlabel (FigureView* figure, const String& value) = 0;
-        virtual void figureViewSetTitle (FigureView* figure, const String& value) = 0;
+        virtual void figureViewSetMargin (FigureView*, const BorderSize<int>&) = 0;
+        virtual void figureViewSetDomain (FigureView*, const Rectangle<double>&) = 0;
+        virtual void figureViewSetXlabel (FigureView*, const String&) = 0;
+        virtual void figureViewSetYlabel (FigureView*, const String&) = 0;
+        virtual void figureViewSetTitle  (FigureView*, const String&) = 0;
     };
 
     //=========================================================================

@@ -132,6 +132,9 @@ struct FigureModel
     String                  title            = "Figure";
     String                  xlabel           = "X Axis";
     String                  ylabel           = "Y Axis";
+    bool                    titleShowing     = true;
+    bool                    xlabelShowing    = true;
+    bool                    ylabelShowing    = true;
     BorderSize<int>         margin           = BorderSize<int> (90, 90, 60, 60);
     float                   borderWidth      = 1.f;
     float                   axesWidth        = 1.f;
@@ -141,13 +144,25 @@ struct FigureModel
     float                   tickLabelPadding = 4.f;
     float                   tickLabelWidth   = 40.f;
     float                   tickLabelHeight  = 20.f;
-    Colour                  marginColour     = Colours::whitesmoke;
-    Colour                  borderColour     = Colours::black;
-    Colour                  backgroundColour = Colours::white;
-    Colour                  gridlinesColour  = Colours::lightgrey;
+    int                     xtickCount       = 10;
+    int                     ytickCount       = 10;
+    Colour                  marginColour     = Colours::transparentWhite; /**< Default to LAF value if (1,1,1,0). */
+    Colour                  borderColour     = Colours::transparentWhite;
+    Colour                  backgroundColour = Colours::transparentWhite;
+    Colour                  gridlinesColour  = Colours::transparentWhite;
 
     //=========================================================================
     Rectangle<double> getDomain() const;
+};
+
+
+
+
+//=============================================================================
+struct PageModel
+{
+    Array<FigureModel> figures;
+    Grid layout;
 };
 
 

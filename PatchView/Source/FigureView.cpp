@@ -211,7 +211,7 @@ void FigureView::PlotArea::paint (Graphics& g)
 {
     if (figure.paintMarginsAndBackground)
     {
-        g.fillAll (figure.model.backgroundColour);
+        g.fillAll (figure.findColour (backgroundColourId));
     }
 
 
@@ -221,7 +221,7 @@ void FigureView::PlotArea::paint (Graphics& g)
 
     // Draw gridlines
     // ========================================================================
-    g.setColour (figure.model.gridlinesColour);
+    g.setColour (figure.findColour (gridlinesColourId));
     for (const auto& tick : xticks) g.drawVerticalLine (tick.pixel, 0, getHeight());
     for (const auto& tick : yticks) g.drawHorizontalLine (tick.pixel, 0, getWidth());
 
@@ -306,8 +306,8 @@ double FigureView::PlotArea::toDomainY (double y) const
 std::array<float, 4> FigureView::PlotArea::getDomain() const
 {
     return {
-        float(figure.model.xmin), float(figure.model.xmax),
-        float(figure.model.ymin), float(figure.model.ymax)
+        float (figure.model.xmin), float (figure.model.xmax),
+        float (figure.model.ymin), float (figure.model.ymax)
     };
 }
 
@@ -329,6 +329,40 @@ void FigureView::PlotArea::sendSetMarginIfNeeded()
 void FigureView::PlotArea::sendSetDomain (const Rectangle<double>& domain)
 {
     figure.listeners.call (&Listener::figureViewSetDomain, &figure, domain);
+}
+
+
+
+
+//=============================================================================
+void FigureView::setLookAndFeelDefaults (LookAndFeel& laf, ColourScheme scheme)
+{
+    switch (scheme)
+    {
+        case ColourScheme::light:
+            laf.setColour (marginColourId, Colours::whitesmoke);
+            laf.setColour (borderColourId, Colours::black);
+            laf.setColour (backgroundColourId, Colours::white);
+            laf.setColour (gridlinesColourId, Colours::lightgrey);
+            break;
+
+        case ColourScheme::dark:
+            laf.setColour (marginColourId, Colours::darkgrey);
+            laf.setColour (borderColourId, Colours::lightgrey);
+            laf.setColour (backgroundColourId, Colours::darkkhaki);
+            laf.setColour (gridlinesColourId, Colours::lightgrey);
+            break;
+    }
+}
+
+void FigureView::setComponentColours (Component& t, const FigureModel& m)
+{
+    auto w = Colours::transparentWhite;
+
+    if (m.marginColour     != w) t.setColour (marginColourId,     m.marginColour);     else t.removeColour (marginColourId);
+    if (m.borderColour     != w) t.setColour (borderColourId,     m.borderColour);     else t.removeColour (borderColourId);
+    if (m.backgroundColour != w) t.setColour (backgroundColourId, m.backgroundColour); else t.removeColour (backgroundColourId);
+    if (m.gridlinesColour  != w) t.setColour (gridlinesColourId,  m.gridlinesColour);  else t.removeColour (gridlinesColourId);
 }
 
 
@@ -390,10 +424,15 @@ void FigureView::setModel (const FigureModel& newModel)
     {
         surface->setContent (model.content, plotArea);
     }
+    setComponentColours (*this, model);
 
     xlabel.setText (model.xlabel, NotificationType::dontSendNotification);
     ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
     title .setText (model.title , NotificationType::dontSendNotification);
+    xlabel.setVisible (model.xlabelShowing);
+    ylabel.setVisible (model.ylabelShowing);
+    title .setVisible (model.titleShowing);
+
     layout();
     repaint();
 }
@@ -421,7 +460,7 @@ void FigureView::paint (Graphics& g)
 {
     if (paintMarginsAndBackground)
     {
-        g.fillAll (model.marginColour);
+        g.fillAll (findColour (marginColourId));
     }
 }
 
@@ -490,7 +529,7 @@ void FigureView::mouseEnter (const MouseEvent& e)
     if (e.originalComponent == &xlabel ||
         e.originalComponent == &ylabel ||
         e.originalComponent == &title)
-        e.originalComponent->setColour (Label::backgroundColourId, model.marginColour.darker (0.1f));
+        e.originalComponent->setColour (Label::backgroundColourId, findColour (marginColourId).darker (0.1f));
 }
 
 void FigureView::mouseExit (const MouseEvent& e)

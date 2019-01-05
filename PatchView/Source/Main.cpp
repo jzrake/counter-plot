@@ -1,5 +1,6 @@
 #include "Main.hpp"
 #include "MainComponent.hpp"
+#include "FigureView.hpp"
 
 
 
@@ -175,6 +176,7 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
     laf.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);
     laf.setColour (TreeView::linesColourId, Colours::red);
+    FigureView::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
 }
 
 bool PatchViewApplication::presentOpenDirectoryDialog()

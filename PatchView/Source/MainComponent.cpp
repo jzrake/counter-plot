@@ -5,6 +5,39 @@
 
 
 //=============================================================================
+PageView::PageView()
+{
+    figures.push_back (std::make_unique<FigureView>());
+    figures.push_back (std::make_unique<FigureView>());
+    figures.push_back (std::make_unique<FigureView>());
+    figures.push_back (std::make_unique<FigureView>());
+
+    for (const auto& figure : figures)
+    {
+        addAndMakeVisible (figure.get());
+    }
+}
+
+void PageView::resized()
+{
+    using Track = Grid::TrackInfo;
+    Grid layout;
+    layout.templateRows    = { Track (1_fr), Track (1_fr) };
+    layout.templateColumns = { Track (2_fr), Track (200_px) };
+
+    for (const auto& figure : figures)
+    {
+        GridItem item;
+        item.associatedComponent = figure.get();
+        layout.items.add (item);
+    }
+    layout.performLayout (getLocalBounds());
+}
+
+
+
+
+//=============================================================================
 class PatchesQuadMeshArtist : public PlotArtist
 {
 public:
@@ -91,9 +124,6 @@ private:
 //=============================================================================
 MainComponent::MainComponent()
 {
-    model.backgroundColour = Colours::darkkhaki;
-    model.marginColour = Colours::darkgrey;
-
     directoryTree.setDirectoryToShow (File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory));
     figure.addListener (this);
     figure.setModel (model);
@@ -102,8 +132,10 @@ MainComponent::MainComponent()
     directoryTree.addListener (this);
 
     addAndMakeVisible (directoryTree);
+    addChildComponent (figure);
     addChildComponent (imageView);
-    addAndMakeVisible (figure);
+    addChildComponent (variantView);
+    addAndMakeVisible (page);
     setSize (1024, 768 - 64);
 }
 
@@ -124,8 +156,11 @@ void MainComponent::resized()
 {
     auto area = getLocalBounds();
     directoryTree.setBounds (area.removeFromLeft(300));
+
     figure.setBounds (area);
     imageView.setBounds (area);
+    variantView.setBounds (area);
+    page.setBounds (area);
 }
 
 bool MainComponent::keyPressed (const juce::KeyPress &key)
@@ -198,6 +233,8 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
 
         figure.setVisible (true);
         imageView.setVisible (false);
+        variantView.setVisible (false);
+        page.setVisible (false);
     }
     else if (ColourmapHelpers::looksLikeRGBTable (file))
     {
@@ -209,11 +246,25 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
 
         figure.setVisible (true);
         imageView.setVisible (false);
+        variantView.setVisible (false);
+        page.setVisible (false);
     }
     else if (auto format = ImageFileFormat::findImageFormatForFileExtension (file))
     {
         imageView.setImage (format->loadFrom (file));
+
         figure.setVisible (false);
         imageView.setVisible (true);
+        variantView.setVisible (false);
+        page.setVisible (false);
+    }
+    else if (file.hasFileExtension (".json"))
+    {
+        variantView.setData (JSON::parse (file));
+
+        figure.setVisible (false);
+        imageView.setVisible (false);
+        variantView.setVisible (true);
+        page.setVisible (false);
     }
 }
