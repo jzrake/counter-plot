@@ -77,12 +77,66 @@ Rectangle<double> FigureModel::getDomain() const
 
 
 //=============================================================================
-bool ColourmapHelpers::looksLikeRGBTable (File file)
+void ColourMapCollection::clear()
+{
+    names.clear();
+    stops.clear();
+    currentIndex = 0;
+}
+
+void ColourMapCollection::add (const String& nameToAdd, const Array<Colour>& stopsToAdd)
+{
+    names.add (nameToAdd);
+    stops.add (stopsToAdd);
+}
+
+void ColourMapCollection::setCurrent (const int newIndex)
+{
+    currentIndex = newIndex;
+}
+
+void ColourMapCollection::setCurrent (const String& name)
+{
+    setCurrent (names.indexOf (name));
+}
+
+Array<Colour> ColourMapCollection::next()
+{
+    setCurrent ((currentIndex + 1) % names.size());
+    return getCurrentStops();
+}
+
+Array<Colour> ColourMapCollection::prev()
+{
+    setCurrent ((currentIndex - 1 + names.size()) % names.size());
+    return getCurrentStops();
+}
+
+Array<Colour> ColourMapCollection::getCurrentStops() const
+{
+    return stops[currentIndex];
+}
+
+int ColourMapCollection::getCurrentIndex() const
+{
+    return currentIndex;
+}
+
+String ColourMapCollection::getCurrentName() const
+{
+    return names[currentIndex];
+}
+
+
+
+
+//=============================================================================
+bool ColourMapHelpers::looksLikeRGBTable (File file)
 {
     return file.hasFileExtension (".cmap");
 }
 
-Array<Colour> ColourmapHelpers::coloursFromRGBTable (const String& string)
+Array<Colour> ColourMapHelpers::coloursFromRGBTable (const String& string)
 {
     auto tokens = StringArray::fromTokens (string, "\n ", "");
     tokens.removeEmptyStrings();
@@ -105,12 +159,12 @@ Array<Colour> ColourmapHelpers::coloursFromRGBTable (const String& string)
     return res;
 }
 
-std::vector<uint32> ColourmapHelpers::textureFromRGBTable (const juce::String &string)
+std::vector<uint32> ColourMapHelpers::textureFromRGBTable (const juce::String &string)
 {
     return fromColours (coloursFromRGBTable (string));
 }
 
-std::vector<uint32> ColourmapHelpers::fromColours (const Array<Colour>& colours)
+std::vector<uint32> ColourMapHelpers::fromColours (const Array<Colour>& colours)
 {
     auto res = std::vector<uint32> (colours.size());
 
@@ -121,7 +175,7 @@ std::vector<uint32> ColourmapHelpers::fromColours (const Array<Colour>& colours)
     return res;
 }
 
-uint32 ColourmapHelpers::toRGBA (const juce::Colour &c)
+uint32 ColourMapHelpers::toRGBA (const juce::Colour &c)
 {
     return (c.getRed() << 0) | (c.getGreen() << 8) | (c.getBlue() << 16) | (c.getAlpha() << 24);
 }

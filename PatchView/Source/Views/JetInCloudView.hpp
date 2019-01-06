@@ -14,9 +14,6 @@ public:
     JetInCloudView();
     ~JetInCloudView();
     void setDocumentFile (File viewedDocument);
-    void nextColorMap();
-    void prevColorMap();
-    void setColorMap (int index);
 
     //=========================================================================
     void resized() override;
@@ -35,11 +32,10 @@ private:
     void mutateFiguresInRow (FigureView* eventFigure, std::function<void(FigureModel&)> mutation);
     void mutateFiguresInCol (FigureView* eventFigure, std::function<void(FigureModel&)> mutation);
     void reloadFigures();
-    Array<Colour> getColorMap() const;
 
-    int colorMapIndex = 0;
     std::array<float, 2> scalarExtent;
     Grid layout;
     OwnedArray<FigureView> figures;
     std::shared_ptr<QuadmeshArtist> artist;
+    ColourMapCollection cmaps;
 };

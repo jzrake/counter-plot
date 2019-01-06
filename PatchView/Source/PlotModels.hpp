@@ -162,11 +162,36 @@ struct FigureModel
 
 
 //=============================================================================
+class ColourMapCollection
+{
+public:
+    //=========================================================================
+    void clear();
+    void add (const String& nameToAdd, const Array<Colour>& stopsToAdd);
+    void setCurrent (const int newIndex);
+    void setCurrent (const String& name);
+    Array<Colour> next();
+    Array<Colour> prev();
+    Array<Colour> getCurrentStops() const;
+    int getCurrentIndex() const;
+    String getCurrentName() const;
+
+private:
+    //=========================================================================
+    StringArray names;
+    Array<Array<Colour>> stops;
+    int currentIndex = 0;
+};
+
+
+
+
+//=============================================================================
 /**
  * This class provides helpers for loading color map data into a format compatible
  * with GPU texture objects with a uint32 RGBA pixel format.
  */
-class ColourmapHelpers
+class ColourMapHelpers
 {
 public:
 

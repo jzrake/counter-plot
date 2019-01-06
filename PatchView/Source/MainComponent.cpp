@@ -59,7 +59,7 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
         variantView.setVisible (false);
         jetInCloudView.setVisible (true);
     }
-    if (ColourmapHelpers::looksLikeRGBTable (file))
+    if (ColourMapHelpers::looksLikeRGBTable (file))
     {
 //        auto cb = ScalarMapping();
 //        cb.stops = ColourmapHelpers::coloursFromRGBTable (file.loadFileAsString());

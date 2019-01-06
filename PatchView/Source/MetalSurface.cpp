@@ -38,7 +38,7 @@ void MetalRenderingSurface::renderTriangles (const std::vector<simd::float2>& ve
                                              const ScalarMapping& mapping)
 {
     assert(vertices.size() == scalars.size());
-    auto data = ColourmapHelpers::fromColours (mapping.stops);
+    auto data = ColourMapHelpers::fromColours (mapping.stops);
     auto texture = metal::Device::makeTexture1d (data.data(), data.size());
     auto node = metal::Node();
 

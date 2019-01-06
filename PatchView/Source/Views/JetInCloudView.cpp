@@ -61,7 +61,7 @@ public:
             }
         }
 
-        mapping.stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::magma_cmap);
+        mapping.stops = ColourMapHelpers::coloursFromRGBTable (BinaryData::magma_cmap);
         mapping.vmin = vmin = *std::min_element (triangleScalars.begin(), triangleScalars.end());
         mapping.vmax = vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
     }
@@ -97,6 +97,15 @@ private:
 //=============================================================================
 JetInCloudView::JetInCloudView()
 {
+    cmaps.add ("cividis",  ColourMapHelpers::coloursFromRGBTable (BinaryData::cividis_cmap));
+    cmaps.add ("dawn",     ColourMapHelpers::coloursFromRGBTable (BinaryData::dawn_cmap));
+    cmaps.add ("fire",     ColourMapHelpers::coloursFromRGBTable (BinaryData::fire_cmap));
+    cmaps.add ("inferno",  ColourMapHelpers::coloursFromRGBTable (BinaryData::inferno_cmap));
+    cmaps.add ("magma",    ColourMapHelpers::coloursFromRGBTable (BinaryData::magma_cmap));
+    cmaps.add ("plasma",   ColourMapHelpers::coloursFromRGBTable (BinaryData::plasma_cmap));
+    cmaps.add ("seashore", ColourMapHelpers::coloursFromRGBTable (BinaryData::seashore_cmap));
+    cmaps.add ("viridis",  ColourMapHelpers::coloursFromRGBTable (BinaryData::viridis_cmap));
+
     layout.templateRows    = { Grid::TrackInfo (1_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (80_px) };
 
@@ -141,40 +150,6 @@ void JetInCloudView::setDocumentFile (File viewedDocument)
     reloadFigures();
 }
 
-void JetInCloudView::nextColorMap()
-{
-    setColorMap ((colorMapIndex + 1) % 8);
-}
-
-void JetInCloudView::prevColorMap()
-{
-    setColorMap ((colorMapIndex - 1 + 8) % 8);
-}
-
-void JetInCloudView::setColorMap (int index)
-{
-    colorMapIndex = index;
-    reloadFigures();
-}
-
-Array<Colour> JetInCloudView::getColorMap() const
-{
-    Array<Colour> stops;
-
-    switch (colorMapIndex)
-    {
-        case 0: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::cividis_cmap); break;
-        case 1: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::dawn_cmap); break;
-        case 2: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::fire_cmap); break;
-        case 3: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::inferno_cmap); break;
-        case 4: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::magma_cmap); break;
-        case 5: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::plasma_cmap); break;
-        case 6: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::seashore_cmap); break;
-        case 7: stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::viridis_cmap); break;
-    }
-    return stops;
-}
-
 void JetInCloudView::reloadFigures()
 {
     auto mainModel     = figures[0]->getModel();
@@ -185,7 +160,7 @@ void JetInCloudView::reloadFigures()
 
     if (artist)
     {
-        artist->setColorMap (getColorMap());
+        artist->setColorMap (cmaps.getCurrentStops());
         artist->setScalarDomain (scalarExtent[0], scalarExtent[1]);
         mainModel.content = { artist };
         colorbarModel.content = { std::make_shared<ColourGradientArtist> (mainModel.content[0]->getScalarMapping()) };
@@ -208,12 +183,14 @@ bool JetInCloudView::keyPressed (const KeyPress& key)
 {
     if (key == KeyPress::leftKey)
     {
-        prevColorMap();
+        cmaps.prev();
+        reloadFigures();
         return true;
     }
     if (key == KeyPress::rightKey)
     {
-        nextColorMap();
+        cmaps.next();
+        reloadFigures();
         return true;
     }
     if (key == KeyPress::spaceKey)

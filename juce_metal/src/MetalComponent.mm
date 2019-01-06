@@ -56,9 +56,12 @@ metal::Texture metal::Device::makeTexture1d (const uint32* data, std::size_t wid
     };
 
     auto texture = Texture();
-    texture.impl->texture = [device newTextureWithDescriptor:d];
-    [texture.impl->texture replaceRegion:region mipmapLevel:0 withBytes:data bytesPerRow:4 * width];
 
+    if (width > 0)
+    {
+        texture.impl->texture = [device newTextureWithDescriptor:d];
+        [texture.impl->texture replaceRegion:region mipmapLevel:0 withBytes:data bytesPerRow:4 * width];
+    }
     return texture;
 }
 
