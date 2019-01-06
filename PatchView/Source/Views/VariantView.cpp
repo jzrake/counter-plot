@@ -28,13 +28,27 @@ VariantView::Item::Item (const var& key, const var& data) : key (key), data (dat
 
 void VariantView::Item::paintItem (Graphics& g, int width, int height)
 {
-    g.setColour (LookAndFeelHelpers::findTextColour (*getOwnerView(), depth()));
-    g.drawText (key.toString() + " : " + data.toString(), 0, 0, width, height, Justification::centredLeft);
+    g.setColour (LookAndFeelHelpers::findColourForPropertyText (*getOwnerView(), depth()));
+    g.setFont (Font().withHeight (11));
+
+    if (mightContainSubItems())
+    {
+        g.drawText (key.toString(), 0, 0, width, height, Justification::centredLeft);
+    }
+    else
+    {
+        g.drawText (key.toString() + " : " + data.toString(), 0, 0, width, height, Justification::centredLeft);
+    }
 }
 
 bool VariantView::Item::mightContainSubItems()
 {
     return data.isArray() || data.getDynamicObject() != nullptr;
+}
+
+bool VariantView::Item::canBeSelected() const
+{
+    return true;
 }
 
 int VariantView::Item::depth()
@@ -53,6 +67,7 @@ VariantView::VariantView()
 {
     tree.setColour (TreeView::backgroundColourId, Colours::darkgrey);
     tree.setDefaultOpenness (true);
+    setColours();
     addAndMakeVisible (tree);
 }
 
@@ -71,4 +86,26 @@ void VariantView::setData (const var &data)
 void VariantView::resized()
 {
     tree.setBounds (getLocalBounds());
+}
+
+void VariantView::colourChanged()
+{
+    setColours();
+    repaint();
+}
+
+void VariantView::lookAndFeelChanged()
+{
+    setColours();
+    repaint();
+}
+
+void VariantView::setColours()
+{
+    tree.setColour (TreeView::backgroundColourId, findColour (LookAndFeelHelpers::propertyViewBackground));
+    tree.setColour (TreeView::selectedItemBackgroundColourId, findColour (LookAndFeelHelpers::propertyViewSelectedItem));
+    tree.setColour (TreeView::dragAndDropIndicatorColourId, Colours::green);
+    tree.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
+    tree.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);
+    tree.setColour (TreeView::linesColourId, Colours::red);
 }

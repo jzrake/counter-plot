@@ -27,11 +27,14 @@ public:
     void mouseEnter (const MouseEvent& e) override;
     void mouseExit (const MouseEvent& e) override;
     void mouseMove (const MouseEvent& e) override;
+    void colourChanged() override;
+    void lookAndFeelChanged() override;
 
 private:
     //=========================================================================
     void setMouseOverItem (TreeViewItem*);
     void sendSelectedFileChanged (File);
+    void setColours();
     class Item;
     friend class Item;
     TreeView tree;

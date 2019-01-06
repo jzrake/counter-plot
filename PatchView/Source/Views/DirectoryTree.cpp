@@ -17,12 +17,12 @@ public:
     {
         Colour textColour;
 
-        if (file.isDirectory())    textColour = getOwnerView()->findColour (LookAndFeelHelpers::textColour0);
-        if (file.existsAsFile())   textColour = getOwnerView()->findColour (LookAndFeelHelpers::textColour1);
-        if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (LookAndFeelHelpers::textColour2);
+        if (file.isDirectory())    textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeDirectory);
+        if (file.existsAsFile())   textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeFile);
+        if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeSymbolicLink);
 
         g.setColour (isMouseOver() ? textColour.brighter (0.8f) : textColour);
-        g.setFont (isMouseOver() ? Font().withStyle (Font::underlined) : Font());
+        g.setFont (isMouseOver() ? Font().withHeight (11).withStyle (Font::underlined) : Font().withHeight (11));
         g.drawText (file.getFileName(), 0, 0, width, height, Justification::centredLeft);
     }
 
@@ -81,6 +81,7 @@ DirectoryTree::DirectoryTree()
 {
     tree.setRootItemVisible (true);
     tree.addMouseListener (this, true);
+    setColours();
     addAndMakeVisible (tree);
 }
 
@@ -128,6 +129,18 @@ void DirectoryTree::mouseMove (const MouseEvent& e)
     setMouseOverItem (tree.getItemAt (e.position.y - tree.getViewport()->getViewPositionY()));
 }
 
+void DirectoryTree::colourChanged()
+{
+    setColours();
+    repaint();
+}
+
+void DirectoryTree::lookAndFeelChanged()
+{
+    setColours();
+    repaint();
+}
+
 void DirectoryTree::setMouseOverItem (TreeViewItem *newMouseOverItem)
 {
     if (mouseOverItem) mouseOverItem->repaintItem();
@@ -138,4 +151,14 @@ void DirectoryTree::setMouseOverItem (TreeViewItem *newMouseOverItem)
 void DirectoryTree::sendSelectedFileChanged (juce::File file)
 {
     listeners.call (&Listener::selectedFileChanged, this, file);
+}
+
+void DirectoryTree::setColours()
+{
+    tree.setColour (TreeView::backgroundColourId, findColour (LookAndFeelHelpers::directoryTreeBackground));
+    tree.setColour (TreeView::selectedItemBackgroundColourId, findColour (LookAndFeelHelpers::directoryTreeSelectedItem));
+    tree.setColour (TreeView::dragAndDropIndicatorColourId, Colours::green);
+    tree.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
+    tree.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);
+    tree.setColour (TreeView::linesColourId, Colours::red);
 }

@@ -103,6 +103,9 @@ void PatchViewApplication::initialise (const String& commandLine)
 
     commandManager->registerAllCommandsForTarget (this);
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
+
+    startTimer (500);
+    settingsLastPolled = Time::getCurrentTime();
 }
 
 void PatchViewApplication::shutdown()
@@ -156,6 +159,39 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
     }
 }
 
+void PatchViewApplication::timerCallback()
+{
+    auto settingsFile = File::getSpecialLocation (File::userHomeDirectory).getChildFile ("patch_view_settings.json");
+
+    if (settingsLastPolled > settingsFile.getLastModificationTime())
+    {
+        return;
+    }
+
+    settingsLastPolled = Time::getCurrentTime();
+    var settings = JSON::parse (settingsFile);
+    auto& laf = Desktop::getInstance().getDefaultLookAndFeel();
+
+    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::BackgroundScheme::dark);
+    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels2);
+    FigureView        ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
+
+    if (auto obj = settings.getDynamicObject())
+    {
+        for (auto item : obj->getProperties())
+        {
+            auto id = LookAndFeelHelpers::colourIdFromString (item.name.toString());
+            auto colour = LookAndFeelHelpers::colourFromVariant (item.value);
+
+            if (colour != Colours::transparentWhite)
+            {
+                laf.setColour (id, colour);
+            }
+        }
+    }
+    mainWindow->sendLookAndFeelChange();
+}
+
 
 
 
@@ -169,17 +205,13 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (TextEditor::highlightedTextColourId, Colours::black);
     laf.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
     laf.setColour (TextEditor::focusedOutlineColourId, Colours::lightblue);
+    laf.setColour (ListBox::backgroundColourId, Colours::white);
+
     laf.setColour (Label::ColourIds::textColourId, Colours::lightgrey);
     laf.setColour (Label::ColourIds::textWhenEditingColourId, Colours::lightgrey);
     laf.setColour (Label::ColourIds::backgroundWhenEditingColourId, Colours::white);
-    laf.setColour (ListBox::backgroundColourId, Colours::white);
-    laf.setColour (TreeView::backgroundColourId, Colours::darkgrey.darker (0.1f));
-    laf.setColour (TreeView::selectedItemBackgroundColourId, Colours::darkslategrey.darker (0.2f));
-    laf.setColour (TreeView::dragAndDropIndicatorColourId, Colours::green);
-    laf.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
-    laf.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);
-    laf.setColour (TreeView::linesColourId, Colours::red);
 
+    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::BackgroundScheme::dark);
     LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels2);
     FigureView        ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
 }
