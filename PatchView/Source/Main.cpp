@@ -1,6 +1,6 @@
 #include "Main.hpp"
 #include "MainComponent.hpp"
-#include "FigureView.hpp"
+#include "Views/FigureView.hpp"
 #include "Views/LookAndFeel.hpp"
 
 

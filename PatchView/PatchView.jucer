@@ -7,6 +7,14 @@
             file="Source/Views/DirectoryTree.cpp"/>
       <FILE id="SNzB4o" name="DirectoryTree.hpp" compile="0" resource="0"
             file="Source/Views/DirectoryTree.hpp"/>
+      <FILE id="iYURxW" name="MetalSurface.hpp" compile="0" resource="0"
+            file="Source/MetalSurface.hpp"/>
+      <FILE id="rMtKLh" name="FigureView.cpp" compile="1" resource="0" file="Source/Views/FigureView.cpp"/>
+      <FILE id="JyvA3Q" name="FigureView.hpp" compile="0" resource="0" file="Source/Views/FigureView.hpp"/>
+      <FILE id="t3Md0B" name="JetInCloudView.cpp" compile="1" resource="0"
+            file="Source/Views/JetInCloudView.cpp"/>
+      <FILE id="FBXSzX" name="JetInCloudView.hpp" compile="0" resource="0"
+            file="Source/Views/JetInCloudView.hpp"/>
       <FILE id="MBpGoc" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/Views/LookAndFeel.cpp"/>
       <FILE id="e3UJAs" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Views/LookAndFeel.hpp"/>
       <FILE id="tvvdLn" name="VariantView.cpp" compile="1" resource="0" file="Source/Views/VariantView.cpp"/>
@@ -26,8 +34,6 @@
       <FILE id="RmYUmP" name="Shader.metal" compile="1" resource="0" file="../juce_metal/src/Shader.metal"/>
     </GROUP>
     <GROUP id="{383CB217-B9DF-75A7-732C-A29573B05904}" name="Source">
-      <FILE id="DyI3dW" name="FigureView.cpp" compile="1" resource="0" file="Source/FigureView.cpp"/>
-      <FILE id="CEylr8" name="FigureView.hpp" compile="0" resource="0" file="Source/FigureView.hpp"/>
       <FILE id="L4fFDD" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="VAyeBU" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
       <FILE id="NTdkxG" name="MainComponent.cpp" compile="1" resource="0"
@@ -36,8 +42,6 @@
             file="Source/MainComponent.hpp"/>
       <FILE id="BjbHDA" name="MetalSurface.cpp" compile="1" resource="0"
             file="Source/MetalSurface.cpp"/>
-      <FILE id="iYURxW" name="MetalSurface.hpp" compile="0" resource="0"
-            file="Source/MetalSurface.hpp"/>
       <FILE id="IqGgfM" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="dZDnm4" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
     </GROUP>
