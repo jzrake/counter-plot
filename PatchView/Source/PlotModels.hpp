@@ -70,6 +70,8 @@ public:
     virtual void render (RenderingSurface& surface) {}
     virtual bool isScalarMappable() const { return false; }
     virtual ScalarMapping getScalarMapping() const { return ScalarMapping(); }
+    virtual std::array<float, 2> getScalarExtent() const { return {0, 1}; }
+    virtual std::array<float, 4> getSpatialExtent() const { return {0, 1, 0, 1}; }
 };
 
 

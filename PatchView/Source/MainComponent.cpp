@@ -62,8 +62,8 @@ public:
         }
 
         mapping.stops = ColourmapHelpers::coloursFromRGBTable (BinaryData::magma_cmap);
-        mapping.vmin = *std::min_element (triangleScalars.begin(), triangleScalars.end());
-        mapping.vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
+        mapping.vmin = vmin = *std::min_element (triangleScalars.begin(), triangleScalars.end());
+        mapping.vmax = vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
     }
 
     void setColorMap (const Array<Colour>& stops)
@@ -71,12 +71,21 @@ public:
         mapping.stops = stops;
     }
 
+    void setScalarDomain (float vmin, float vmax)
+    {
+        mapping.vmin = vmin;
+        mapping.vmax = vmax;
+    }
+
     void render (RenderingSurface& surface) override { surface.renderTriangles (triangleVertices, triangleScalars, mapping); }
     bool isScalarMappable() const override { return true; }
     ScalarMapping getScalarMapping() const override { return mapping; }
+    std::array<float, 2> getScalarExtent() const override { return {vmin, vmax}; }
 
 private:
     ScalarMapping mapping;
+    float vmin = 0.f;
+    float vmax = 1.f;
     std::vector<simd::float2> triangleVertices;
     std::vector<simd::float4> triangleColors;
     std::vector<simd::float1> triangleScalars;
@@ -124,6 +133,7 @@ void PatchesView::setDocumentFile (File viewedDocument)
     auto ser = FileSystemSerializer (viewedDocument);
     auto db = patches2d::Database::load (ser);
     artist = std::make_shared<PatchesQuadMeshArtist> (db);
+    scalarExtent = artist->getScalarExtent();
     reloadFigures();
 }
 
@@ -166,9 +176,13 @@ void PatchesView::reloadFigures()
     auto mainModel     = figures[0]->getModel();
     auto colorbarModel = figures[1]->getModel();
 
+    colorbarModel.ymin = scalarExtent[0];
+    colorbarModel.ymax = scalarExtent[1];
+
     if (artist)
     {
         artist->setColorMap (getColorMap());
+        artist->setScalarDomain (scalarExtent[0], scalarExtent[1]);
         mainModel.content = { artist };
         colorbarModel.content = { std::make_shared<ColourGradientArtist> (mainModel.content[0]->getScalarMapping()) };
     }
@@ -196,6 +210,12 @@ bool PatchesView::keyPressed (const KeyPress& key)
     if (key == KeyPress::rightKey)
     {
         nextColorMap();
+        return true;
+    }
+    if (key == KeyPress::spaceKey)
+    {
+        scalarExtent = artist->getScalarExtent();
+        reloadFigures();
         return true;
     }
     return false;
@@ -234,6 +254,13 @@ void PatchesView::figureViewSetDomain (FigureView* figure, const Rectangle<doubl
         model.ymin = value.getY();
         model.ymax = value.getBottom();
     });
+
+    if (artist && figure == figures[1])
+    {
+        scalarExtent[0] = figure->getModel().ymin;
+        scalarExtent[1] = figure->getModel().ymax;
+        reloadFigures();
+    }
 }
 
 void PatchesView::figureViewSetXlabel (FigureView* figure, const String& value)
