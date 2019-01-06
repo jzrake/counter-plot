@@ -55,9 +55,9 @@
         <MODULEPATH id="juce_graphics" path="../third_party/JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../third_party/JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../third_party/JUCE/modules"/>
-        <MODULEPATH id="juce_metal" path="../../PatchView"/>
         <MODULEPATH id="juce_patches" path="../third_party/patches"/>
         <MODULEPATH id="juce_ndarray" path="../third_party/ndarray"/>
+        <MODULEPATH id="juce_metal" path="../../PatchView"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>

@@ -17,7 +17,7 @@ PatchViewApplication::MainWindow::MainWindow (String name) : DocumentWindow (nam
 {
     content = std::make_unique<MainComponent>();
 
-    addKeyListener (getApp().commandManager.getKeyMappings());
+    addKeyListener (getApp().commandManager->getKeyMappings());
     setUsingNativeTitleBar (true);
     setContentNonOwned (content.get(), true);
     setResizable (true, true);
@@ -40,7 +40,7 @@ void PatchViewApplication::MainWindow::closeButtonPressed()
 //=============================================================================
 PatchViewApplication::MainMenu::MainMenu()
 {
-    setApplicationCommandManagerToWatch (&getApp().commandManager);
+    setApplicationCommandManagerToWatch (getApp().commandManager.get());
 }
 
 StringArray PatchViewApplication::MainMenu::getMenuBarNames()
@@ -71,7 +71,7 @@ PatchViewApplication& PatchViewApplication::getApp()
 
 ApplicationCommandManager& PatchViewApplication::getCommandManager()
 {
-    return commandManager;
+    return *commandManager;
 }
 
 PatchViewApplication::PatchViewApplication()
@@ -96,16 +96,17 @@ bool PatchViewApplication::moreThanOneInstanceAllowed()
 void PatchViewApplication::initialise (const String& commandLine)
 {
     configureLookAndFeel();
-    commandManager.setFirstCommandTarget (this); // Need this?
-    commandManager.registerAllCommandsForTarget (this);
-    MenuBarModel::setMacMainMenu (&menu, nullptr);
-    mainWindow = std::make_unique<MainWindow> (getApplicationName());
+
+    commandManager = std::make_unique<ApplicationCommandManager>();
+    menu           = std::make_unique<MainMenu>();
+    mainWindow     = std::make_unique<MainWindow> (getApplicationName());
+
+    commandManager->registerAllCommandsForTarget (this);
+    MenuBarModel::setMacMainMenu (menu.get(), nullptr);
 }
 
 void PatchViewApplication::shutdown()
 {
-    // Shutdown bug is not related to mac main menu
-    mainWindow = nullptr;
     MenuBarModel::setMacMainMenu (nullptr, nullptr);
 }
 
@@ -173,7 +174,7 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (Label::ColourIds::backgroundWhenEditingColourId, Colours::white);
     laf.setColour (ListBox::backgroundColourId, Colours::white);
     laf.setColour (TreeView::backgroundColourId, Colours::darkgrey.darker (0.1f));
-    laf.setColour (TreeView::selectedItemBackgroundColourId, Colours::darkgrey.darker (0.2f));
+    laf.setColour (TreeView::selectedItemBackgroundColourId, Colours::darkslategrey.darker (0.2f));
     laf.setColour (TreeView::dragAndDropIndicatorColourId, Colours::green);
     laf.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
     laf.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);

@@ -25,6 +25,7 @@ public:
 
     //=========================================================================
     VariantView();
+    ~VariantView();
     void setData (const var &data);
     void resized() override;
 

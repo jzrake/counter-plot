@@ -251,13 +251,6 @@ static NSString* _Nonnull shaderSource = @""
     return self;
 }
 
-@synthesize vertexPositions = _vertexPositions;
-@synthesize vertexColors = _vertexColors;
-@synthesize vertexScalars = _vertexScalars;
-@synthesize scalarDomainLower = _scalarDomainLower;
-@synthesize scalarDomainUpper = _scalarDomainUpper;
-@synthesize vertexCount = _vertexCount;
-
 @end
 
 

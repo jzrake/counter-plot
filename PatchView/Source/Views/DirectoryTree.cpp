@@ -86,6 +86,7 @@ DirectoryTree::DirectoryTree()
 
 DirectoryTree::~DirectoryTree()
 {
+    tree.setRootItem (nullptr);
 }
 
 void DirectoryTree::addListener (Listener* listener)

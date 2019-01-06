@@ -68,11 +68,13 @@ public:
 
 
 private:
+    //=========================================================================
     void configureLookAndFeel();
     bool presentOpenDirectoryDialog();
 
+    //=========================================================================
+    std::unique_ptr<ApplicationCommandManager> commandManager;
+    std::unique_ptr<MainMenu> menu;
     std::unique_ptr<MainWindow> mainWindow;
-    ApplicationCommandManager commandManager;
-    MainMenu menu;
     File currentDirectory;
 };

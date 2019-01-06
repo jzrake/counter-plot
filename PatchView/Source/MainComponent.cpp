@@ -359,7 +359,7 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
         variantView.setVisible (false);
         patchesView.setVisible (true);
     }
-    else if (ColourmapHelpers::looksLikeRGBTable (file))
+    if (ColourmapHelpers::looksLikeRGBTable (file))
     {
 //        auto cb = ScalarMapping();
 //        cb.stops = ColourmapHelpers::coloursFromRGBTable (file.loadFileAsString());

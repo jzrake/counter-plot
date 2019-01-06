@@ -56,6 +56,11 @@ VariantView::VariantView()
     addAndMakeVisible (tree);
 }
 
+VariantView::~VariantView()
+{
+    tree.setRootItem (nullptr);
+}
+
 void VariantView::setData (const var &data)
 {
     tree.setRootItem (nullptr);
