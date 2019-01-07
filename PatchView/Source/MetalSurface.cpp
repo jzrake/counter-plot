@@ -101,7 +101,6 @@ metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::
 
 void MetalRenderingSurface::cleanBufferCaches()
 {
-    // Is this causing #shutdownbug no...
     if (cachedBuffers1.size() >= maxBuffersInCache)
     {
         cachedBuffers1.clear();

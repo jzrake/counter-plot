@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="SNyzUC" name="PatchView" projectType="guiapp" jucerVersion="5.4.1">
+<JUCERPROJECT id="SNyzUC" name="PatchView" projectType="guiapp" jucerVersion="5.4.1"
+              projectLineFeed="&#10;">
   <MAINGROUP id="Iv1B3G" name="PatchView">
     <GROUP id="{6EA5EAB6-53AF-3CB0-E496-7A5E1E6015C9}" name="Views">
-      <FILE id="QK5y18" name="BinaryTorquesView.hpp" compile="0" resource="0"
-            file="Source/Views/BinaryTorquesView.hpp"/>
       <FILE id="RYs1Mj" name="BinaryTorquesView.cpp" compile="1" resource="0"
             file="Source/Views/BinaryTorquesView.cpp"/>
+      <FILE id="QK5y18" name="BinaryTorquesView.hpp" compile="0" resource="0"
+            file="Source/Views/BinaryTorquesView.hpp"/>
       <FILE id="Oy1lsd" name="DirectoryTree.cpp" compile="1" resource="0"
             file="Source/Views/DirectoryTree.cpp"/>
       <FILE id="SNzB4o" name="DirectoryTree.hpp" compile="0" resource="0"
             file="Source/Views/DirectoryTree.hpp"/>
-      <FILE id="iYURxW" name="MetalSurface.hpp" compile="0" resource="0"
-            file="Source/MetalSurface.hpp"/>
       <FILE id="rMtKLh" name="FigureView.cpp" compile="1" resource="0" file="Source/Views/FigureView.cpp"/>
       <FILE id="JyvA3Q" name="FigureView.hpp" compile="0" resource="0" file="Source/Views/FigureView.hpp"/>
       <FILE id="t3Md0B" name="JetInCloudView.cpp" compile="1" resource="0"
@@ -35,6 +34,10 @@
       <FILE id="INelMr" name="viridis.cmap" compile="0" resource="1" file="../Resources/viridis.cmap"/>
     </GROUP>
     <GROUP id="{D11203F9-963F-1C73-7148-7F81D61F5445}" name="Metal">
+      <FILE id="BjbHDA" name="MetalSurface.cpp" compile="1" resource="0"
+            file="Source/MetalSurface.cpp"/>
+      <FILE id="iYURxW" name="MetalSurface.hpp" compile="0" resource="0"
+            file="Source/MetalSurface.hpp"/>
       <FILE id="RmYUmP" name="Shader.metal" compile="1" resource="0" file="../juce_metal/src/Shader.metal"/>
     </GROUP>
     <GROUP id="{383CB217-B9DF-75A7-732C-A29573B05904}" name="Source">
@@ -44,8 +47,6 @@
             file="Source/MainComponent.cpp"/>
       <FILE id="XnyaUu" name="MainComponent.hpp" compile="0" resource="0"
             file="Source/MainComponent.hpp"/>
-      <FILE id="BjbHDA" name="MetalSurface.cpp" compile="1" resource="0"
-            file="Source/MetalSurface.cpp"/>
       <FILE id="IqGgfM" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
       <FILE id="dZDnm4" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
     </GROUP>
@@ -53,9 +54,10 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5" extraLinkerFlags="-Bstatic">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/hdf5-1.10.1/include"
-                       libraryPath="../../../third_party/hdf5-1.10.1/lib"/>
-        <CONFIGURATION name="Release"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/hdf5-1.10.4/include"
+                       libraryPath="../../../third_party/hdf5-1.10.4/lib"/>
+        <CONFIGURATION name="Release" headerPath="../../../third_party/hdf5-1.10.4/include"
+                       libraryPath="../../../third_party/hdf5-1.10.4/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../third_party/JUCE/modules"/>

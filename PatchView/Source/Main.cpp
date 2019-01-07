@@ -9,6 +9,12 @@
 //=============================================================================
 START_JUCE_APPLICATION (PatchViewApplication)
 
+static herr_t h5_error_handler(hid_t estack, void*)
+{
+    // H5Eprint(estack, stdout);
+    return 0;
+}
+
 
 
 
@@ -95,6 +101,7 @@ bool PatchViewApplication::moreThanOneInstanceAllowed()
 
 void PatchViewApplication::initialise (const String& commandLine)
 {
+    H5Eset_auto(H5E_DEFAULT, h5_error_handler, NULL);
     configureLookAndFeel();
 
     commandManager = std::make_unique<ApplicationCommandManager>();
@@ -229,6 +236,5 @@ bool PatchViewApplication::presentOpenDirectoryDialog()
     {
         mainWindow->content->setCurrentDirectory (chooser.getResult());
     }
-    
     return true;
 }
