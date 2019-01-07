@@ -1,63 +1,38 @@
-#include "JetInCloudView.hpp"
+#include "BinaryTorquesView.hpp"
 #include "../MetalSurface.hpp"
 
 
 
 
 //=============================================================================
-class JetInCloudView::QuadmeshArtist : public PlotArtist
+class BinaryTorquesView::QuadmeshArtist : public PlotArtist
 {
 public:
-    QuadmeshArtist (const patches2d::Database& model)
+    QuadmeshArtist (nd::array<double, 2> data)
     {
-        for (auto patch : model.all (patches2d::Field::vert_coords))
+        for (int i = 0; i < data.shape(0); ++i)
         {
-            auto verts = patch.second;
-            auto cells = model.at (patch.first, patches2d::Field::conserved);
-
-            for (int i = 0; i < verts.shape(0) - 1; ++i)
+            for (int j = 0; j < data.shape(1); ++j)
             {
-                for (int j = 0; j < verts.shape(1) - 1; ++j)
-                {
-                    const float r00 = verts (i + 0, j + 0, 0);
-                    const float r01 = verts (i + 0, j + 1, 0);
-                    const float r10 = verts (i + 1, j + 0, 0);
-                    const float r11 = verts (i + 1, j + 1, 0);
-                    const float q00 = verts (i + 0, j + 0, 1);
-                    const float q01 = verts (i + 0, j + 1, 1);
-                    const float q10 = verts (i + 1, j + 0, 1);
-                    const float q11 = verts (i + 1, j + 1, 1);
-                    const float x00 = r00 * std::sinf (q00);
-                    const float x01 = r01 * std::sinf (q01);
-                    const float x10 = r10 * std::sinf (q10);
-                    const float x11 = r11 * std::sinf (q11);
-                    const float y00 = r00 * std::cosf (q00);
-                    const float y01 = r01 * std::cosf (q01);
-                    const float y10 = r10 * std::cosf (q10);
-                    const float y11 = r11 * std::cosf (q11);
-                    const float c = std::log10f (cells (i, j, 0));
+                const float x0 = -8.f + (i + 0) * 16.f / data.shape(0);
+                const float y0 = -8.f + (j + 0) * 16.f / data.shape(1);
+                const float x1 = -8.f + (i + 1) * 16.f / data.shape(0);
+                const float y1 = -8.f + (j + 1) * 16.f / data.shape(1);
+                const float c = std::log10f (data (i, j));
 
-                    triangleVertices.push_back (simd::float2 {x00, y00});
-                    triangleVertices.push_back (simd::float2 {x01, y01});
-                    triangleVertices.push_back (simd::float2 {x10, y10});
-                    triangleVertices.push_back (simd::float2 {x01, y01});
-                    triangleVertices.push_back (simd::float2 {x10, y10});
-                    triangleVertices.push_back (simd::float2 {x11, y11});
+                triangleVertices.push_back (simd::float2 {x0, y0});
+                triangleVertices.push_back (simd::float2 {x0, y1});
+                triangleVertices.push_back (simd::float2 {x1, y0});
+                triangleVertices.push_back (simd::float2 {x0, y1});
+                triangleVertices.push_back (simd::float2 {x1, y0});
+                triangleVertices.push_back (simd::float2 {x1, y1});
 
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                }
+                triangleScalars.push_back (simd::float1 (c));
+                triangleScalars.push_back (simd::float1 (c));
+                triangleScalars.push_back (simd::float1 (c));
+                triangleScalars.push_back (simd::float1 (c));
+                triangleScalars.push_back (simd::float1 (c));
+                triangleScalars.push_back (simd::float1 (c));
             }
         }
 
@@ -87,7 +62,6 @@ private:
     std::array<float, 2> scalarExtent;
     ScalarMapping mapping;
     std::vector<simd::float2> triangleVertices;
-    std::vector<simd::float4> triangleColors;
     std::vector<simd::float1> triangleScalars;
 };
 
@@ -95,7 +69,7 @@ private:
 
 
 //=============================================================================
-JetInCloudView::JetInCloudView()
+BinaryTorquesView::BinaryTorquesView()
 {
     cmaps.add ("cividis",  ColourMapHelpers::coloursFromRGBTable (BinaryData::cividis_cmap));
     cmaps.add ("dawn",     ColourMapHelpers::coloursFromRGBTable (BinaryData::dawn_cmap));
@@ -137,20 +111,22 @@ JetInCloudView::JetInCloudView()
     setWantsKeyboardFocus (true);
 }
 
-JetInCloudView::~JetInCloudView()
+BinaryTorquesView::~BinaryTorquesView()
 {
 }
 
-void JetInCloudView::setDocumentFile (File viewedDocument)
+void BinaryTorquesView::setDocumentFile (File viewedDocument)
 {
-    auto ser = FileSystemSerializer (viewedDocument);
-    auto db = patches2d::Database::load (ser);
-    artist = std::make_shared<QuadmeshArtist> (db);
+    auto h5f = h5::File (viewedDocument.getFullPathName().toStdString());
+    auto sig = h5f.open_dataset ("primitive/sigma");
+    auto dat = sig.read<nd::array<double, 2>>();
+
+    artist = std::make_shared<QuadmeshArtist> (dat);
     scalarExtent = artist->getScalarExtent();
     reloadFigures();
 }
 
-void JetInCloudView::reloadFigures()
+void BinaryTorquesView::reloadFigures()
 {
     auto mainModel     = figures[0]->getModel();
     auto colorbarModel = figures[1]->getModel();
@@ -174,12 +150,12 @@ void JetInCloudView::reloadFigures()
 
 
 //=============================================================================
-void JetInCloudView::resized()
+void BinaryTorquesView::resized()
 {
     layout.performLayout (getLocalBounds());
 }
 
-bool JetInCloudView::keyPressed (const KeyPress& key)
+bool BinaryTorquesView::keyPressed (const KeyPress& key)
 {
     if (key == KeyPress::leftKey)
     {
@@ -206,7 +182,7 @@ bool JetInCloudView::keyPressed (const KeyPress& key)
 
 
 //=============================================================================
-void JetInCloudView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& value)
+void BinaryTorquesView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& value)
 {
     mutateFigure (figure, [value] (FigureModel& model)
     {
@@ -226,7 +202,7 @@ void JetInCloudView::figureViewSetMargin (FigureView* figure, const BorderSize<i
     });
 }
 
-void JetInCloudView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& value)
+void BinaryTorquesView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& value)
 {
     mutateFigure (figure, [value] (FigureModel& model)
     {
@@ -244,7 +220,7 @@ void JetInCloudView::figureViewSetDomain (FigureView* figure, const Rectangle<do
     }
 }
 
-void JetInCloudView::figureViewSetXlabel (FigureView* figure, const String& value)
+void BinaryTorquesView::figureViewSetXlabel (FigureView* figure, const String& value)
 {
     mutateFigure (figure, [value] (FigureModel& model)
     {
@@ -252,7 +228,7 @@ void JetInCloudView::figureViewSetXlabel (FigureView* figure, const String& valu
     });
 }
 
-void JetInCloudView::figureViewSetYlabel (FigureView* figure, const String& value)
+void BinaryTorquesView::figureViewSetYlabel (FigureView* figure, const String& value)
 {
     mutateFigure (figure, [value] (FigureModel& model)
     {
@@ -260,7 +236,7 @@ void JetInCloudView::figureViewSetYlabel (FigureView* figure, const String& valu
     });
 }
 
-void JetInCloudView::figureViewSetTitle (FigureView* figure, const String& value)
+void BinaryTorquesView::figureViewSetTitle (FigureView* figure, const String& value)
 {
     mutateFigure (figure, [value] (FigureModel& model)
     {
@@ -268,14 +244,14 @@ void JetInCloudView::figureViewSetTitle (FigureView* figure, const String& value
     });
 }
 
-void JetInCloudView::mutateFigure (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
+void BinaryTorquesView::mutateFigure (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
 {
     auto m = eventFigure->getModel();
     mutation (m);
     eventFigure->setModel (m);
 }
 
-void JetInCloudView::mutateFiguresInRow (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
+void BinaryTorquesView::mutateFiguresInRow (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
 {
     int sourceRow = figures.indexOf (eventFigure) / 2;
     int n = 0;
@@ -292,7 +268,7 @@ void JetInCloudView::mutateFiguresInRow (FigureView* eventFigure, std::function<
     }
 }
 
-void JetInCloudView::mutateFiguresInCol (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
+void BinaryTorquesView::mutateFiguresInCol (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
 {
     int sourceCol = figures.indexOf (eventFigure) % 2;
     int n = 0;

@@ -3,6 +3,7 @@
 #include "Views/DirectoryTree.hpp"
 #include "Views/VariantView.hpp"
 #include "Views/JetInCloudView.hpp"
+#include "Views/BinaryTorquesView.hpp"
 
 
 
@@ -31,6 +32,7 @@ private:
     ImageComponent imageView;
     VariantView variantView;
     JetInCloudView jetInCloudView;
+    BinaryTorquesView binaryTorquesView;
     DirectoryTree directoryTree;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

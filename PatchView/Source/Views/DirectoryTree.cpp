@@ -23,7 +23,7 @@ public:
 
         g.setColour (isMouseOver() ? textColour.brighter (0.8f) : textColour);
         g.setFont (isMouseOver() ? Font().withHeight (11).withStyle (Font::underlined) : Font().withHeight (11));
-        g.drawText (file.getFileName(), 0, 0, width, height, Justification::centredLeft);
+        g.drawText (file.getFileName(), 8, 0, width, height, Justification::centredLeft);
     }
 
     bool mightContainSubItems() override
@@ -79,6 +79,7 @@ private:
 //=============================================================================
 DirectoryTree::DirectoryTree()
 {
+    tree.setIndentSize (12);
     tree.setRootItemVisible (true);
     tree.addMouseListener (this, true);
     setColours();

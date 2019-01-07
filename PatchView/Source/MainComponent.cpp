@@ -7,13 +7,15 @@
 //=============================================================================
 MainComponent::MainComponent()
 {
-    directoryTree.setDirectoryToShow (File::getSpecialLocation(File::SpecialLocationType::userHomeDirectory));
+    directoryTree.setDirectoryToShow (File::getSpecialLocation (File::userHomeDirectory));
     directoryTree.addListener (this);
 
     addAndMakeVisible (directoryTree);
     addChildComponent (imageView);
     addChildComponent (variantView);
     addAndMakeVisible (jetInCloudView);
+    addChildComponent (binaryTorquesView);
+
     setSize (1024, 768 - 64);
 }
 
@@ -35,9 +37,10 @@ void MainComponent::resized()
     auto area = getLocalBounds();
     directoryTree.setBounds (area.removeFromLeft(300));
 
-    imageView.setBounds (area);
-    variantView.setBounds (area);
-    jetInCloudView.setBounds (area);
+    imageView        .setBounds (area);
+    variantView      .setBounds (area);
+    jetInCloudView   .setBounds (area);
+    binaryTorquesView.setBounds (area);
 }
 
 bool MainComponent::keyPressed (const juce::KeyPress &key)
@@ -55,9 +58,10 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
     {
         jetInCloudView.setDocumentFile (file);
 
-        imageView.setVisible (false);
-        variantView.setVisible (false);
-        jetInCloudView.setVisible (true);
+        imageView        .setVisible (false);
+        variantView      .setVisible (false);
+        jetInCloudView   .setVisible (true);
+        binaryTorquesView.setVisible (false);
     }
     if (ColourMapHelpers::looksLikeRGBTable (file))
     {
@@ -76,16 +80,27 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
     {
         imageView.setImage (format->loadFrom (file));
 
-        imageView.setVisible (true);
-        variantView.setVisible (false);
-        jetInCloudView.setVisible (false);
+        imageView        .setVisible (true);
+        variantView      .setVisible (false);
+        jetInCloudView   .setVisible (false);
+        binaryTorquesView.setVisible (false);
     }
     else if (file.hasFileExtension (".json"))
     {
         variantView.setData (JSON::parse (file));
 
-        imageView.setVisible (false);
-        variantView.setVisible (true);
-        jetInCloudView.setVisible (false);
+        imageView        .setVisible (false);
+        variantView      .setVisible (true);
+        jetInCloudView   .setVisible (false);
+        binaryTorquesView.setVisible (false);
+    }
+    else if (file.hasFileExtension (".h5"))
+    {
+        binaryTorquesView.setDocumentFile (file);
+
+        imageView        .setVisible (false);
+        variantView      .setVisible (false);
+        jetInCloudView   .setVisible (false);
+        binaryTorquesView.setVisible (true);
     }
 }

@@ -44,8 +44,10 @@ public:
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform (const InvocationInfo& info) override;
 
+
     //=========================================================================
     void timerCallback() override;
+
 
     //=========================================================================
     class MainWindow : public DocumentWindow
@@ -79,6 +81,5 @@ private:
     std::unique_ptr<MainMenu> menu;
     std::unique_ptr<MainWindow> mainWindow;
     File currentDirectory;
-
     Time settingsLastPolled;
 };
