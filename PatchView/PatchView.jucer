@@ -14,6 +14,8 @@
             file="Source/Views/DirectoryTree.hpp"/>
       <FILE id="rMtKLh" name="FigureView.cpp" compile="1" resource="0" file="Source/Views/FigureView.cpp"/>
       <FILE id="JyvA3Q" name="FigureView.hpp" compile="0" resource="0" file="Source/Views/FigureView.hpp"/>
+      <FILE id="FLfpYu" name="FileBasedView.hpp" compile="0" resource="0"
+            file="Source/Views/FileBasedView.hpp"/>
       <FILE id="t3Md0B" name="JetInCloudView.cpp" compile="1" resource="0"
             file="Source/Views/JetInCloudView.cpp"/>
       <FILE id="FBXSzX" name="JetInCloudView.hpp" compile="0" resource="0"

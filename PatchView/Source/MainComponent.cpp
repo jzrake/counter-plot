@@ -1,40 +1,9 @@
 #include "MainComponent.hpp"
-#include "MetalSurface.hpp"
 #include "Views/LookAndFeel.hpp"
-
-
-
-
-//=============================================================================
-MainComponent::DataLoadingThread::DataLoadingThread (MainComponent& main)
-: Thread ("dataLoadingThread")
-, main (main)
-{
-}
-
-void MainComponent::DataLoadingThread::loadFileAsync (File fileToLoad)
-{
-    main.dataLoadingThreadWaiting();
-    stopThread (-1);
-    main.dataLoadingThreadRunning();
-
-    file = fileToLoad;
-    startThread();
-}
-
-void MainComponent::DataLoadingThread::run()
-{
-    main.binaryTorquesView.setDocumentFile (file, [this] { return threadShouldExit(); });
-
-    if (! threadShouldExit())
-    {
-        MessageManager::callAsync ([m = SafePointer<MainComponent> (&main)]
-        {
-            if (m.getComponent())
-                m.getComponent()->dataLoadingThreadFinished();
-        });
-    }
-}
+#include "Views/VariantView.hpp"
+#include "Views/JetInCloudView.hpp"
+#include "Views/BinaryTorquesView.hpp"
+#include "Views/FileBasedView.hpp"
 
 
 
@@ -51,7 +20,7 @@ void StatusBar::paint (Graphics& g)
     g.setColour (findColour (LookAndFeelHelpers::statusBarBackground));
     g.fillAll();
 
-    auto box = getLocalBounds().removeFromRight (getHeight()).reduced (4);
+    auto box = getLocalBounds().removeFromRight (getHeight()).reduced (5);
     auto colour = Colour();
 
     switch (status)
@@ -73,6 +42,126 @@ void StatusBar::resized()
 
 
 //=============================================================================
+class JsonFileViewer : public FileBasedView
+{
+public:
+    JsonFileViewer()
+    {
+        addAndMakeVisible (view);
+    }
+
+    bool isInterestedInFile (File file) const override
+    {
+        return file.hasFileExtension (".json");
+    }
+
+    bool loadFile (File fileToDisplay) override
+    {
+        view.setData (JSON::parse (fileToDisplay));
+        return true;
+    }
+
+    void resized() override
+    {
+        view.setBounds (getLocalBounds());
+    }
+private:
+    VariantView view;
+};
+
+
+
+
+//=============================================================================
+class ImageFileViewer : public FileBasedView
+{
+public:
+    ImageFileViewer()
+    {
+        addAndMakeVisible (view);
+    }
+
+    bool isInterestedInFile (File file) const override
+    {
+        return ImageFileFormat::findImageFormatForFileExtension (file);
+    }
+
+    bool loadFile (File file) override
+    {
+        if (auto format = ImageFileFormat::findImageFormatForFileExtension (file))
+        {
+            view.setImage (format->loadFrom (file));
+        }
+        return true;
+    }
+
+    void resized() override
+    {
+        view.setBounds (getLocalBounds());
+    }
+private:
+    ImageComponent view;
+};
+
+
+
+
+//=============================================================================
+MainComponent::DataLoadingThread::DataLoadingThread (MainComponent& main)
+: Thread ("dataLoadingThread")
+, main (main)
+{
+}
+
+void MainComponent::DataLoadingThread::loadFileToView (File fileToLoad, FileBasedView* targetView)
+{
+    main.dataLoadingThreadWaiting();
+    stopThread (-1);
+    main.dataLoadingThreadRunning();
+
+    file = fileToLoad;
+    view = targetView;
+
+    try {
+        if (view->loadFile (file))
+        {
+            main.dataLoadingThreadFinished();
+        }
+        else
+        {
+            startThread();
+        }
+    }
+    catch (std::exception& e)
+    {
+        DBG("failed to open: " << e.what());
+    }
+}
+
+void MainComponent::DataLoadingThread::run()
+{
+    try {
+        view->loadFileAsync (file, [this] { return threadShouldExit(); });
+    }
+    catch (const std::exception& e)
+    {
+        DBG("failed to open: " << e.what());
+    }
+
+    if (! threadShouldExit())
+    {
+        MessageManager::callAsync ([m = SafePointer<MainComponent> (&main)]
+        {
+            if (m.getComponent())
+                m.getComponent()->dataLoadingThreadFinished();
+        });
+    }
+}
+
+
+
+
+//=============================================================================
 MainComponent::MainComponent() : dataLoadingThread (*this)
 {
     directoryTree.setDirectoryToShow (File::getSpecialLocation (File::userHomeDirectory));
@@ -80,11 +169,16 @@ MainComponent::MainComponent() : dataLoadingThread (*this)
 
     addAndMakeVisible (statusBar);
     addAndMakeVisible (directoryTree);
-    addChildComponent (imageView);
-    addChildComponent (variantView);
-    addAndMakeVisible (jetInCloudView);
-    addChildComponent (binaryTorquesView);
 
+    views.add (new JsonFileViewer);
+    views.add (new ImageFileViewer);
+    views.add (new JetInCloudView);
+    views.add (new BinaryTorquesView);
+
+    for (const auto& view : views)
+    {
+        addChildComponent (*view);
+    }
     setSize (1024, 768 - 64);
 }
 
@@ -108,10 +202,10 @@ void MainComponent::resized()
     statusBar.setBounds (area.removeFromBottom (22));
     directoryTree.setBounds (area.removeFromLeft(300));
 
-    imageView        .setBounds (area);
-    variantView      .setBounds (area);
-    jetInCloudView   .setBounds (area);
-    binaryTorquesView.setBounds (area);
+    for (const auto& view : views)
+    {
+        view->setBounds (area);
+    }
 }
 
 bool MainComponent::keyPressed (const juce::KeyPress &key)
@@ -125,61 +219,20 @@ bool MainComponent::keyPressed (const juce::KeyPress &key)
 //=============================================================================
 void MainComponent::selectedFileChanged (DirectoryTree*, File file)
 {
-    try
+    bool found = false;
+
+    for (const auto& view : views)
     {
-        if (FileSystemSerializer::looksLikeDatabase (file))
+        if (! found && view->isInterestedInFile (file))
         {
-            jetInCloudView.setDocumentFile (file);
-
-            imageView        .setVisible (false);
-            variantView      .setVisible (false);
-            jetInCloudView   .setVisible (true);
-            binaryTorquesView.setVisible (false);
+            found = true;
+            view->setVisible (true);
+            dataLoadingThread.loadFileToView (file, view);
         }
-        else if (auto format = ImageFileFormat::findImageFormatForFileExtension (file))
+        else
         {
-            imageView.setImage (format->loadFrom (file));
-
-            imageView        .setVisible (true);
-            variantView      .setVisible (false);
-            jetInCloudView   .setVisible (false);
-            binaryTorquesView.setVisible (false);
+            view->setVisible (false);
         }
-        else if (file.hasFileExtension (".json"))
-        {
-            variantView.setData (JSON::parse (file));
-
-            imageView        .setVisible (false);
-            variantView      .setVisible (true);
-            jetInCloudView   .setVisible (false);
-            binaryTorquesView.setVisible (false);
-        }
-        else if (file.hasFileExtension (".h5"))
-        {
-            dataLoadingThread.loadFileAsync (file);
-
-            imageView        .setVisible (false);
-            variantView      .setVisible (false);
-            jetInCloudView   .setVisible (false);
-            binaryTorquesView.setVisible (true);
-        }
-        else if (ColourMapHelpers::looksLikeRGBTable (file))
-        {
-            //        auto cb = ScalarMapping();
-            //        cb.stops = ColourmapHelpers::coloursFromRGBTable (file.loadFileAsString());
-            //        model.content.clear();
-            //        model.content.push_back (std::make_shared<ColourGradientArtist> (cb));
-            //        figure.setModel (model);
-            //
-            //        figure.setVisible (true);
-            //        imageView.setVisible (false);
-            //        variantView.setVisible (false);
-            //        jetInCloudView.setVisible (false);
-        }
-    }
-    catch (const std::exception& e)
-    {
-        DBG("failed to open: " << e.what());
     }
 }
 

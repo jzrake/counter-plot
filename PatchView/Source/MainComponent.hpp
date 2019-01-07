@@ -1,9 +1,12 @@
 #pragma once
 #include "JuceHeader.h"
 #include "Views/DirectoryTree.hpp"
-#include "Views/VariantView.hpp"
-#include "Views/JetInCloudView.hpp"
-#include "Views/BinaryTorquesView.hpp"
+
+
+
+
+//=============================================================================
+class FileBasedView;
 
 
 
@@ -61,19 +64,16 @@ private:
     {
     public:
         DataLoadingThread (MainComponent&);
-        void loadFileAsync (File fileToLoad);
+        void loadFileToView (File fileToLoad, FileBasedView* targetView);
         void run() override;
         MainComponent& main;
         File file;
+        FileBasedView* view = nullptr;
     };
 
+    //=========================================================================
     StatusBar statusBar;
-    ImageComponent imageView;
-    VariantView variantView;
-    JetInCloudView jetInCloudView;
-    BinaryTorquesView binaryTorquesView;
     DirectoryTree directoryTree;
     DataLoadingThread dataLoadingThread;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+    OwnedArray<FileBasedView> views;
 };

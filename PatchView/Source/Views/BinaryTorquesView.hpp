@@ -1,19 +1,24 @@
 #pragma once
 #include "JuceHeader.h"
 #include "FigureView.hpp"
+#include "FileBasedView.hpp"
 
 
 
 
 //=============================================================================
-class BinaryTorquesView : public Component, public FigureView::Listener
+class BinaryTorquesView : public FileBasedView, public FigureView::Listener
 {
 public:
 
     //=========================================================================
     BinaryTorquesView();
     ~BinaryTorquesView();
-    void setDocumentFile (File viewedDocument, std::function<bool()> bailout);
+
+    //=========================================================================
+    bool isInterestedInFile (File file) const override;
+    bool loadFile (File fileToDisplay) override;
+    void loadFileAsync (File fileToDisplay, std::function<bool()> bailout) override;
 
     //=========================================================================
     void resized() override;

@@ -129,7 +129,12 @@ BinaryTorquesView::~BinaryTorquesView()
 {
 }
 
-void BinaryTorquesView::setDocumentFile (File viewedDocument, std::function<bool()> bailout)
+bool BinaryTorquesView::loadFile (File viewedDocument)
+{
+    return false;
+}
+
+void BinaryTorquesView::loadFileAsync (File viewedDocument, std::function<bool()> bailout)
 {
     auto h5f = h5::File (viewedDocument.getFullPathName().toStdString());
     auto sig = h5f.open_dataset ("primitive/sigma");
@@ -147,6 +152,11 @@ void BinaryTorquesView::setDocumentFile (File viewedDocument, std::function<bool
         if (self.getComponent())
             self.getComponent()->reloadFigures();
     });
+}
+
+bool BinaryTorquesView::isInterestedInFile (File file) const
+{
+    return file.hasFileExtension (".h5");
 }
 
 void BinaryTorquesView::reloadFigures()

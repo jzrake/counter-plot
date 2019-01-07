@@ -1,19 +1,24 @@
 #pragma once
 #include "JuceHeader.h"
 #include "FigureView.hpp"
+#include "FileBasedView.hpp"
 
 
 
 
 //=============================================================================
-class JetInCloudView : public Component, public FigureView::Listener
+class JetInCloudView : public FileBasedView, public FigureView::Listener
 {
 public:
 
     //=========================================================================
     JetInCloudView();
     ~JetInCloudView();
-    void setDocumentFile (File viewedDocument);
+
+    //=========================================================================
+    bool isInterestedInFile (File file) const override;
+    bool loadFile (File fileToDisplay) override;
+    void loadFileAsync (File fileToDisplay, std::function<bool()> bailout) override;
 
     //=========================================================================
     void resized() override;

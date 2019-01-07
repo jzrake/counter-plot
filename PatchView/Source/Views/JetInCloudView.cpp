@@ -141,13 +141,23 @@ JetInCloudView::~JetInCloudView()
 {
 }
 
-void JetInCloudView::setDocumentFile (File viewedDocument)
+bool JetInCloudView::isInterestedInFile(File file) const
+{
+    return FileSystemSerializer::looksLikeDatabase (file);
+}
+
+bool JetInCloudView::loadFile (File viewedDocument)
 {
     auto ser = FileSystemSerializer (viewedDocument);
     auto db = patches2d::Database::load (ser);
     artist = std::make_shared<QuadmeshArtist> (db);
     scalarExtent = artist->getScalarExtent();
     reloadFigures();
+    return true;
+}
+
+void JetInCloudView::loadFileAsync (File fileToDisplay, std::function<bool()> bailout)
+{
 }
 
 void JetInCloudView::reloadFigures()

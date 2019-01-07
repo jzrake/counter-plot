@@ -5,8 +5,8 @@
 + Save figures images
 - Time series for binary torques
 - Colormap view
-- Create FileView base with isInterestedInFile, displayFile methods
-- Factor main component to use a collection of FileView instances
++ Create FileView base with isInterestedInFile, displayFile methods
++ Factor main component to use a collection of FileView instances
 - Write filesystem notification singleton
 + Write async file loading
 - Create application commands for views, instead of keyPressed
