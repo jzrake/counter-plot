@@ -23,6 +23,8 @@ public:
         directoryTreeSymbolicLink = 0x0771610,
         directoryTreeBackground   = 0x0771611,
         directoryTreeSelectedItem = 0x0771612,
+
+        statusBarBackground       = 0x0771613,
     };
 
     enum class TextColourScheme

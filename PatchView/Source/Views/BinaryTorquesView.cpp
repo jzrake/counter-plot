@@ -8,16 +8,23 @@
 class BinaryTorquesView::QuadmeshArtist : public PlotArtist
 {
 public:
-    QuadmeshArtist (nd::array<double, 2> data)
+    QuadmeshArtist (nd::array<double, 2> data, std::function<bool()> bailout)
     {
-        for (int i = 0; i < data.shape(0); ++i)
+        auto ni = data.shape(0);
+        auto nj = data.shape(1);
+        triangleVertices.reserve (data.size() * 6);
+        triangleScalars .reserve (data.size() * 6);
+        scalarExtent[0] = data (0, 0);
+        scalarExtent[1] = data (0, 0);
+
+        for (int i = 0; i < ni; ++i)
         {
-            for (int j = 0; j < data.shape(1); ++j)
+            for (int j = 0; j < nj; ++j)
             {
-                const float x0 = -8.f + (i + 0) * 16.f / data.shape(0);
-                const float y0 = -8.f + (j + 0) * 16.f / data.shape(1);
-                const float x1 = -8.f + (i + 1) * 16.f / data.shape(0);
-                const float y1 = -8.f + (j + 1) * 16.f / data.shape(1);
+                const float x0 = -8.f + (i + 0) * 16.f / ni;
+                const float y0 = -8.f + (j + 0) * 16.f / nj;
+                const float x1 = -8.f + (i + 1) * 16.f / ni;
+                const float y1 = -8.f + (j + 1) * 16.f / nj;
                 const float c = std::log10f (data (i, j));
 
                 triangleVertices.push_back (simd::float2 {x0, y0});
@@ -33,13 +40,20 @@ public:
                 triangleScalars.push_back (simd::float1 (c));
                 triangleScalars.push_back (simd::float1 (c));
                 triangleScalars.push_back (simd::float1 (c));
+
+                if (c < scalarExtent[0]) scalarExtent[0] = c;
+                if (c > scalarExtent[1]) scalarExtent[1] = c;
+
+                if (bailout())
+                {
+                    return;
+                }
             }
         }
 
         mapping.stops = ColourMapHelpers::coloursFromRGBTable (BinaryData::magma_cmap);
-        mapping.vmin = *std::min_element (triangleScalars.begin(), triangleScalars.end());
-        mapping.vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
-        scalarExtent = { mapping.vmin, mapping.vmax };
+        mapping.vmin = scalarExtent[0];
+        mapping.vmax = scalarExtent[1];
     }
 
     void setColorMap (const Array<Colour>& stops)
@@ -115,15 +129,24 @@ BinaryTorquesView::~BinaryTorquesView()
 {
 }
 
-void BinaryTorquesView::setDocumentFile (File viewedDocument)
+void BinaryTorquesView::setDocumentFile (File viewedDocument, std::function<bool()> bailout)
 {
     auto h5f = h5::File (viewedDocument.getFullPathName().toStdString());
     auto sig = h5f.open_dataset ("primitive/sigma");
     auto dat = sig.read<nd::array<double, 2>>();
 
-    artist = std::make_shared<QuadmeshArtist> (dat);
+    artist = std::make_shared<QuadmeshArtist> (dat, bailout);
+
+    if (bailout())
+    {
+        return;
+    }
     scalarExtent = artist->getScalarExtent();
-    reloadFigures();
+    MessageManager::callAsync ([viewedDocument, self = SafePointer<BinaryTorquesView> (this)]
+    {
+        if (self.getComponent())
+            self.getComponent()->reloadFigures();
+    });
 }
 
 void BinaryTorquesView::reloadFigures()
@@ -177,8 +200,6 @@ bool BinaryTorquesView::keyPressed (const KeyPress& key)
     }
     if (key == KeyPress::returnKey)
     {
-//        auto image = figures[0]->createComponentSnapshot (figures[0]->getLocalBounds(), true, 2.f);
-//        auto image = figures[0]->getRenderingSurface()->createImage();
         auto image = figures[0]->createSnapshot();
         auto file = File::getSpecialLocation (File::userDesktopDirectory).getChildFile ("out.png");
 

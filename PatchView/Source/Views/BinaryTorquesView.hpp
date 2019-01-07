@@ -13,7 +13,7 @@ public:
     //=========================================================================
     BinaryTorquesView();
     ~BinaryTorquesView();
-    void setDocumentFile (File viewedDocument);
+    void setDocumentFile (File viewedDocument, std::function<bool()> bailout);
 
     //=========================================================================
     void resized() override;

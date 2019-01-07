@@ -40,6 +40,7 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundSch
             laf.setColour (directoryTreeSelectedItem, Colours::darkgrey.darker (0.33f));
             laf.setColour (propertyViewBackground, Colours::darkgrey.darker (0.06));
             laf.setColour (propertyViewSelectedItem, Colours::darkgrey.darker (0.12f));
+            laf.setColour (statusBarBackground, Colours::darkgrey.darker (0.44f));
             break;
     }
 }
@@ -96,5 +97,6 @@ int LookAndFeelHelpers::colourIdFromString (const String& name)
     if (name == "property_view.text2")          return propertyViewText2;
     if (name == "property_view.text3")          return propertyViewText3;
     if (name == "property_view.text4")          return propertyViewText4;
+    if (name == "status_bar.background")        return statusBarBackground;
     return -1;
 }
