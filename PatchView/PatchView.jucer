@@ -52,12 +52,12 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5" extraLinkerFlags="-Bstatic">
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5" customXcodeResourceFolders="../third_party/embed-hdf5-macos/lib/libhdf5.dylib">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/hdf5-1.10.4/include"
-                       libraryPath="../../../third_party/hdf5-1.10.4/lib"/>
-        <CONFIGURATION name="Release" headerPath="../../../third_party/hdf5-1.10.4/include"
-                       libraryPath="../../../third_party/hdf5-1.10.4/lib"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/embed-hdf5-macos/include"
+                       libraryPath="../../../third_party/embed-hdf5-macos/lib"/>
+        <CONFIGURATION name="Release" headerPath="../../../third_party/embed-hdf5-macos/include"
+                       libraryPath="../../../third_party/embed-hdf5-macos/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../third_party/JUCE/modules"/>

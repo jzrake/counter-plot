@@ -1,0 +1,11 @@
++ HDF5 shared library linking
++ HDF5 git host
+- Project git host
+- Read metal texture as image
+- Save figures images
+- Time series for binary torques
+- Colormap view
+- Create FileView base with isInterestedInFile, displayFile methods
+- Factor main component to use a collection of FileView instances
+- Write filesystem notification singleton
+- Create application commands for views, instead of keyPressed

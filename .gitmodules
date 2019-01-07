@@ -10,3 +10,6 @@
 [submodule "third_party/ndh5"]
 	path = third_party/ndh5
 	url = https://github.com/jzrake/ndh5.git
+[submodule "third_party/embed-hdf5-macos"]
+	path = third_party/embed-hdf5-macos
+	url = https://github.com/jzrake/embed-hdf5-macos.git
