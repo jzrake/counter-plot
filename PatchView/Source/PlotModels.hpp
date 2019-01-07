@@ -88,6 +88,7 @@ public:
     virtual void renderTriangles (const std::vector<simd::float2>& vertices,
                                   const std::vector<simd::float1>& scalars,
                                   const ScalarMapping& mapping) = 0;
+    virtual Image createSnapshot() const = 0;
 };
 
 

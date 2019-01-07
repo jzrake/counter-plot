@@ -107,6 +107,7 @@ public:
     Rectangle<int> getPlotAreaBounds() const { return plotArea.getBounds(); }
     RenderingSurface* getRenderingSurface() { return surface.get(); }
     GridItem& getGridItem() { return gridItem; }
+    Image createSnapshot();
 
     //=========================================================================
     void paint (Graphics&) override;

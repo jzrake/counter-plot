@@ -193,6 +193,17 @@ void metal::MetalComponent::setScene (metal::Scene sceneToDisplay)
     impl->controller.scene = sceneToDisplay.impl->scene;
 }
 
+Image metal::MetalComponent::createSnapshot() const
+{
+    NSImage* nsImage = [impl->controller createSnapshot];
+    [nsImage lockFocus];
+    NSBitmapImageRep* bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect (0, 0, nsImage.size.width, nsImage.size.height)];
+    [nsImage unlockFocus];
+    NSDictionary* properties = [NSDictionary dictionary];
+    NSData* data = [bitmapRep representationUsingType:NSBitmapImageFileTypePNG properties:properties];
+    return PNGImageFormat::loadFrom (data.bytes, data.length);
+}
+
 void metal::MetalComponent::resized()
 {
     view.setBounds (getLocalBounds());

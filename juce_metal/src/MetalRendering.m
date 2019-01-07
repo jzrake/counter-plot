@@ -134,22 +134,26 @@ static NSString* _Nonnull shaderSource = @""
 
 - (void)drawInMTKView:(nonnull MTKView*)view
 {
-    if (_scene == nil || NSIsEmptyRect (view.frame))
-    {
-        return;
-    }
     MTLRenderPassDescriptor *renderPassDescriptor = view.currentRenderPassDescriptor;
 
-    if (renderPassDescriptor == nil)
+    if (_scene != nil && renderPassDescriptor != nil && ! NSIsEmptyRect (view.frame))
     {
-        return;
+        [self render:view.currentDrawable with:renderPassDescriptor blit:false];
     }
+}
+
+- (void)render:(nonnull id<CAMetalDrawable>)drawable
+          with:(nonnull MTLRenderPassDescriptor*)renderPassDescriptor
+          blit:(bool)blitTexture
+{
     renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
     id<MTLCommandBuffer> commandBuffer = [_commandQueue commandBuffer];
     id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
 
+
     simd_float4 domain = simd_make_float4(_scene.domain.xmin, _scene.domain.xmax,
                                           _scene.domain.ymin, _scene.domain.ymax);
+
 
     // Render in the direct colors pipeline state
     // =============================================================================
@@ -171,7 +175,7 @@ static NSString* _Nonnull shaderSource = @""
     // =============================================================================
     [renderEncoder setRenderPipelineState:_pipelineStateScalarMapping];
     [renderEncoder setVertexBytes:&domain length:sizeof(domain) atIndex:2];
-    
+
     for (MetalNode* node in _scene.nodes)
     {
         if (node.vertexColors == nil && node.vertexScalars != nil)
@@ -187,10 +191,25 @@ static NSString* _Nonnull shaderSource = @""
     }
 
     [renderEncoder endEncoding];
-    [commandBuffer presentDrawable:view.currentDrawable];
-    [commandBuffer commit];
-}
 
+
+    // This Enables texture reads
+    // =============================================================================
+    if (blitTexture)
+    {
+        id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
+        [blitEncoder synchronizeTexture:drawable.texture slice:0 level:0];
+        [blitEncoder endEncoding];
+    }
+
+    [commandBuffer presentDrawable:drawable];
+    [commandBuffer commit];
+
+    if (blitTexture)
+    {
+        [commandBuffer waitUntilCompleted];
+    }
+}
 @end
 
 
@@ -200,19 +219,21 @@ static NSString* _Nonnull shaderSource = @""
 @implementation MetalViewController
 {
     MetalRenderer* _renderer;
+    MTKView* _view;
 }
 
 - (nonnull instancetype)init
 {
     if (self = [super init])
     {
-        MTKView* view = [[MTKView alloc] init];
-        view.layer.opaque = false;
-        view.enableSetNeedsDisplay = true;
-        view.paused = true;
-        view.device = MTLCreateSystemDefaultDevice();
-        view.delegate = _renderer = [[MetalRenderer alloc] initWithMetalKitView:view];
-        self.view = view;
+        _view = [[MTKView alloc] init];
+        _view.framebufferOnly = false; // <- for reading texture
+        _view.layer.opaque = false;
+        _view.enableSetNeedsDisplay = true;
+        _view.paused = true;
+        _view.device = MTLCreateSystemDefaultDevice();
+        _view.delegate = _renderer = [[MetalRenderer alloc] initWithMetalKitView:_view];
+        self.view = _view;
     }
     return self;
 }
@@ -226,7 +247,33 @@ static NSString* _Nonnull shaderSource = @""
 {
     _renderer.scene = newScene;
     // self.view.needsDisplay = true;
-    [(MTKView*)self.view draw];
+    [_view draw];
+}
+
+- (nullable NSImage*)createSnapshot
+{
+    [_renderer render:_view.currentDrawable with:_view.currentRenderPassDescriptor blit:true];
+
+    id<MTLTexture> texture = _view.currentDrawable.texture;
+    NSUInteger w = texture.width;
+    NSUInteger h = texture.height;
+    NSUInteger bytesPerRow = w * 4;
+
+    NSMutableData* pixelBytes = [[NSMutableData alloc] initWithLength:w * h * 4];
+    MTLRegion region = MTLRegionMake2D(0, 0, w, h);
+
+    [texture getBytes:pixelBytes.mutableBytes
+          bytesPerRow:bytesPerRow
+           fromRegion:region
+          mipmapLevel:0];
+
+    NSData* immutableData = [NSData dataWithData:pixelBytes];
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)immutableData);
+    CGBitmapInfo info = kCGImageAlphaNoneSkipFirst | kCGBitmapByteOrder32Little;
+    CGImageRef cgImage = CGImageCreate(w, h, 8, 32, bytesPerRow, colorSpace, info, provider, nil, true, kCGRenderingIntentDefault);
+    CGColorSpaceRelease (colorSpace);
+    return [[NSImage alloc] initWithCGImage:cgImage size:NSZeroSize];
 }
 
 @end

@@ -45,7 +45,7 @@ struct MetalDomain
 - (nonnull instancetype)init;
 - (void)clear;
 - (void)addNode:(nonnull MetalNode*)node;
-- (nonnull NSMutableArray<MetalNode*>*) nodes;
+- (nonnull NSMutableArray<MetalNode*>*)nodes;
 - (void)setDomain:(struct MetalDomain)domain;
 - (struct MetalDomain)domain;
 @end
@@ -57,6 +57,7 @@ struct MetalDomain
 @interface MetalViewController : NSViewController
 - (nullable MetalScene*)scene;
 - (void) setScene:(nullable MetalScene*)newScene;
+- (nullable NSImage*)createSnapshot;
 @end
 
 
@@ -65,6 +66,11 @@ struct MetalDomain
 // =============================================================================
 @interface MetalRenderer : NSObject<MTKViewDelegate>
 - (nonnull instancetype)initWithMetalKitView:(nonnull MTKView*)mtkView;
-- (void) setScene:(nullable MetalScene*)sceneToDisplay;
+- (void)setScene:(nullable MetalScene*)sceneToDisplay;
+- (void)drawInMTKView:(nonnull MTKView*)view;
+- (void)render:(nonnull id<CAMetalDrawable>)drawable
+          with:(nonnull MTLRenderPassDescriptor*)renderPassDescriptor
+          blit:(bool)blitTexture;
 - (nullable MetalScene*)scene;
+
 @end

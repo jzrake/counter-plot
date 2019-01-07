@@ -107,6 +107,7 @@ public:
     MetalComponent();
     ~MetalComponent();
     void setScene (metal::Scene sceneToDisplay);
+    Image createSnapshot() const;
 
     // =======================================================================
     void resized() override;

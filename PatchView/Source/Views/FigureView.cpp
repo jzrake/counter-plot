@@ -445,6 +445,31 @@ void FigureView::removeListener (Listener* listener)
     listeners.remove (listener);
 }
 
+Image FigureView::createSnapshot()
+{
+    auto result = createComponentSnapshot (getLocalBounds());
+
+    if (surface)
+    {
+        Graphics g (result);
+        auto foreground = surface->createSnapshot();
+
+        // In metal rendering, the texture read does not preserve the alpha
+        // channel. I'm sure that can be fixed, however for now this shameful
+        // trick gets it done. Of course a side-effect is that any black that
+        // was supposed to be rendered in hardware is converted to
+        // transparent.
+        // --------------------------------------------------------------------
+        for (int i = 0; i < foreground.getWidth(); ++i)
+            for (int j = 0; j < foreground.getHeight(); ++j)
+                if (foreground.getPixelAt (i, j) == Colours::black)
+                    foreground.setPixelAt (i, j, Colours::transparentBlack);
+
+        g.drawImage (foreground, plotArea.getBounds().toFloat());
+    }
+    return result;
+}
+
 
 
 

@@ -175,6 +175,25 @@ bool BinaryTorquesView::keyPressed (const KeyPress& key)
         reloadFigures();
         return true;
     }
+    if (key == KeyPress::returnKey)
+    {
+//        auto image = figures[0]->createComponentSnapshot (figures[0]->getLocalBounds(), true, 2.f);
+//        auto image = figures[0]->getRenderingSurface()->createImage();
+        auto image = figures[0]->createSnapshot();
+        auto file = File::getSpecialLocation (File::userDesktopDirectory).getChildFile ("out.png");
+
+        file.deleteFile();
+
+        if (auto stream = std::unique_ptr<FileOutputStream> (file.createOutputStream()))
+        {
+            auto fmt = PNGImageFormat();
+            fmt.writeImageToStream (image, *stream);
+            file.startAsProcess();
+            return true;
+        }
+        DBG("opening stream failed!");
+        return false;
+    }
     return false;
 }
 

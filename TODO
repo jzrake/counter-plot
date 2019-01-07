@@ -1,8 +1,8 @@
 + HDF5 shared library linking
 + HDF5 git host
 - Project git host
-- Read metal texture as image
-- Save figures images
++ Read metal texture as image
++ Save figures images
 - Time series for binary torques
 - Colormap view
 - Create FileView base with isInterestedInFile, displayFile methods

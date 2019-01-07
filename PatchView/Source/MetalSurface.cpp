@@ -50,6 +50,11 @@ void MetalRenderingSurface::renderTriangles (const std::vector<simd::float2>& ve
     scene.addNode (node);
 }
 
+Image MetalRenderingSurface::createSnapshot() const
+{
+    return metal.createSnapshot();
+}
+
 
 
 

@@ -19,6 +19,7 @@ public:
     void renderTriangles (const std::vector<simd::float2>& vertices,
                           const std::vector<simd::float1>& scalars,
                           const ScalarMapping& mapping) override;
+    Image createSnapshot() const override;
 
     //=========================================================================
     void resized() override;
