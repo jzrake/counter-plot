@@ -9,17 +9,36 @@
 class ColourGradientArtist : public PlotArtist
 {
 public:
+
+    //=========================================================================
     enum class Orientation
     {
         horizontal, vertical,
     };
 
+    //=========================================================================
     ColourGradientArtist (ScalarMapping model);
-    void paint (Graphics& g, const PlotTransformer& trans) override;
+
+    /**
+     * Set the orientation of the gradient: left-to-right or top-to-bottom.
+     */
     void setOrientation (Orientation orientationToUse);
+
+    /**
+     * If this is set to true, then the gradient will be drawn in the domain
+     * [0, 1], transformed to the target pixel range. By default it is false:
+     * the gradient is drawn from edge-to-edge in the target range.
+     */
+    void setGradientFollowsTransform (bool shouldGradientBeTransformed);
+
+    //=========================================================================
+    void paint (Graphics& g, const PlotTransformer& trans) override;
+
 private:
+    //=========================================================================
     ScalarMapping model;
     Orientation orientation = Orientation::vertical;
+    bool transformGradient = false;
 };
 
 

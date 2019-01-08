@@ -73,6 +73,14 @@ Rectangle<double> FigureModel::getDomain() const
     return Rectangle<double> (xmin, ymin, xmax - xmin, ymax - ymin);
 }
 
+void FigureModel::setDomain (const Rectangle<double>& domain)
+{
+    xmin = domain.getX();
+    xmax = domain.getRight();
+    ymin = domain.getY();
+    ymax = domain.getBottom();
+}
+
 
 
 
@@ -155,6 +163,24 @@ Array<Colour> ColourMapHelpers::coloursFromRGBTable (const String& string)
         auto g = tokens[3 * n + 1].getIntValue();
         auto b = tokens[3 * n + 2].getIntValue();
         res.setUnchecked (n, Colour::fromRGB (r, g, b));
+    }
+    return res;
+}
+
+Array<double> ColourMapHelpers::extractChannelAsDouble (const Array<Colour>& colours, char channel)
+{
+    Array<double> res;
+    res.ensureStorageAllocated (colours.size());
+
+    for (const auto& c : colours)
+    {
+        switch (channel)
+        {
+            case 'r': res.add (c.getFloatRed()); break;
+            case 'g': res.add (c.getFloatGreen()); break;
+            case 'b': res.add (c.getFloatBlue()); break;
+            case 'a': res.add (c.getFloatAlpha()); break;
+        }
     }
     return res;
 }

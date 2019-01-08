@@ -149,19 +149,19 @@ void LinePlotArtist::paint (Graphics& g, const PlotTransformer& trans)
 {
     jassert (model.x.size() == model.y.size());
     
-    if (model.x.empty())
+    if (model.x.isEmpty())
     {
         return;
     }
     
     Path p;
-    p.startNewSubPath (trans.fromDomainX (model.x(0)),
-                       trans.fromDomainY (model.y(0)));
+    p.startNewSubPath (trans.fromDomainX (model.x.getUnchecked (0)),
+                       trans.fromDomainY (model.y.getUnchecked (0)));
     
     for (int n = 1; n < model.x.size(); ++n)
     {
-        p.lineTo (trans.fromDomainX (model.x(n)),
-                  trans.fromDomainY (model.y(n)));
+        p.lineTo (trans.fromDomainX (model.x.getUnchecked (n)),
+                  trans.fromDomainY (model.y.getUnchecked (n)));
     }
     g.setColour (model.lineColour);
     g.strokePath (p, PathStrokeType (model.lineWidth));
@@ -180,8 +180,7 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
     auto gradient = ColourGradient();
     auto n = 0;
     auto ds = 1.0 / (model.stops.size() - 1);
-    auto range = trans.getRange();
-    
+
     for (auto c : model.stops)
     {
         gradient.addColour (n++ * ds, c);
@@ -190,12 +189,29 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
     switch (orientation)
     {
         case Orientation::horizontal:
-            gradient.point1 = range.getBottomLeft().toFloat();
-            gradient.point2 = range.getBottomRight().toFloat();
+            if (transformGradient)
+            {
+                gradient.point1 = {float (trans.fromDomainX (0.f)), 0.f};
+                gradient.point2 = {float (trans.fromDomainX (1.f)), 0.f};
+            }
+            else
+            {
+                gradient.point1 = trans.getRange().getBottomLeft().toFloat();
+                gradient.point2 = trans.getRange().getBottomRight().toFloat();
+            }
             break;
+
         case Orientation::vertical:
-            gradient.point1 = range.getBottomLeft().toFloat();
-            gradient.point2 = range.getTopLeft().toFloat();
+            if (transformGradient)
+            {
+                gradient.point1 = {0.f, float (trans.fromDomainY (0.f))};
+                gradient.point2 = {0.f, float (trans.fromDomainY (1.f))};
+            }
+            else
+            {
+                gradient.point1 = trans.getRange().getBottomLeft().toFloat();
+                gradient.point2 = trans.getRange().getTopLeft().toFloat();
+            }
             break;
     }
 
@@ -206,6 +222,11 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
 void ColourGradientArtist::setOrientation (Orientation orientationToUse)
 {
     orientation = orientationToUse;
+}
+
+void ColourGradientArtist::setGradientFollowsTransform (bool shouldGradientBeTransformed)
+{
+    transformGradient = shouldGradientBeTransformed;
 }
 
 
@@ -561,18 +582,18 @@ void FigureView::resized()
 
 void FigureView::mouseEnter (const MouseEvent& e)
 {
-    if (e.originalComponent == &xlabel ||
-        e.originalComponent == &ylabel ||
-        e.originalComponent == &title)
-        e.originalComponent->setColour (Label::backgroundColourId, findColour (marginColourId).darker (0.1f));
+    auto c = findColour (marginColourId).darker (0.1f);
+    if (e.originalComponent == &xlabel && model.canEditXlabel) xlabel.setColour (Label::backgroundColourId, c);
+    if (e.originalComponent == &ylabel && model.canEditYlabel) ylabel.setColour (Label::backgroundColourId, c);
+    if (e.originalComponent == &title  && model.canEditTitle ) title .setColour (Label::backgroundColourId, c);
 }
 
 void FigureView::mouseExit (const MouseEvent& e)
 {
-    if (e.originalComponent == &xlabel ||
-        e.originalComponent == &ylabel ||
-        e.originalComponent == &title)
-        e.originalComponent->setColour (Label::backgroundColourId, Colours::transparentBlack);
+    auto c = Colours::transparentBlack;
+    if (e.originalComponent == &xlabel && model.canEditXlabel) xlabel.setColour (Label::backgroundColourId, c);
+    if (e.originalComponent == &ylabel && model.canEditYlabel) ylabel.setColour (Label::backgroundColourId, c);
+    if (e.originalComponent == &title  && model.canEditTitle ) title .setColour (Label::backgroundColourId, c);
 }
 
 void FigureView::mouseDown (const MouseEvent& e)
@@ -627,10 +648,13 @@ void FigureView::layout()
 
 void FigureView::refreshModes (bool alsoRepaint)
 {
-    plotArea.resizer.setVisible (model.allowUserResize && allowPlotAreaResize);
+    plotArea.resizer.setVisible (model.canEditMargin && allowPlotAreaResize);
     xlabel.setVisible (model.xlabelShowing && paintAxisLabels);
     ylabel.setVisible (model.ylabelShowing && paintAxisLabels);
     title .setVisible (model.titleShowing  && paintAxisLabels);
+    xlabel.setEditable (model.canEditXlabel);
+    ylabel.setEditable (model.canEditYlabel);
+    title .setEditable (model.canEditTitle);
 
     if (alsoRepaint)
     {

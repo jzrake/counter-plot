@@ -21,8 +21,8 @@ class FigureModel;
 //=============================================================================
 struct LinePlotModel
 {
-    nd::ndarray<double, 1> x;
-    nd::ndarray<double, 1> y;
+    Array<double> x;
+    Array<double> y;
     float         lineWidth    = 1.f;
     float         markerSize   = 1.f;
     Colour        lineColour   = Colours::black;
@@ -138,7 +138,10 @@ struct FigureModel
     bool                    titleShowing     = true;
     bool                    xlabelShowing    = true;
     bool                    ylabelShowing    = true;
-    bool                    allowUserResize  = true;
+    bool                    canEditMargin    = true;
+    bool                    canEditTitle     = true;
+    bool                    canEditXlabel    = true;
+    bool                    canEditYlabel    = true;
     BorderSize<int>         margin           = BorderSize<int> (90, 90, 60, 60);
     float                   borderWidth      = 1.f;
     float                   axesWidth        = 1.f;
@@ -157,6 +160,7 @@ struct FigureModel
 
     //=========================================================================
     Rectangle<double> getDomain() const;
+    void setDomain (const Rectangle<double>& domain);
 };
 
 
@@ -208,6 +212,12 @@ public:
      * r, g, b are values in the range [0, 255].
      */
     static Array<Colour> coloursFromRGBTable (const String& string);
+
+    /**
+     * Return an array of doubles for a channel in the given array of colours.
+     * The channel value must be 'r', 'g', 'b', or 'a'.
+     */
+    static Array<double> extractChannelAsDouble (const Array<Colour>& colours, char channel);
 
     /**
      * Load RGBA texture data from a whitespace-seperated ASCII table. The string

@@ -113,7 +113,7 @@ BinaryTorquesView::BinaryTorquesView()
     colorbarModel.margin.setRight (20);
     colorbarModel.gridlinesColour = Colours::transparentBlack;
     colorbarModel.xtickCount = 0;
-    colorbarModel.allowUserResize = false;
+    colorbarModel.canEditMargin = false;
     figures[1]->setModel (colorbarModel);
 
     for (const auto& figure : figures)

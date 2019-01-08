@@ -9,6 +9,22 @@
 
 
 //=============================================================================
+class DefaultView : public FileBasedView
+{
+public:
+    bool isInterestedInFile (File) const override { return true; }
+    bool loadFile (File) override { return true; }
+
+    void paint (Graphics& g) override
+    {
+        g.fillAll (findColour (LookAndFeelHelpers::propertyViewBackground));
+    }
+};
+
+
+
+
+//=============================================================================
 void StatusBar::setBusyIndicatorStatus (BusyIndicatorStatus newStatus)
 {
     status = newStatus;
@@ -110,11 +126,14 @@ MainComponent::MainComponent() : dataLoadingThread (*this)
     views.add (new JetInCloudView);
     views.add (new BinaryTorquesView);
     views.add (new ColourMapView);
+    views.add (new DefaultView);
 
     for (const auto& view : views)
     {
         addChildComponent (*view);
     }
+
+    views.getLast()->setVisible (true);
     setSize (1024, 768 - 64);
 }
 
