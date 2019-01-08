@@ -275,6 +275,22 @@ void FigureView::PlotArea::resized()
     sendSetMarginIfNeeded();
 }
 
+void FigureView::PlotArea::mouseMove (const MouseEvent& e)
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->figureMousePosition ({toDomainX (e.position.x), toDomainY (e.position.y)});
+    }
+}
+
+void FigureView::PlotArea::mouseExit (const MouseEvent& e)
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->figureMousePosition ({0, 0});
+    }
+}
+
 void FigureView::PlotArea::mouseDown (const MouseEvent&)
 {
     domainBeforePan = figure.model.getDomain();

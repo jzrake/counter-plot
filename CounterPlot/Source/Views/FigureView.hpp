@@ -90,12 +90,22 @@ public:
     };
 
     //=========================================================================
+    class MessageSink
+    {
+    public:
+        virtual ~MessageSink() {}
+        virtual void figureMousePosition (Point<double> position) = 0;
+    };
+
+    //=========================================================================
     class PlotArea : public Component, public PlotTransformer
     {
     public:
         PlotArea (FigureView&);
         void paint (Graphics&) override;
         void resized() override;
+        void mouseMove (const MouseEvent&) override;
+        void mouseExit (const MouseEvent&) override;
         void mouseDown (const MouseEvent&) override;
         void mouseDrag (const MouseEvent&) override;
         void mouseMagnify (const MouseEvent&, float) override;

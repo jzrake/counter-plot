@@ -33,10 +33,10 @@ void StatusBar::setBusyIndicatorStatus (BusyIndicatorStatus newStatus)
 
 void StatusBar::paint (Graphics& g)
 {
-    g.setColour (findColour (LookAndFeelHelpers::statusBarBackground));
-    g.fillAll();
+    auto area = getLocalBounds();
 
-    auto box = getLocalBounds().removeFromRight (getHeight()).reduced (5);
+    auto indicatorArea = area.removeFromRight (getHeight());
+    auto mousePositionArea = area.removeFromRight (200);
     auto colour = Colour();
 
     switch (status)
@@ -46,8 +46,24 @@ void StatusBar::paint (Graphics& g)
         case BusyIndicatorStatus::waiting: colour = Colours::red; break;
     }
 
+    g.setColour (findColour (LookAndFeelHelpers::statusBarBackground));
+    g.fillAll();
+
     g.setColour (colour);
-    g.fillEllipse (box.toFloat());
+    g.fillEllipse (indicatorArea.reduced (5).toFloat());
+
+    if (! mousePositionInFigure.isOrigin())
+    {
+        g.setColour (findColour (LookAndFeelHelpers::statusBarBackground).contrasting());
+        g.setFont (Font ("Monaco", 11, 0));
+        g.drawText (mousePositionInFigure.toString(), mousePositionArea, Justification::centredLeft);
+    }
+}
+
+void StatusBar::setMousePositionInFigure (Point<double> position)
+{
+    mousePositionInFigure = position;
+    repaint();
 }
 
 void StatusBar::resized()
@@ -228,6 +244,19 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
     reloadCurrentFile();
 }
 
+
+
+
+//=============================================================================
+void MainComponent::figureMousePosition (Point<double> position)
+{
+    statusBar.setMousePositionInFigure (position);
+}
+
+
+
+
+//=============================================================================
 void MainComponent::dataLoadingThreadWaiting()
 {
     statusBar.setBusyIndicatorStatus (StatusBar::BusyIndicatorStatus::waiting);

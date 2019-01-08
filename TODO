@@ -12,3 +12,4 @@
 + Create application commands for views, instead of keyPressed
 - Multiple tabs and/or split view
 + Show/hide the directory tree
++ Draw mouse position in status bar

@@ -1,6 +1,7 @@
 #pragma once
 #include "JuceHeader.h"
 #include "Views/DirectoryTree.hpp"
+#include "Views/FigureView.hpp"
 
 
 
@@ -24,10 +25,12 @@ public:
 
     //=========================================================================
     void setBusyIndicatorStatus (BusyIndicatorStatus newStatus);
+    void setMousePositionInFigure (Point<double> position);
     void paint (Graphics& g) override;
     void resized() override;
 private:
     BusyIndicatorStatus status = BusyIndicatorStatus::idle;
+    Point<double> mousePositionInFigure;
 };
 
 
@@ -37,6 +40,7 @@ private:
 class MainComponent
 : public Component
 , public DirectoryTree::Listener
+, public FigureView::MessageSink
 {
 public:
 
@@ -55,6 +59,9 @@ public:
 
     //=========================================================================
     void selectedFileChanged (DirectoryTree*, File) override;
+
+    //=========================================================================
+    void figureMousePosition (Point<double> position) override;
 
 private:
     //=========================================================================
