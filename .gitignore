@@ -1,5 +1,4 @@
 .DS_STORE
 Projucer.app
-PatchView/Builds
-PatchView/JuceLibraryCode
-third_party/hdf5-1.10.*
+CounterPlot/Builds
+CounterPlot/JuceLibraryCode

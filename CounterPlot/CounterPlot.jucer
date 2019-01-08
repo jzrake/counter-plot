@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="SNyzUC" name="PatchView" projectType="guiapp" jucerVersion="5.4.1"
+<JUCERPROJECT id="SNyzUC" name="Counter Plot" projectType="guiapp" jucerVersion="5.4.1"
               projectLineFeed="&#10;">
-  <MAINGROUP id="Iv1B3G" name="PatchView">
+  <MAINGROUP id="Iv1B3G" name="Counter Plot">
     <GROUP id="{6EA5EAB6-53AF-3CB0-E496-7A5E1E6015C9}" name="Views">
       <FILE id="RYs1Mj" name="BinaryTorquesView.cpp" compile="1" resource="0"
             file="Source/Views/BinaryTorquesView.cpp"/>

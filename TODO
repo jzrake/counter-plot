@@ -9,5 +9,5 @@
 + Factor main component to use a collection of FileView instances
 - Write filesystem notification singleton
 + Write async file loading
-- Create application commands for views, instead of keyPressed
++ Create application commands for views, instead of keyPressed
 - Multiple tabs and/or split view
