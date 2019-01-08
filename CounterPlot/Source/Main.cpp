@@ -70,6 +70,8 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
     }
     if (menuName == "View")
     {
+        menu.addCommandItem (manager, Commands::toggleDirectoryView);
+        menu.addSeparator();
         menu.addCommandItem (manager, BinaryTorquesView::Commands::nextColourMap);
         menu.addCommandItem (manager, BinaryTorquesView::Commands::prevColourMap);
         menu.addCommandItem (manager, BinaryTorquesView::Commands::resetScalarRange);
@@ -158,6 +160,8 @@ void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
 
     const CommandID ids[] = {
         Commands::openDirectory,
+        Commands::reloadCurrentFile,
+        Commands::toggleDirectoryView,
     };
     commands.addArray (ids, numElementsInArray (ids));
 }
@@ -170,6 +174,14 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Open...", "", "File", 0);
             result.defaultKeypresses.add (KeyPress ('o', ModifierKeys::commandModifier, 0));
             break;
+        case Commands::reloadCurrentFile:
+            result.setInfo ("Reload Current File", "", "File", 0);
+            result.defaultKeypresses.add (KeyPress ('r', ModifierKeys::commandModifier, 0));
+            break;
+        case Commands::toggleDirectoryView:
+            result.setInfo ("Side Bar", "", "View", mainWindow->content->isDirectoryTreeShowing() ? ApplicationCommandInfo::isTicked : 0);
+            result.defaultKeypresses.add (KeyPress ('K', ModifierKeys::commandModifier, 0));
+            break;
         default:
             JUCEApplication::getCommandInfo (commandID, result);
             break;
@@ -181,6 +193,8 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
     switch (info.commandID)
     {
         case Commands::openDirectory:             return presentOpenDirectoryDialog();
+        case Commands::reloadCurrentFile:         mainWindow->content->reloadCurrentFile(); return true;
+        case Commands::toggleDirectoryView:       mainWindow->content->toggleDirectoryTreeShown(); return true;
         default:                                  return JUCEApplication::perform (info);
     }
 }

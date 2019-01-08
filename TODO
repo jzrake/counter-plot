@@ -11,3 +11,4 @@
 + Write async file loading
 + Create application commands for views, instead of keyPressed
 - Multiple tabs and/or split view
++ Show/hide the directory tree

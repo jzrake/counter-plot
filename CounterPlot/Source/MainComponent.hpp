@@ -44,6 +44,9 @@ public:
     MainComponent();
     ~MainComponent();
     void setCurrentDirectory (File newCurrentDirectory);
+    void reloadCurrentFile();
+    void toggleDirectoryTreeShown();
+    bool isDirectoryTreeShowing() const;
 
     //=========================================================================
     void paint (Graphics&) override;
@@ -55,6 +58,7 @@ public:
 
 private:
     //=========================================================================
+    void layout (bool animated);
     void dataLoadingThreadWaiting();
     void dataLoadingThreadRunning();
     void dataLoadingThreadFinished();
@@ -70,6 +74,10 @@ private:
         File file;
         FileBasedView* view = nullptr;
     };
+
+    //=========================================================================
+    File currentFile;
+    bool directoryTreeShowing = true;
 
     //=========================================================================
     StatusBar statusBar;

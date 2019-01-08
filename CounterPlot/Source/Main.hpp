@@ -19,7 +19,9 @@ public:
     //=========================================================================
     enum Commands
     {
-        openDirectory = 101,
+        openDirectory       = 101,
+        reloadCurrentFile   = 102,
+        toggleDirectoryView = 103,
     };
 
 

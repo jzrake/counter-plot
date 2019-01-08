@@ -147,34 +147,10 @@ void MainComponent::setCurrentDirectory (File newCurrentDirectory)
     directoryTree.setDirectoryToShow (newCurrentDirectory);
 }
 
-void MainComponent::paint (Graphics& g)
-{
-}
-
-void MainComponent::resized()
-{
-    auto area = getLocalBounds();
-    statusBar.setBounds (area.removeFromBottom (22));
-    directoryTree.setBounds (area.removeFromLeft(300));
-
-    for (const auto& view : views)
-    {
-        view->setBounds (area);
-    }
-}
-
-bool MainComponent::keyPressed (const juce::KeyPress &key)
-{
-    return false;
-}
-
-
-
-
-//=============================================================================
-void MainComponent::selectedFileChanged (DirectoryTree*, File file)
+void MainComponent::reloadCurrentFile()
 {
     bool found = false;
+    File file = currentFile;
 
     for (const auto& view : views)
     {
@@ -189,6 +165,67 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
             view->setVisible (false);
         }
     }
+}
+
+void MainComponent::toggleDirectoryTreeShown()
+{
+    directoryTreeShowing = ! directoryTreeShowing;
+    layout (true);
+}
+
+bool MainComponent::isDirectoryTreeShowing() const
+{
+    return directoryTreeShowing;
+}
+
+
+
+
+//=============================================================================
+void MainComponent::paint (Graphics& g)
+{
+}
+
+void MainComponent::resized()
+{
+    layout (false);
+}
+
+void MainComponent::layout (bool animated)
+{
+    auto setBounds = [animated] (Component& component, const Rectangle<int>& bounds)
+    {
+        if (animated && component.isVisible())
+            Desktop::getInstance().getAnimator().animateComponent (&component, bounds, 1.f, 200, false, 1.f, 1.f);
+        else
+            component.setBounds (bounds);
+    };
+
+    auto area = getLocalBounds();
+    setBounds (statusBar, area.removeFromBottom (22));
+
+    if (directoryTreeShowing)
+        setBounds (directoryTree, area.removeFromLeft (300));
+    else
+        setBounds (directoryTree, area.withWidth (300).translated (-300, 0));
+
+    for (const auto& view : views)
+        setBounds (*view, area);
+}
+
+bool MainComponent::keyPressed (const juce::KeyPress &key)
+{
+    return false;
+}
+
+
+
+
+//=============================================================================
+void MainComponent::selectedFileChanged (DirectoryTree*, File file)
+{
+    currentFile = file;
+    reloadCurrentFile();
 }
 
 void MainComponent::dataLoadingThreadWaiting()

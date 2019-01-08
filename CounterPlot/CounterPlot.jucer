@@ -76,8 +76,8 @@
         <MODULEPATH id="juce_gui_extra" path="../third_party/JUCE/modules"/>
         <MODULEPATH id="juce_patches" path="../third_party/patches"/>
         <MODULEPATH id="juce_ndarray" path="../third_party/ndarray"/>
-        <MODULEPATH id="juce_metal" path="../../PatchView"/>
         <MODULEPATH id="juce_ndh5" path="../third_party/ndh5"/>
+        <MODULEPATH id="juce_metal" path=".."/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
