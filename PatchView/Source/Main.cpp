@@ -2,6 +2,7 @@
 #include "MainComponent.hpp"
 #include "Views/FigureView.hpp"
 #include "Views/LookAndFeel.hpp"
+#include "Views/BinaryTorquesView.hpp"
 
 
 
@@ -51,13 +52,30 @@ PatchViewApplication::MainMenu::MainMenu()
 
 StringArray PatchViewApplication::MainMenu::getMenuBarNames()
 {
-    return {"File"};
+    return {"File", "View"};
 }
 
 PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuIndex*/, const String& menuName)
 {
+    auto manager = &getApp().getCommandManager();
     PopupMenu menu;
-    menu.addCommandItem (&getApp().getCommandManager(), Commands::openDirectory);
+
+    if (menuName == "File")
+    {
+        menu.addCommandItem (manager, Commands::openDirectory);
+        menu.addSeparator();
+        menu.addCommandItem (manager, BinaryTorquesView::Commands::makeSnapshotAndOpen);
+        menu.addCommandItem (manager, BinaryTorquesView::Commands::saveSnapshotAs);
+        return menu;
+    }
+    if (menuName == "View")
+    {
+        menu.addCommandItem (manager, BinaryTorquesView::Commands::nextColourMap);
+        menu.addCommandItem (manager, BinaryTorquesView::Commands::prevColourMap);
+        menu.addCommandItem (manager, BinaryTorquesView::Commands::resetScalarRange);
+        return menu;
+    }
+    jassertfalse;
     return menu;
 }
 
@@ -109,6 +127,7 @@ void PatchViewApplication::initialise (const String& commandLine)
     mainWindow     = std::make_unique<MainWindow> (getApplicationName());
 
     commandManager->registerAllCommandsForTarget (this);
+    commandManager->registerAllCommandsForTarget (std::make_unique<BinaryTorquesView>().get());
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
 
     startTimer (500);
@@ -225,12 +244,7 @@ void PatchViewApplication::configureLookAndFeel()
 
 bool PatchViewApplication::presentOpenDirectoryDialog()
 {
-    FileChooser chooser ("Open directory...",
-                         currentDirectory,
-                         "",
-                         true,
-                         false,
-                         nullptr);
+    FileChooser chooser ("Open directory...", currentDirectory, "", true, false, nullptr);
 
     if (chooser.browseForDirectory())
     {

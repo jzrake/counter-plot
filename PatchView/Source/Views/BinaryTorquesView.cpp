@@ -102,6 +102,15 @@ BinaryTorquesView::BinaryTorquesView()
 
     FigureModel mainModel;
     mainModel.margin.setRight (20);
+    mainModel.canEditTitle = false;
+    mainModel.canEditXlabel = false;
+    mainModel.canEditYlabel = false;
+    mainModel.xlabel = "X";
+    mainModel.ylabel = "Y";
+    mainModel.xmin = -3;
+    mainModel.xmax = +3;
+    mainModel.ymin = -3;
+    mainModel.ymax = +3;
     figures[0]->setModel (mainModel);
     figures[0]->setRenderingSurface (std::make_unique<MetalRenderingSurface>());
 
@@ -147,6 +156,8 @@ void BinaryTorquesView::loadFileAsync (File viewedDocument, std::function<bool()
         return;
     }
     scalarExtent = artist->getScalarExtent();
+    currentFile = viewedDocument;
+
     MessageManager::callAsync ([viewedDocument, self = SafePointer<BinaryTorquesView> (this)]
     {
         if (self.getComponent())
@@ -164,6 +175,7 @@ void BinaryTorquesView::reloadFigures()
     auto mainModel     = figures[0]->getModel();
     auto colorbarModel = figures[1]->getModel();
 
+    mainModel.title = currentFile.getFileName();
     colorbarModel.ymin = scalarExtent[0];
     colorbarModel.ymax = scalarExtent[1];
 
@@ -186,46 +198,6 @@ void BinaryTorquesView::reloadFigures()
 void BinaryTorquesView::resized()
 {
     layout.performLayout (getLocalBounds());
-}
-
-bool BinaryTorquesView::keyPressed (const KeyPress& key)
-{
-    if (key == KeyPress::leftKey)
-    {
-        cmaps.prev();
-        reloadFigures();
-        return true;
-    }
-    if (key == KeyPress::rightKey)
-    {
-        cmaps.next();
-        reloadFigures();
-        return true;
-    }
-    if (key == KeyPress::spaceKey)
-    {
-        scalarExtent = artist->getScalarExtent();
-        reloadFigures();
-        return true;
-    }
-    if (key == KeyPress::returnKey)
-    {
-        auto image = figures[0]->createSnapshot();
-        auto file = File::getSpecialLocation (File::userDesktopDirectory).getChildFile ("out.png");
-
-        file.deleteFile();
-
-        if (auto stream = std::unique_ptr<FileOutputStream> (file.createOutputStream()))
-        {
-            auto fmt = PNGImageFormat();
-            fmt.writeImageToStream (image, *stream);
-            file.startAsProcess();
-            return true;
-        }
-        DBG("opening stream failed!");
-        return false;
-    }
-    return false;
 }
 
 
@@ -332,5 +304,102 @@ void BinaryTorquesView::mutateFiguresInCol (FigureView* eventFigure, std::functi
             f->setModel (m);
         }
         ++n;
+    }
+}
+
+
+
+
+//=============================================================================
+void BinaryTorquesView::getAllCommands (Array<CommandID>& commands)
+{
+    const CommandID ids[] = {
+        Commands::makeSnapshotAndOpen,
+        Commands::saveSnapshotAs,
+        Commands::nextColourMap,
+        Commands::prevColourMap,
+        Commands::resetScalarRange,
+    };
+    commands.addArray (ids, numElementsInArray (ids));
+}
+
+void BinaryTorquesView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
+{
+    switch (commandID)
+    {
+        case Commands::makeSnapshotAndOpen:
+            result.setInfo ("Create Snapshot", "", "File", 0);
+            result.defaultKeypresses.add ({'e', ModifierKeys::commandModifier, 0});
+            break;
+        case Commands::saveSnapshotAs:
+            result.setInfo ("Save Snapshot As...", "", "File", 0);
+            result.defaultKeypresses.add ({'e', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0});
+            break;
+        case Commands::nextColourMap:
+            result.setInfo ("Next Color Map", "", "View", 0);
+            result.defaultKeypresses.add (KeyPress (KeyPress::rightKey, 0, 0));
+            break;
+        case Commands::prevColourMap:
+            result.setInfo ("Previous Color Map", "", "View", 0);
+            result.defaultKeypresses.add (KeyPress (KeyPress::leftKey, 0, 0));
+            break;
+        case Commands::resetScalarRange:
+            result.setInfo ("Reset Scalar Range", "", "View", 0);
+            result.defaultKeypresses.add (KeyPress (KeyPress::upKey, 0, 0));
+            break;
+    }
+}
+
+bool BinaryTorquesView::perform (const InvocationInfo& info)
+{
+    switch (info.commandID)
+    {
+        case Commands::makeSnapshotAndOpen: saveSnapshot (true); break;
+        case Commands::saveSnapshotAs: saveSnapshot (false); break;
+        case Commands::nextColourMap: cmaps.next(); reloadFigures(); break;
+        case Commands::prevColourMap: cmaps.prev(); reloadFigures(); break;
+        case Commands::resetScalarRange: scalarExtent = artist->getScalarExtent(); reloadFigures(); break;
+    }
+    return true;
+}
+
+ApplicationCommandTarget* BinaryTorquesView::getNextCommandTarget()
+{
+    return nullptr;
+}
+
+
+
+
+//=============================================================================
+void BinaryTorquesView::saveSnapshot (bool toTempDirectory)
+{
+    auto target = File();
+
+    if (toTempDirectory)
+    {
+        target = File::createTempFile (".png");
+    }
+    else
+    {
+        FileChooser chooser ("Open directory...", currentFile.getParentDirectory(), "", true, false, nullptr);
+
+        if (chooser.browseForFileToSave (true))
+            target = chooser.getResult();
+        else
+            return;
+    }
+
+    auto image = figures[0]->createSnapshot();
+    target.deleteFile();
+
+    if (auto stream = std::unique_ptr<FileOutputStream> (target.createOutputStream()))
+    {
+        auto fmt = PNGImageFormat();
+        fmt.writeImageToStream (image, *stream);
+    }
+    if (toTempDirectory)
+    {
+        target.startAsProcess();
     }
 }
