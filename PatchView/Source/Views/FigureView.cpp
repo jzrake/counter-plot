@@ -187,11 +187,25 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
         gradient.addColour (n++ * ds, c);
     }
 
-    gradient.point1 = range.getBottomLeft().toFloat();
-    gradient.point2 = range.getTopLeft().toFloat();
+    switch (orientation)
+    {
+        case Orientation::horizontal:
+            gradient.point1 = range.getBottomLeft().toFloat();
+            gradient.point2 = range.getBottomRight().toFloat();
+            break;
+        case Orientation::vertical:
+            gradient.point1 = range.getBottomLeft().toFloat();
+            gradient.point2 = range.getTopLeft().toFloat();
+            break;
+    }
 
     g.setGradientFill (gradient);
     g.fillAll();
+}
+
+void ColourGradientArtist::setOrientation (Orientation orientationToUse)
+{
+    orientation = orientationToUse;
 }
 
 
@@ -447,7 +461,7 @@ void FigureView::removeListener (Listener* listener)
 
 Image FigureView::createSnapshot()
 {
-    auto result = createComponentSnapshot (getLocalBounds());
+    auto result = createComponentSnapshot (getLocalBounds(), true, 2.f);
 
     if (surface)
     {
@@ -459,13 +473,16 @@ Image FigureView::createSnapshot()
         // trick gets it done. Of course a side-effect is that any black that
         // was supposed to be rendered in hardware is converted to
         // transparent.
+        // 
+        // https://stackoverflow.com/questions/29835537/metal-mtltexture-replaces-semi-transparent-areas-with-black-when-alpha-values-th
         // --------------------------------------------------------------------
         for (int i = 0; i < foreground.getWidth(); ++i)
             for (int j = 0; j < foreground.getHeight(); ++j)
                 if (foreground.getPixelAt (i, j) == Colours::black)
                     foreground.setPixelAt (i, j, Colours::transparentBlack);
 
-        g.drawImage (foreground, plotArea.getBounds().toFloat());
+        g.drawImage (foreground, plotArea.getBounds()
+                     .transformedBy (AffineTransform::scale (2.f)).toFloat());
     }
     return result;
 }

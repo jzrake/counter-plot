@@ -9,10 +9,17 @@
 class ColourGradientArtist : public PlotArtist
 {
 public:
+    enum class Orientation
+    {
+        horizontal, vertical,
+    };
+
     ColourGradientArtist (ScalarMapping model);
     void paint (Graphics& g, const PlotTransformer& trans) override;
+    void setOrientation (Orientation orientationToUse);
 private:
     ScalarMapping model;
+    Orientation orientation = Orientation::vertical;
 };
 
 

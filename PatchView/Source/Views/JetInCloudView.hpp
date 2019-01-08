@@ -43,4 +43,5 @@ private:
     OwnedArray<FigureView> figures;
     std::shared_ptr<QuadmeshArtist> artist;
     ColourMapCollection cmaps;
+    File currentFile;
 };

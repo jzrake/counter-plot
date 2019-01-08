@@ -1,5 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
+#include "VariantView.hpp"
 
 
 
@@ -8,6 +9,8 @@
 class FileBasedView : public Component
 {
 public:
+    virtual ~FileBasedView() {}
+
     /**
      * This method should return true if it looks like the given file can be
      * displayed. This does not need to be a guarantee that loading it will
@@ -33,4 +36,34 @@ public:
      * loading the file.
      */
     virtual void loadFileAsync (File fileToDisplay, std::function<bool()> bailout) {}
+};
+
+
+
+
+//=============================================================================
+class JsonFileViewer : public FileBasedView
+{
+public:
+    JsonFileViewer();
+    bool isInterestedInFile (File file) const override;
+    bool loadFile (File fileToDisplay) override;
+    void resized() override;
+private:
+    VariantView view;
+};
+
+
+
+
+//=============================================================================
+class ImageFileViewer : public FileBasedView
+{
+public:
+    ImageFileViewer();
+    bool isInterestedInFile (File file) const override;
+    bool loadFile (File file) override;
+    void resized() override;
+private:
+    ImageComponent view;
 };

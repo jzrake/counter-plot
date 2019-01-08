@@ -152,6 +152,7 @@ bool JetInCloudView::loadFile (File viewedDocument)
     auto db = patches2d::Database::load (ser);
     artist = std::make_shared<QuadmeshArtist> (db);
     scalarExtent = artist->getScalarExtent();
+    currentFile = viewedDocument;
     reloadFigures();
     return true;
 }
@@ -165,6 +166,7 @@ void JetInCloudView::reloadFigures()
     auto mainModel     = figures[0]->getModel();
     auto colorbarModel = figures[1]->getModel();
 
+    mainModel.title = currentFile.getFileName();
     colorbarModel.ymin = scalarExtent[0];
     colorbarModel.ymax = scalarExtent[1];
 

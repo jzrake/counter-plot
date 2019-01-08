@@ -8,12 +8,18 @@
             file="Source/Views/BinaryTorquesView.cpp"/>
       <FILE id="QK5y18" name="BinaryTorquesView.hpp" compile="0" resource="0"
             file="Source/Views/BinaryTorquesView.hpp"/>
+      <FILE id="XfCrU3" name="ColourMapView.cpp" compile="1" resource="0"
+            file="Source/Views/ColourMapView.cpp"/>
+      <FILE id="Y139xu" name="ColourMapView.hpp" compile="0" resource="0"
+            file="Source/Views/ColourMapView.hpp"/>
       <FILE id="Oy1lsd" name="DirectoryTree.cpp" compile="1" resource="0"
             file="Source/Views/DirectoryTree.cpp"/>
       <FILE id="SNzB4o" name="DirectoryTree.hpp" compile="0" resource="0"
             file="Source/Views/DirectoryTree.hpp"/>
       <FILE id="rMtKLh" name="FigureView.cpp" compile="1" resource="0" file="Source/Views/FigureView.cpp"/>
       <FILE id="JyvA3Q" name="FigureView.hpp" compile="0" resource="0" file="Source/Views/FigureView.hpp"/>
+      <FILE id="q5fkEe" name="FileBasedView.cpp" compile="1" resource="0"
+            file="Source/Views/FileBasedView.cpp"/>
       <FILE id="FLfpYu" name="FileBasedView.hpp" compile="0" resource="0"
             file="Source/Views/FileBasedView.hpp"/>
       <FILE id="t3Md0B" name="JetInCloudView.cpp" compile="1" resource="0"

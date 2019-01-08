@@ -1,9 +1,9 @@
 #include "MainComponent.hpp"
 #include "Views/LookAndFeel.hpp"
-#include "Views/VariantView.hpp"
 #include "Views/JetInCloudView.hpp"
 #include "Views/BinaryTorquesView.hpp"
 #include "Views/FileBasedView.hpp"
+#include "Views/ColourMapView.hpp"
 
 
 
@@ -37,71 +37,6 @@ void StatusBar::paint (Graphics& g)
 void StatusBar::resized()
 {
 }
-
-
-
-
-//=============================================================================
-class JsonFileViewer : public FileBasedView
-{
-public:
-    JsonFileViewer()
-    {
-        addAndMakeVisible (view);
-    }
-
-    bool isInterestedInFile (File file) const override
-    {
-        return file.hasFileExtension (".json");
-    }
-
-    bool loadFile (File fileToDisplay) override
-    {
-        view.setData (JSON::parse (fileToDisplay));
-        return true;
-    }
-
-    void resized() override
-    {
-        view.setBounds (getLocalBounds());
-    }
-private:
-    VariantView view;
-};
-
-
-
-
-//=============================================================================
-class ImageFileViewer : public FileBasedView
-{
-public:
-    ImageFileViewer()
-    {
-        addAndMakeVisible (view);
-    }
-
-    bool isInterestedInFile (File file) const override
-    {
-        return ImageFileFormat::findImageFormatForFileExtension (file);
-    }
-
-    bool loadFile (File file) override
-    {
-        if (auto format = ImageFileFormat::findImageFormatForFileExtension (file))
-        {
-            view.setImage (format->loadFrom (file));
-        }
-        return true;
-    }
-
-    void resized() override
-    {
-        view.setBounds (getLocalBounds());
-    }
-private:
-    ImageComponent view;
-};
 
 
 
@@ -174,6 +109,7 @@ MainComponent::MainComponent() : dataLoadingThread (*this)
     views.add (new ImageFileViewer);
     views.add (new JetInCloudView);
     views.add (new BinaryTorquesView);
+    views.add (new ColourMapView);
 
     for (const auto& view : views)
     {
