@@ -85,6 +85,21 @@ void FigureModel::setDomain (const Rectangle<double>& domain)
 
 
 //=============================================================================
+ColourMapCollection::ColourMapCollection (bool loadDefaults)
+{
+    if (loadDefaults)
+    {
+        add ("cividis",  ColourMapHelpers::coloursFromRGBTable (BinaryData::cividis_cmap));
+        add ("dawn",     ColourMapHelpers::coloursFromRGBTable (BinaryData::dawn_cmap));
+        add ("fire",     ColourMapHelpers::coloursFromRGBTable (BinaryData::fire_cmap));
+        add ("inferno",  ColourMapHelpers::coloursFromRGBTable (BinaryData::inferno_cmap));
+        add ("magma",    ColourMapHelpers::coloursFromRGBTable (BinaryData::magma_cmap));
+        add ("plasma",   ColourMapHelpers::coloursFromRGBTable (BinaryData::plasma_cmap));
+        add ("seashore", ColourMapHelpers::coloursFromRGBTable (BinaryData::seashore_cmap));
+        add ("viridis",  ColourMapHelpers::coloursFromRGBTable (BinaryData::viridis_cmap));
+    }
+}
+
 void ColourMapCollection::clear()
 {
     names.clear();
@@ -94,6 +109,12 @@ void ColourMapCollection::clear()
 
 void ColourMapCollection::add (const String& nameToAdd, const Array<Colour>& stopsToAdd)
 {
+    if (names.contains (nameToAdd))
+    {
+        int n = names.indexOf (nameToAdd);
+        names.remove (n);
+        stops.remove (n);
+    }
     names.add (nameToAdd);
     stops.add (stopsToAdd);
 }

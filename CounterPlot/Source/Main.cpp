@@ -2,7 +2,7 @@
 #include "MainComponent.hpp"
 #include "Views/FigureView.hpp"
 #include "Views/LookAndFeel.hpp"
-#include "Views/BinaryTorquesView.hpp"
+#include "Views/FileBasedView.hpp"
 
 
 
@@ -64,17 +64,17 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
     {
         menu.addCommandItem (manager, Commands::openDirectory);
         menu.addSeparator();
-        menu.addCommandItem (manager, BinaryTorquesView::Commands::makeSnapshotAndOpen);
-        menu.addCommandItem (manager, BinaryTorquesView::Commands::saveSnapshotAs);
+        menu.addCommandItem (manager, FileBasedView::Commands::makeSnapshotAndOpen);
+        menu.addCommandItem (manager, FileBasedView::Commands::saveSnapshotAs);
         return menu;
     }
     if (menuName == "View")
     {
         menu.addCommandItem (manager, Commands::toggleDirectoryView);
         menu.addSeparator();
-        menu.addCommandItem (manager, BinaryTorquesView::Commands::nextColourMap);
-        menu.addCommandItem (manager, BinaryTorquesView::Commands::prevColourMap);
-        menu.addCommandItem (manager, BinaryTorquesView::Commands::resetScalarRange);
+        menu.addCommandItem (manager, FileBasedView::Commands::nextColourMap);
+        menu.addCommandItem (manager, FileBasedView::Commands::prevColourMap);
+        menu.addCommandItem (manager, FileBasedView::Commands::resetScalarRange);
         return menu;
     }
     jassertfalse;
@@ -129,7 +129,7 @@ void PatchViewApplication::initialise (const String& commandLine)
     mainWindow     = std::make_unique<MainWindow> (getApplicationName());
 
     commandManager->registerAllCommandsForTarget (this);
-    commandManager->registerAllCommandsForTarget (std::make_unique<BinaryTorquesView>().get());
+    FileBasedView::registerCommands (*commandManager);
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
 
     startTimer (500);

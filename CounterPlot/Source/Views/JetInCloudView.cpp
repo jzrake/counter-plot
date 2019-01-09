@@ -97,15 +97,6 @@ private:
 //=============================================================================
 JetInCloudView::JetInCloudView()
 {
-    cmaps.add ("cividis",  ColourMapHelpers::coloursFromRGBTable (BinaryData::cividis_cmap));
-    cmaps.add ("dawn",     ColourMapHelpers::coloursFromRGBTable (BinaryData::dawn_cmap));
-    cmaps.add ("fire",     ColourMapHelpers::coloursFromRGBTable (BinaryData::fire_cmap));
-    cmaps.add ("inferno",  ColourMapHelpers::coloursFromRGBTable (BinaryData::inferno_cmap));
-    cmaps.add ("magma",    ColourMapHelpers::coloursFromRGBTable (BinaryData::magma_cmap));
-    cmaps.add ("plasma",   ColourMapHelpers::coloursFromRGBTable (BinaryData::plasma_cmap));
-    cmaps.add ("seashore", ColourMapHelpers::coloursFromRGBTable (BinaryData::seashore_cmap));
-    cmaps.add ("viridis",  ColourMapHelpers::coloursFromRGBTable (BinaryData::viridis_cmap));
-
     layout.templateRows    = { Grid::TrackInfo (1_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (80_px) };
 

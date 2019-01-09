@@ -24,13 +24,16 @@ public:
     void figureViewSetTitle (FigureView*, const String&) override;
 
 private:
+    //=========================================================================
     void updateFigures();
     static Array<double> linspace (double x0, double x1, int num);
     static Array<double> smooth (const Array<double>&);
-    FigureView lineFigure;
-    FigureView cmapFigure;
+
+    //=========================================================================
+    ScalarMapping mapping;
     FigureModel lineModel;
     FigureModel cmapModel;
-    ScalarMapping mapping;
+    FigureView lineFigure;
+    FigureView cmapFigure;
     Grid layout;
 };

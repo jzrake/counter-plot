@@ -1,6 +1,6 @@
 + HDF5 shared library linking
 + HDF5 git host
-- Project git host
++ Project git host
 + Read metal texture as image
 + Save figures images
 - Time series for binary torques
@@ -13,3 +13,8 @@
 - Multiple tabs and/or split view
 + Show/hide the directory tree
 + Draw mouse position in status bar
+- Sort/filter directory tree items
+- Option to preserve figure aspect ratio
+- Move commands from binary torques to file based view
+- LaTeX via node mathjax or system TeX
+- Work out robust logic for multi-figure pages

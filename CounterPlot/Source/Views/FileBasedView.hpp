@@ -9,6 +9,39 @@
 class FileBasedView : public Component
 {
 public:
+
+    /**
+     * Common commands that views might typically respond to. Views that are
+     * ApplicationCommandTarget's should return the subset of these which they
+     * perform in the getAllCommands methods.
+     */
+    enum Commands
+    {
+        makeSnapshotAndOpen = 0x0213001,
+        saveSnapshotAs      = 0x0213002,
+        nextColourMap       = 0x0213003,
+        prevColourMap       = 0x0213004,
+        resetScalarRange    = 0x0213005,
+    };
+
+    /**
+     * This returns the list of the above commands.
+     */
+    static void getAllCommands (Array<CommandID>& commands);
+
+    /**
+     * This registers all above the commands with the given command manager.
+     */
+    static void registerCommands (ApplicationCommandManager& manager);
+
+    /**
+     * Subclass views can defer to this method to get command descriptions.
+     */
+    static void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result);
+
+    /**
+     * Destructor.
+     */
     virtual ~FileBasedView() {}
 
     /**

@@ -167,10 +167,18 @@ struct FigureModel
 
 
 //=============================================================================
+/**
+ * Encapsulates a named collection of color maps and a current index that can
+ * be moved forward and backward. The constructor loads a collection of
+ * application-wide color maps, but you can add your own as well. In the event
+ * of name duplicates, the earlier color map with the given name is over-written.
+ * The color maps stay in the order they were added.
+ */
 class ColourMapCollection
 {
 public:
     //=========================================================================
+    ColourMapCollection (bool loadDefaults=true);
     void clear();
     void add (const String& nameToAdd, const Array<Colour>& stopsToAdd);
     void setCurrent (const int newIndex);

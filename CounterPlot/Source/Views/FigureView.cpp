@@ -214,7 +214,6 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
             }
             break;
     }
-
     g.setGradientFill (gradient);
     g.fillAll();
 }
