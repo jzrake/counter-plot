@@ -25,6 +25,7 @@ public:
         directoryTreeSelectedItem = 0x0771612,
 
         statusBarBackground       = 0x0771613,
+        statusBarText             = 0x0771614,
     };
 
     enum class TextColourScheme

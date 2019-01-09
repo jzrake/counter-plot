@@ -69,6 +69,17 @@ public:
      * loading the file.
      */
     virtual void loadFileAsync (File fileToDisplay, std::function<bool()> bailout) {}
+
+    /**
+     * This method must return a name for this viewer. The name should be in the
+     * following format:
+     *
+     * Name of This Viewer
+     *
+     * and it should be specific enough not to clash with the names of other possible
+     * viewers.
+     */
+    virtual String getViewerName() const = 0;
 };
 
 
@@ -78,9 +89,14 @@ public:
 class JsonFileViewer : public FileBasedView
 {
 public:
+
+    //=========================================================================
     JsonFileViewer();
     bool isInterestedInFile (File file) const override;
     bool loadFile (File fileToDisplay) override;
+    String getViewerName() const override { return "JSON"; }
+
+    //=========================================================================
     void resized() override;
 private:
     VariantView view;
@@ -93,9 +109,14 @@ private:
 class ImageFileViewer : public FileBasedView
 {
 public:
+
+    //=========================================================================
     ImageFileViewer();
     bool isInterestedInFile (File file) const override;
     bool loadFile (File file) override;
+    String getViewerName() const override { return "Image"; }
+
+    //=========================================================================
     void resized() override;
 private:
     ImageComponent view;

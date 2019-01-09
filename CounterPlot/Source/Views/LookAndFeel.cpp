@@ -41,6 +41,7 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundSch
             laf.setColour (propertyViewBackground, Colours::darkgrey.darker (0.06));
             laf.setColour (propertyViewSelectedItem, Colours::darkgrey.darker (0.12f));
             laf.setColour (statusBarBackground, Colours::darkgrey.darker (0.44f));
+            laf.setColour (statusBarText, Colours::darkgrey.brighter (0.44f));
             break;
     }
 }

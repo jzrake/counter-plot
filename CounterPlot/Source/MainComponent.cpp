@@ -12,9 +12,13 @@
 class DefaultView : public FileBasedView
 {
 public:
+
+    //=========================================================================
     bool isInterestedInFile (File) const override { return true; }
     bool loadFile (File) override { return true; }
+    String getViewerName() const override { return String(); }
 
+    //=========================================================================
     void paint (Graphics& g) override
     {
         g.fillAll (findColour (LookAndFeelHelpers::propertyViewBackground));
@@ -31,39 +35,53 @@ void StatusBar::setBusyIndicatorStatus (BusyIndicatorStatus newStatus)
     repaint();
 }
 
-void StatusBar::paint (Graphics& g)
-{
-    auto area = getLocalBounds();
-
-    auto indicatorArea = area.removeFromRight (getHeight());
-    auto mousePositionArea = area.removeFromRight (200);
-    auto colour = Colour();
-
-    switch (status)
-    {
-        case BusyIndicatorStatus::idle   : colour = Colours::transparentBlack; break;
-        case BusyIndicatorStatus::running: colour = Colours::yellow; break;
-        case BusyIndicatorStatus::waiting: colour = Colours::red; break;
-    }
-
-    g.setColour (findColour (LookAndFeelHelpers::statusBarBackground));
-    g.fillAll();
-
-    g.setColour (colour);
-    g.fillEllipse (indicatorArea.reduced (5).toFloat());
-
-    if (! mousePositionInFigure.isOrigin())
-    {
-        g.setColour (findColour (LookAndFeelHelpers::statusBarBackground).contrasting());
-        g.setFont (Font ("Monaco", 11, 0));
-        g.drawText (mousePositionInFigure.toString(), mousePositionArea, Justification::centredLeft);
-    }
-}
-
 void StatusBar::setMousePositionInFigure (Point<double> position)
 {
     mousePositionInFigure = position;
     repaint();
+}
+
+void StatusBar::setCurrentViewerName (const String& viewerName)
+{
+    currentViewerName = viewerName;
+    repaint();
+}
+
+
+
+
+//=============================================================================
+void StatusBar::paint (Graphics& g)
+{
+    auto area = getLocalBounds();
+    auto indicatorArea       = area.removeFromRight (getHeight());
+    auto viewerNameArea      = area.removeFromRight (200);
+    auto mousePositionArea   = area.removeFromRight (200);
+    auto backgroundColour    = findColour (LookAndFeelHelpers::statusBarBackground);
+    auto fontColour          = findColour (LookAndFeelHelpers::statusBarText);
+    auto busyIndicatorColour = Colour();
+
+    switch (status)
+    {
+        case BusyIndicatorStatus::idle   : busyIndicatorColour = Colours::transparentBlack; break;
+        case BusyIndicatorStatus::running: busyIndicatorColour = Colours::yellow; break;
+        case BusyIndicatorStatus::waiting: busyIndicatorColour = Colours::red; break;
+    }
+
+    g.setColour (backgroundColour);
+    g.fillAll();
+
+    g.setColour (busyIndicatorColour);
+    g.fillEllipse (indicatorArea.reduced (5).toFloat());
+
+    g.setColour (fontColour);
+    g.setFont (Font ("Monaco", 11, 0));
+
+    if (! mousePositionInFigure.isOrigin())
+    {
+        g.drawText (mousePositionInFigure.toString(), mousePositionArea, Justification::centredLeft);
+    }
+    g.drawText (currentViewerName, viewerNameArea, Justification::centredRight);
 }
 
 void StatusBar::resized()
@@ -76,39 +94,48 @@ void StatusBar::resized()
 //=============================================================================
 MainComponent::DataLoadingThread::DataLoadingThread (MainComponent& main)
 : Thread ("dataLoadingThread")
-, main (main)
+, main (&main)
 {
 }
 
 void MainComponent::DataLoadingThread::loadFileToView (File fileToLoad, FileBasedView* targetView)
 {
-    main.dataLoadingThreadWaiting();
-    stopThread (-1);
-    main.dataLoadingThreadRunning();
-
     file = fileToLoad;
     view = targetView;
 
-    try {
-        if (view->loadFile (file))
-        {
-            main.dataLoadingThreadFinished();
-        }
-        else
-        {
-            startThread();
-        }
-    }
-    catch (std::exception& e)
+    if (auto m = main.getComponent())
     {
-        DBG("failed to open: " << e.what());
+        if (auto v = view.getComponent())
+        {
+            m->dataLoadingThreadWaiting();
+            stopThread (-1);
+            m->dataLoadingThreadRunning();
+
+            try {
+                if (v->loadFile (file))
+                {
+                    m->dataLoadingThreadFinished();
+                }
+                else
+                {
+                    startThread();
+                }
+            }
+            catch (std::exception& e)
+            {
+                DBG("failed to open: " << e.what());
+            }
+        }
     }
 }
 
 void MainComponent::DataLoadingThread::run()
 {
     try {
-        view->loadFileAsync (file, [this] { return threadShouldExit(); });
+        if (auto v = view.getComponent())
+        {
+            v->loadFileAsync (file, [this] { return threadShouldExit(); });
+        }
     }
     catch (const std::exception& e)
     {
@@ -117,10 +144,15 @@ void MainComponent::DataLoadingThread::run()
 
     if (! threadShouldExit())
     {
-        MessageManager::callAsync ([m = SafePointer<MainComponent> (&main)]
+        MessageManager::callAsync ([this]
         {
-            if (m.getComponent())
-                m.getComponent()->dataLoadingThreadFinished();
+            if (auto m = main.getComponent())
+            {
+                if (auto v = view.getComponent())
+                {
+                    m->dataLoadingThreadFinished();
+                }
+            }
         });
     }
 }
@@ -175,6 +207,7 @@ void MainComponent::reloadCurrentFile()
             found = true;
             view->setVisible (true);
             dataLoadingThread.loadFileToView (file, view);
+            statusBar.setCurrentViewerName (view->getViewerName());
         }
         else
         {

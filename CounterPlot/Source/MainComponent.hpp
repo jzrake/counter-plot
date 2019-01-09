@@ -26,11 +26,15 @@ public:
     //=========================================================================
     void setBusyIndicatorStatus (BusyIndicatorStatus newStatus);
     void setMousePositionInFigure (Point<double> position);
+    void setCurrentViewerName (const String& viewerName);
+
+    //=========================================================================
     void paint (Graphics& g) override;
     void resized() override;
 private:
     BusyIndicatorStatus status = BusyIndicatorStatus::idle;
     Point<double> mousePositionInFigure;
+    String currentViewerName;
 };
 
 
@@ -78,9 +82,9 @@ private:
         DataLoadingThread (MainComponent&);
         void loadFileToView (File fileToLoad, FileBasedView* targetView);
         void run() override;
-        MainComponent& main;
         File file;
-        FileBasedView* view = nullptr;
+        SafePointer<MainComponent> main;
+        SafePointer<FileBasedView> view;
     };
 
     //=========================================================================

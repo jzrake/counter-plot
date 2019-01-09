@@ -19,3 +19,5 @@
 - LaTeX via node mathjax or system TeX
 - Work out robust logic for multi-figure pages
 / Write proper quadmesh artist and factories
+- Display viewer name in status bar
+- Multiple viewers per file, allow to select from status bar
