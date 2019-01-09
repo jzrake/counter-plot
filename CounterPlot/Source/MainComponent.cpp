@@ -202,34 +202,16 @@ void MainComponent::paint (Graphics& g)
 {
 }
 
+void MainComponent::paintOverChildren (Graphics& g)
+{
+}
+
 void MainComponent::resized()
 {
     layout (false);
 }
 
-void MainComponent::layout (bool animated)
-{
-    auto setBounds = [animated] (Component& component, const Rectangle<int>& bounds)
-    {
-        if (animated && component.isVisible())
-            Desktop::getInstance().getAnimator().animateComponent (&component, bounds, 1.f, 200, false, 1.f, 1.f);
-        else
-            component.setBounds (bounds);
-    };
-
-    auto area = getLocalBounds();
-    setBounds (statusBar, area.removeFromBottom (22));
-
-    if (directoryTreeShowing)
-        setBounds (directoryTree, area.removeFromLeft (300));
-    else
-        setBounds (directoryTree, area.withWidth (300).translated (-300, 0));
-
-    for (const auto& view : views)
-        setBounds (*view, area);
-}
-
-bool MainComponent::keyPressed (const juce::KeyPress &key)
+bool MainComponent::keyPressed (const KeyPress& key)
 {
     return false;
 }
@@ -270,4 +252,30 @@ void MainComponent::dataLoadingThreadRunning()
 void MainComponent::dataLoadingThreadFinished()
 {
     statusBar.setBusyIndicatorStatus (StatusBar::BusyIndicatorStatus::idle);
+}
+
+
+
+
+//=============================================================================
+void MainComponent::layout (bool animated)
+{
+    auto setBounds = [animated] (Component& component, const Rectangle<int>& bounds)
+    {
+        if (animated && component.isVisible())
+            Desktop::getInstance().getAnimator().animateComponent (&component, bounds, 1.f, 200, false, 1.f, 1.f);
+        else
+            component.setBounds (bounds);
+    };
+
+    auto area = getLocalBounds();
+    setBounds (statusBar, area.removeFromBottom (22));
+
+    if (directoryTreeShowing)
+        setBounds (directoryTree, area.removeFromLeft (300));
+    else
+        setBounds (directoryTree, area.withWidth (300).translated (-300, 0));
+
+    for (const auto& view : views)
+        setBounds (*view, area);
 }

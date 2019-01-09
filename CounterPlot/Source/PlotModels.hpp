@@ -245,3 +245,46 @@ public:
      */
     static uint32 toRGBA (const Colour& c);
 };
+
+
+
+
+//=============================================================================
+class MeshHelpers
+{
+public:
+    using Bailout = std::function<bool()>;
+
+    /**
+     * Return a list of 2D triangle vertices that cover a uniform rectilinear
+     * mesh. ni and nj are the number cells the mesh has in each direction, and
+     * extent is (xmin, xmax, ymin, ymax) of the mesh. It takes two triangles to
+     * cover each cell, so a total of 6 * ni * nj vertices are returned. The bailout
+     * callback is invoked periodically, and if it returns true then the loop is
+     * terminated and an empty array is returned.
+     */
+    static std::vector<simd::float2> triangulateUniformRectilinearMesh (int ni, int nj, std::array<float, 4> extent, Bailout=nullptr);
+
+    /**
+     * Return a list of scalars corresponding to the triangulation of a rectilinear
+     * mesh. The input array identifies scalar quantities at cell locations, and the
+     * output data is just those scalars duplicated 6 times (once for each triangle
+     * vertex) contiguously. The bailout callback is invoked periodically, and if it
+     * returns true then the loop is terminated and an empty array is returned.
+     */
+    static std::vector<simd::float1> makeRectilinearGridScalars (const nd::array<double, 2>& scalar, Bailout=nullptr);
+
+    /**
+     * Return the minimum and maximum values of a scalar field. The bailout callback
+     * is invoked periodically, and if it returns true then the loop is terminated
+     * and (0, 1) is returned.
+     */
+    static std::array<float, 2> findScalarExtent (const nd::array<double, 2>& scalar, Bailout=nullptr);
+
+    /**
+     * Return the logarithm-base-10 of the given scalar data. The bailout callback is
+     * invoked periodically, and if it returns true then the loop is terminated and an
+     * empty array is returned.
+     */
+    static nd::array<double, 2> scaleByLog10 (const nd::array<double, 2>& scalar, Bailout=nullptr);
+};

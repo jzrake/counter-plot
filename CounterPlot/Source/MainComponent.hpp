@@ -54,6 +54,7 @@ public:
 
     //=========================================================================
     void paint (Graphics&) override;
+    void paintOverChildren (Graphics& g) override;
     void resized() override;
     bool keyPressed (const KeyPress& key) override;
 

@@ -10,51 +10,12 @@ class BinaryTorquesView::QuadmeshArtist : public PlotArtist
 public:
     QuadmeshArtist (nd::array<double, 2> data, std::function<bool()> bailout)
     {
-        auto ni = data.shape(0);
-        auto nj = data.shape(1);
-        triangleVertices.reserve (data.size() * 6);
-        triangleScalars .reserve (data.size() * 6);
-        scalarExtent[0] = data (0, 0);
-        scalarExtent[1] = data (0, 0);
-
-        for (int i = 0; i < ni; ++i)
-        {
-            for (int j = 0; j < nj; ++j)
-            {
-                const float x0 = -8.f + (i + 0) * 16.f / ni;
-                const float y0 = -8.f + (j + 0) * 16.f / nj;
-                const float x1 = -8.f + (i + 1) * 16.f / ni;
-                const float y1 = -8.f + (j + 1) * 16.f / nj;
-                const float c = std::log10f (data (i, j));
-
-                triangleVertices.push_back (simd::float2 {x0, y0});
-                triangleVertices.push_back (simd::float2 {x0, y1});
-                triangleVertices.push_back (simd::float2 {x1, y0});
-                triangleVertices.push_back (simd::float2 {x0, y1});
-                triangleVertices.push_back (simd::float2 {x1, y0});
-                triangleVertices.push_back (simd::float2 {x1, y1});
-
-                triangleScalars.push_back (simd::float1 (c));
-                triangleScalars.push_back (simd::float1 (c));
-                triangleScalars.push_back (simd::float1 (c));
-                triangleScalars.push_back (simd::float1 (c));
-                triangleScalars.push_back (simd::float1 (c));
-                triangleScalars.push_back (simd::float1 (c));
-
-                if (c < scalarExtent[0]) scalarExtent[0] = c;
-                if (c > scalarExtent[1]) scalarExtent[1] = c;
-
-                if (bailout())
-                {
-                    return;
-                }
-            }
-        }
-
-        mapping.stops = ColourMapHelpers::coloursFromRGBTable (BinaryData::magma_cmap);
-        mapping.vmin = scalarExtent[0];
-        mapping.vmax = scalarExtent[1];
-        complete = true;
+        auto scaledData  = MeshHelpers::scaleByLog10 (data, bailout);
+        triangleVertices = MeshHelpers::triangulateUniformRectilinearMesh (data.shape(0), data.shape(1), {-8.f, 8.f, -8.f, 8.f}, bailout);
+        triangleScalars  = MeshHelpers::makeRectilinearGridScalars (scaledData, bailout);
+        scalarExtent     = MeshHelpers::findScalarExtent (scaledData, bailout);
+        mapping.vmin     = scalarExtent[0];
+        mapping.vmax     = scalarExtent[1];
     }
 
     void setColorMap (const Array<Colour>& stops)
@@ -94,7 +55,6 @@ public:
         return scalarExtent;
     }
 
-    bool complete = false;
     std::array<float, 2> scalarExtent;
     ScalarMapping mapping;
     std::vector<simd::float2> triangleVertices;
@@ -167,11 +127,11 @@ bool BinaryTorquesView::loadFile (File viewedDocument)
 void BinaryTorquesView::loadFileAsync (File viewedDocument, std::function<bool()> bailout)
 {
     auto h5f = h5::File (viewedDocument.getFullPathName().toStdString());
-    auto sig = h5f.open_dataset ("primitive/sigma");
-    auto dat = sig.read<nd::array<double, 2>>();
-    quadmesh = std::make_shared<QuadmeshArtist> (dat, bailout);
+    auto h5d = h5f.open_dataset ("primitive/sigma");
+    auto res = h5d.read<nd::array<double, 2>>();
+    quadmesh = std::make_shared<QuadmeshArtist> (res, bailout);
 
-    if (quadmesh->complete)
+    if (! bailout())
     {
         currentFile = viewedDocument;
 
@@ -193,7 +153,7 @@ void BinaryTorquesView::updateFigures()
     if (quadmesh)
     {
         quadmesh->setColorMap (cmaps.getCurrentStops());
-        gradient = std::make_shared<ColourGradientArtist> (quadmesh->getScalarMapping());
+        gradient = std::make_shared<ColourGradientArtist> (quadmesh->mapping);
 
         mainModel.title = currentFile.getFileName();
         mainModel.content = { quadmesh };
@@ -285,11 +245,8 @@ bool BinaryTorquesView::perform (const InvocationInfo& info)
         case Commands::nextColourMap: cmaps.next(); updateFigures(); break;
         case Commands::prevColourMap: cmaps.prev(); updateFigures(); break;
         case Commands::resetScalarRange:
-            if (quadmesh)
-            {
-                quadmesh->resetScalarDomainToExtent();
-                updateFigures();
-            }
+            if (quadmesh) quadmesh->resetScalarDomainToExtent();
+            updateFigures();
             break;
     }
     return true;

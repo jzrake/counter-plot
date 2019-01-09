@@ -18,3 +18,4 @@
 - Move commands from binary torques to file based view
 - LaTeX via node mathjax or system TeX
 - Work out robust logic for multi-figure pages
+/ Write proper quadmesh artist and factories

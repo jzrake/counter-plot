@@ -226,3 +226,115 @@ uint32 ColourMapHelpers::toRGBA (const juce::Colour &c)
 {
     return (c.getRed() << 0) | (c.getGreen() << 8) | (c.getBlue() << 16) | (c.getAlpha() << 24);
 }
+
+
+
+
+//=============================================================================
+std::vector<simd::float2> MeshHelpers::triangulateUniformRectilinearMesh (int ni, int nj, std::array<float, 4> extent, Bailout bailout)
+{
+    if (bailout())
+    {
+        return {};
+    }
+    std::vector<simd::float2> verts;
+    verts.reserve (ni * nj * 6);
+    int iter = 0;
+
+    for (int i = 0; i < ni; ++i)
+    {
+        for (int j = 0; j < nj; ++j)
+        {
+            const float x0 = extent[0] + (i + 0) * (extent[1] - extent[0]) / ni;
+            const float y0 = extent[2] + (j + 0) * (extent[1] - extent[0]) / nj;
+            const float x1 = extent[0] + (i + 1) * (extent[3] - extent[2]) / ni;
+            const float y1 = extent[2] + (j + 1) * (extent[3] - extent[2]) / nj;
+
+            verts.push_back (simd::float2 {x0, y0});
+            verts.push_back (simd::float2 {x0, y1});
+            verts.push_back (simd::float2 {x1, y0});
+            verts.push_back (simd::float2 {x0, y1});
+            verts.push_back (simd::float2 {x1, y0});
+            verts.push_back (simd::float2 {x1, y1});
+
+            if (++iter % 1000 == 0 && bailout != nullptr && bailout())
+            {
+                return {};
+            }
+        }
+    }
+    return verts;
+}
+
+//std::vector<simd::float2> MeshHelpers::triangulateGeneralRectilinearGrid (const nd::array<double, 3>& vertices, Bailout bailout)
+//{
+//    return {};
+//}
+
+std::vector<simd::float1> MeshHelpers::makeRectilinearGridScalars (const nd::array<double, 2>& scalar, Bailout bailout)
+{
+    if (bailout())
+    {
+        return {};
+    }
+    std::vector<simd::float1> result;
+    result.reserve (scalar.size() * 6);
+    int iter = 0;
+
+    for (const auto& s : scalar)
+    {
+        for (int n = 0; n < 6; ++n)
+        {
+            result.push_back (s);
+        }
+        if (++iter % 1000 == 0 && bailout != nullptr && bailout())
+        {
+            return {};
+        }
+    }
+    return result;
+}
+
+std::array<float, 2> MeshHelpers::findScalarExtent (const nd::array<double, 2>& scalar, Bailout bailout)
+{
+    if (bailout())
+    {
+        return {0.f, 1.f};
+    }
+    float min = std::numeric_limits<float>::max();
+    float max = std::numeric_limits<float>::min();
+    int iter = 0;
+
+    for (const auto& s : scalar)
+    {
+        if (s < min) min = s;
+        if (s > max) max = s;
+
+        if (++iter % 1000 == 0 && bailout != nullptr && bailout())
+        {
+            return {0.f, 1.f};
+        }
+    }
+    return {min, max};
+}
+
+nd::array<double, 2> MeshHelpers::scaleByLog10 (const nd::array<double, 2>& scalar, Bailout bailout)
+{
+    if (bailout())
+    {
+        return nd::array<double, 2>();
+    }
+    auto result = scalar.copy();
+    int iter = 0;
+
+    for (auto& x : result)
+    {
+        x = std::logf (x);
+
+        if (++iter % 1000 == 0 && bailout != nullptr && bailout())
+        {
+            return nd::array<double, 2>();
+        }
+    }
+    return result;
+}
