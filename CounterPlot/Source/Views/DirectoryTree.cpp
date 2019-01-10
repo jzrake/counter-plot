@@ -8,6 +8,20 @@
 class DirectoryTree::Item : public TreeViewItem
 {
 public:
+
+
+    //=========================================================================
+    class ElementComparator
+    {
+    public:
+        static int compareElements (File& f1, File& f2)
+        {
+            return DefaultElementComparator<String>::compareElements (f1.getFileName(), f2.getFileName());
+        }
+    };
+
+
+    //=========================================================================
     Item (DirectoryTree& directory, File file) : directory (directory), file (file)
     {
         setDrawsInLeftMargin (true);
@@ -48,13 +62,19 @@ public:
     {
         if (isNowOpen)
         {
-            for (auto child : file.findChildFiles (File::findFilesAndDirectories, false))
-            {
+            auto dirs = file.findChildFiles (File::findDirectories, false);
+            dirs.sort (comparator);
+
+            auto files = file.findChildFiles (File::findFiles, false);
+            files.sort (comparator);
+
+            for (auto child : dirs)
                 if (! child.isHidden())
-                {
                     addSubItem (new Item (directory, child));
-                }
-            }
+
+            for (auto child : files)
+                if (! child.isHidden())
+                    addSubItem (new Item (directory, child));
         }
         else
         {
@@ -71,6 +91,7 @@ private:
 
     DirectoryTree& directory;
     File file;
+    ElementComparator comparator;
 };
 
 

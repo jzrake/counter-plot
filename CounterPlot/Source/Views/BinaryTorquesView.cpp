@@ -239,16 +239,21 @@ public:
     {
         state.file = action.file;
         state.mainModel.title = action.file.getFileName();
-        state.quadmesh->setVertices ({});
         dispatch ([action] (auto bailout) { return Action::SetTriangleData { loadTriangleDataFromFile (action.file, bailout)}; });
         subscriber.update (state);
     }
 
     void dispatch (Action::SetTriangleData action)
     {
+        bool wasEmpty = state.triangles.vertices == nullptr;
+
         state.triangles = action.triangles;
         state.quadmesh->setVertices (action.triangles);
-        dispatch (Action::SetScalarDomainToExtent());
+
+        if (wasEmpty)
+            dispatch (Action::SetScalarDomainToExtent());
+        else
+            subscriber.update (state);
     }
 
     void dispatch (Action::SetColourMap action)
