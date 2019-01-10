@@ -172,6 +172,19 @@ class Store
 {
 public:
 
+    //=========================================================================
+    /**
+     * The subscriber will likely be a component. It must implement the update
+     * method, which will be invoke by the store when the state has changed.
+     */
+    class Subscriber
+    {
+    public:
+        virtual ~Subscriber() {}
+        virtual void update (const State&) = 0;
+        virtual void asynchronousTaskStarted() {}
+        virtual void asynchronousTaskFinished() {}
+    };
 
     //=========================================================================
     template<typename JobReturnType>
@@ -181,8 +194,13 @@ public:
         using Bailout = std::function<bool()>;
         using Job = std::function<JobReturnType(Bailout)>;
 
-        Worker (Store* recipient, Job job) : ThreadPoolJob ("worker"), recipient (recipient), job (job)
+        Worker (Store* recipient, Subscriber* subscriber, Job job)
+        : ThreadPoolJob ("worker")
+        , recipient (recipient)
+        , subscriber (subscriber)
+        , job (job)
         {
+            subscriber->asynchronousTaskStarted();
         }
 
     private:
@@ -194,29 +212,27 @@ public:
             {
                 MessageManager::callAsync ([recipient=recipient, result] { recipient->dispatch (result); });
             }
+            MessageManager::callAsync ([subscriber=subscriber] { subscriber->asynchronousTaskFinished(); });
             return jobHasFinished;
         }
 
         Store* recipient;
+        Subscriber* subscriber;
         Job job;
     };
 
 
     //=========================================================================
-    /**
-     * The subscriber will likely be a component. It must implement the update
-     * method, which will be invoke by the store when the state has changed.
-     */
-    class Subscriber
-    {
-    public:
-        virtual ~Subscriber() {}
-        virtual void update (const State&) = 0;
-    };
-
     Store (Subscriber& subscriber) : subscriber (subscriber), pool (2)
     {
         subscriber.update (state);
+    }
+
+    template <typename Callable>
+    void dispatch (Callable job)
+    {
+        pool.removeAllJobs (true, 0);
+        pool.addJob (new Worker<decltype(job(nullptr))> (this, &subscriber, job), true);
     }
 
     void dispatch (Action::SetFile action)
@@ -224,13 +240,7 @@ public:
         state.file = action.file;
         state.mainModel.title = action.file.getFileName();
         state.quadmesh->setVertices ({});
-
-        pool.removeAllJobs (true, 0);
-        pool.addJob (new Worker<Action::SetTriangleData> (this, [action] (auto bailout)
-        {
-            return Action::SetTriangleData { loadTriangleDataFromFile (action.file, bailout) };
-        }), true);
-
+        dispatch ([action] (auto bailout) { return Action::SetTriangleData { loadTriangleDataFromFile (action.file, bailout)}; });
         subscriber.update (state);
     }
 
@@ -307,6 +317,8 @@ public:
 
     //=========================================================================
     void update (const State&) override;
+    void asynchronousTaskStarted() override;
+    void asynchronousTaskFinished() override;
 
     //=========================================================================
     bool isInterestedInFile (File file) const override;
@@ -371,6 +383,22 @@ void BinaryTorquesView::update (const State &newState)
     state = newState;
     mainFigure.setModel (state.mainModel);
     cmapFigure.setModel (state.cmapModel);
+}
+
+void BinaryTorquesView::asynchronousTaskStarted()
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->fileBasedViewAsyncTaskStarted();
+    }
+}
+
+void BinaryTorquesView::asynchronousTaskFinished()
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->fileBasedViewAsyncTaskFinished();
+    }
 }
 
 void BinaryTorquesView::loadFile (File viewedDocument)

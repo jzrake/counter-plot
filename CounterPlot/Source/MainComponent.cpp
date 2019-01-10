@@ -29,9 +29,15 @@ public:
 
 
 //=============================================================================
-void StatusBar::setBusyIndicatorStatus (BusyIndicatorStatus newStatus)
+void StatusBar::incrementAsyncTaskCount()
 {
-    status = newStatus;
+    ++numberOfAsyncTasks;
+    repaint();
+}
+
+void StatusBar::decrementAsyncTaskCount()
+{
+    --numberOfAsyncTasks;
     repaint();
 }
 
@@ -59,14 +65,7 @@ void StatusBar::paint (Graphics& g)
     auto mousePositionArea   = area.removeFromRight (200);
     auto backgroundColour    = findColour (LookAndFeelHelpers::statusBarBackground);
     auto fontColour          = findColour (LookAndFeelHelpers::statusBarText);
-    auto busyIndicatorColour = Colour();
-
-    switch (status)
-    {
-        case BusyIndicatorStatus::idle   : busyIndicatorColour = Colours::transparentBlack; break;
-        case BusyIndicatorStatus::running: busyIndicatorColour = Colours::yellow; break;
-        case BusyIndicatorStatus::waiting: busyIndicatorColour = Colours::red; break;
-    }
+    auto busyIndicatorColour = numberOfAsyncTasks ? Colours::yellow : Colours::transparentBlack;
 
     g.setColour (backgroundColour);
     g.fillAll();
@@ -201,21 +200,15 @@ void MainComponent::figureMousePosition (Point<double> position)
 
 
 
-
 //=============================================================================
-void MainComponent::dataLoadingThreadWaiting()
+void MainComponent::fileBasedViewAsyncTaskStarted()
 {
-    statusBar.setBusyIndicatorStatus (StatusBar::BusyIndicatorStatus::waiting);
+    statusBar.incrementAsyncTaskCount();
 }
 
-void MainComponent::dataLoadingThreadRunning()
+void MainComponent::fileBasedViewAsyncTaskFinished()
 {
-    statusBar.setBusyIndicatorStatus (StatusBar::BusyIndicatorStatus::running);
-}
-
-void MainComponent::dataLoadingThreadFinished()
-{
-    statusBar.setBusyIndicatorStatus (StatusBar::BusyIndicatorStatus::idle);
+    statusBar.decrementAsyncTaskCount();
 }
 
 

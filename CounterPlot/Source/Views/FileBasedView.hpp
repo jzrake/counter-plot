@@ -10,6 +10,15 @@ class FileBasedView : public Component
 {
 public:
 
+    //=========================================================================
+    class MessageSink
+    {
+    public:
+        virtual ~MessageSink() {}
+        virtual void fileBasedViewAsyncTaskStarted() = 0;
+        virtual void fileBasedViewAsyncTaskFinished() = 0;
+    };
+
     /**
      * Common commands that views might typically respond to. Views that are
      * ApplicationCommandTarget's should return the subset of these which they

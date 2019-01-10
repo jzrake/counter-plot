@@ -2,12 +2,7 @@
 #include "JuceHeader.h"
 #include "Views/DirectoryTree.hpp"
 #include "Views/FigureView.hpp"
-
-
-
-
-//=============================================================================
-class FileBasedView;
+#include "Views/FileBasedView.hpp"
 
 
 
@@ -18,23 +13,19 @@ class StatusBar : public Component
 public:
 
     //=========================================================================
-    enum class BusyIndicatorStatus
-    {
-        running, waiting, idle,
-    };
-
-    //=========================================================================
-    void setBusyIndicatorStatus (BusyIndicatorStatus newStatus);
+    void incrementAsyncTaskCount();
+    void decrementAsyncTaskCount();
     void setMousePositionInFigure (Point<double> position);
     void setCurrentViewerName (const String& viewerName);
 
     //=========================================================================
     void paint (Graphics& g) override;
     void resized() override;
+
 private:
-    BusyIndicatorStatus status = BusyIndicatorStatus::idle;
     Point<double> mousePositionInFigure;
     String currentViewerName;
+    int numberOfAsyncTasks = 0;
 };
 
 
@@ -45,6 +36,7 @@ class MainComponent
 : public Component
 , public DirectoryTree::Listener
 , public FigureView::MessageSink
+, public FileBasedView::MessageSink
 {
 public:
 
@@ -68,12 +60,13 @@ public:
     //=========================================================================
     void figureMousePosition (Point<double> position) override;
 
+    //=========================================================================
+    void fileBasedViewAsyncTaskStarted() override;
+    void fileBasedViewAsyncTaskFinished() override;
+
 private:
     //=========================================================================
     void layout (bool animated);
-    void dataLoadingThreadWaiting();
-    void dataLoadingThreadRunning();
-    void dataLoadingThreadFinished();
 
     //=========================================================================
     File currentFile;
