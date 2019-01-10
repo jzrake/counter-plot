@@ -12,16 +12,16 @@ struct TriangleVertexData
     std::shared_ptr<std::vector<simd::float1>> scalars;
 };
 
-static struct TriangleVertexData loadTriangleDataFromFile (File file)
+static struct TriangleVertexData loadTriangleDataFromFile (File file, std::function<bool()> bailout)
 {
     try {
         auto h5f  = h5::File (file.getFullPathName().toStdString());
         auto h5d  = h5f.open_dataset ("primitive/sigma");
         auto data = h5d.read<nd::array<double, 2>>();
-        auto scaled = MeshHelpers::scaleByLog10 (data);
-        auto V = MeshHelpers::triangulateUniformRectilinearMesh (data.shape(0), data.shape(1), {-8.f, 8.f, -8.f, 8.f});
-        auto S = MeshHelpers::makeRectilinearGridScalars (scaled);
-        auto E = MeshHelpers::findScalarExtent (scaled);
+        auto scaled = MeshHelpers::scaleByLog10 (data, bailout);
+        auto V = MeshHelpers::triangulateUniformRectilinearMesh (data.shape(0), data.shape(1), {-8.f, 8.f, -8.f, 8.f}, bailout);
+        auto S = MeshHelpers::makeRectilinearGridScalars (scaled, bailout);
+        auto E = MeshHelpers::findScalarExtent (scaled, bailout);
 
         return {
             E,
@@ -168,8 +168,45 @@ struct Action
 
 
 //=============================================================================
-struct Store
+class Store
 {
+public:
+
+
+    //=========================================================================
+    template<typename JobReturnType>
+    class Worker : public ThreadPoolJob
+    {
+    public:
+        using Bailout = std::function<bool()>;
+        using Job = std::function<JobReturnType(Bailout)>;
+
+        Worker (Store* recipient, Job job) : ThreadPoolJob ("worker"), recipient (recipient), job (job)
+        {
+        }
+
+    private:
+        JobStatus runJob() override
+        {
+            auto result = job ([this] { return shouldExit(); });
+
+            if (! shouldExit())
+            {
+                MessageManager::callAsync ([recipient=recipient, result] { recipient->dispatch (result); });
+            }
+            return jobHasFinished;
+        }
+
+        Store* recipient;
+        Job job;
+    };
+
+
+    //=========================================================================
+    /**
+     * The subscriber will likely be a component. It must implement the update
+     * method, which will be invoke by the store when the state has changed.
+     */
     class Subscriber
     {
     public:
@@ -177,17 +214,23 @@ struct Store
         virtual void update (const State&) = 0;
     };
 
-    Subscriber& subscriber;
-
-    Store (Subscriber& subscriber) : subscriber (subscriber)
+    Store (Subscriber& subscriber) : subscriber (subscriber), pool (2)
     {
+        subscriber.update (state);
     }
 
     void dispatch (Action::SetFile action)
     {
         state.file = action.file;
         state.mainModel.title = action.file.getFileName();
-        dispatch ([action] { return Action::SetTriangleData { loadTriangleDataFromFile (action.file) }; });
+        state.quadmesh->setVertices ({});
+
+        pool.removeAllJobs (true, 0);
+        pool.addJob (new Worker<Action::SetTriangleData> (this, [action] (auto bailout)
+        {
+            return Action::SetTriangleData { loadTriangleDataFromFile (action.file, bailout) };
+        }), true);
+
         subscriber.update (state);
     }
 
@@ -239,13 +282,10 @@ struct Store
         subscriber.update (state);
     }
 
-    template<typename T>
-    void dispatch (T callable)
-    {
-        dispatch (callable()); // will be async
-    }
-
+private:
     State state;
+    Subscriber& subscriber;
+    ThreadPool pool;
 };
 
 
@@ -270,8 +310,7 @@ public:
 
     //=========================================================================
     bool isInterestedInFile (File file) const override;
-    bool loadFile (File fileToDisplay) override;
-    void loadFileAsync (File fileToDisplay, std::function<bool()> bailout) override;
+    void loadFile (File fileToDisplay) override;
     String getViewerName() const override { return "Binary Torque Problem"; }
 
     //=========================================================================
@@ -299,7 +338,6 @@ private:
     FigureView cmapFigure;
     Grid layout;
     ColourMapCollection cmaps;
-
     State state;
     Store store;
 };
@@ -319,7 +357,7 @@ BinaryTorquesView::BinaryTorquesView() : store (*this)
     mainFigure.addListener (this);
     cmapFigure.addListener (this);
 
-    setWantsKeyboardFocus (true); // need?
+    setWantsKeyboardFocus (true);
     addAndMakeVisible (mainFigure);
     addAndMakeVisible (cmapFigure);
 }
@@ -335,14 +373,9 @@ void BinaryTorquesView::update (const State &newState)
     cmapFigure.setModel (state.cmapModel);
 }
 
-bool BinaryTorquesView::loadFile (File viewedDocument)
+void BinaryTorquesView::loadFile (File viewedDocument)
 {
     store.dispatch (Action::SetFile { viewedDocument });
-    return true;
-}
-
-void BinaryTorquesView::loadFileAsync (File viewedDocument, std::function<bool()> bailout)
-{
 }
 
 bool BinaryTorquesView::isInterestedInFile (File file) const

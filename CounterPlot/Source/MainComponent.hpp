@@ -76,24 +76,11 @@ private:
     void dataLoadingThreadFinished();
 
     //=========================================================================
-    class DataLoadingThread : public Thread
-    {
-    public:
-        DataLoadingThread (MainComponent&);
-        void loadFileToView (File fileToLoad, FileBasedView* targetView);
-        void run() override;
-        File file;
-        SafePointer<MainComponent> main;
-        SafePointer<FileBasedView> view;
-    };
-
-    //=========================================================================
     File currentFile;
     bool directoryTreeShowing = true;
 
     //=========================================================================
     StatusBar statusBar;
     DirectoryTree directoryTree;
-    DataLoadingThread dataLoadingThread;
     OwnedArray<FileBasedView> views;
 };

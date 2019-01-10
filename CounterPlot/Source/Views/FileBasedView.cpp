@@ -71,10 +71,9 @@ bool JsonFileViewer::isInterestedInFile (File file) const
     return file.hasFileExtension (".json");
 }
 
-bool JsonFileViewer::loadFile (File fileToDisplay)
+void JsonFileViewer::loadFile (File fileToDisplay)
 {
     view.setData (JSON::parse (fileToDisplay));
-    return true;
 }
 
 void JsonFileViewer::resized()
@@ -96,13 +95,12 @@ bool ImageFileViewer::isInterestedInFile (File file) const
     return ImageFileFormat::findImageFormatForFileExtension (file);
 }
 
-bool ImageFileViewer::loadFile (File file)
+void ImageFileViewer::loadFile (File file)
 {
     if (auto format = ImageFileFormat::findImageFormatForFileExtension (file))
     {
         view.setImage (format->loadFrom (file));
     }
-    return true;
 }
 
 void ImageFileViewer::resized()

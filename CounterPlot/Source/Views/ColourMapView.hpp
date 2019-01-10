@@ -13,7 +13,7 @@ public:
 
     //=========================================================================
     bool isInterestedInFile (File file) const override;
-    bool loadFile (File fileToDisplay) override;
+    void loadFile (File fileToDisplay) override;
     String getViewerName() const override { return "Color Map Viewer"; }
 
     //=========================================================================

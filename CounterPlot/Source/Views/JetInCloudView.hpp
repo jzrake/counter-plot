@@ -17,8 +17,7 @@ public:
 
     //=========================================================================
     bool isInterestedInFile (File file) const override;
-    bool loadFile (File fileToDisplay) override;
-    void loadFileAsync (File fileToDisplay, std::function<bool()> bailout) override;
+    void loadFile (File fileToDisplay) override;
     String getViewerName() const override { return "Jet in Cloud Problem"; }
 
     //=========================================================================

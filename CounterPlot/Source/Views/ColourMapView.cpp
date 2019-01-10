@@ -57,12 +57,11 @@ bool ColourMapView::isInterestedInFile (File file) const
     return file.hasFileExtension (".cmap");
 }
 
-bool ColourMapView::loadFile (File fileToDisplay)
+void ColourMapView::loadFile (File fileToDisplay)
 {
     lineModel.title = fileToDisplay.getFileName();
     mapping.stops = ColourMapHelpers::coloursFromRGBTable (fileToDisplay.loadFileAsString());
     updateFigures();
-    return true;
 }
 
 void ColourMapView::resized()

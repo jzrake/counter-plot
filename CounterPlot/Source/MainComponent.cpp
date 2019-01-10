@@ -15,7 +15,7 @@ public:
 
     //=========================================================================
     bool isInterestedInFile (File) const override { return true; }
-    bool loadFile (File) override { return true; }
+    void loadFile (File) override {}
     String getViewerName() const override { return String(); }
 
     //=========================================================================
@@ -92,76 +92,7 @@ void StatusBar::resized()
 
 
 //=============================================================================
-MainComponent::DataLoadingThread::DataLoadingThread (MainComponent& main)
-: Thread ("dataLoadingThread")
-, main (&main)
-{
-}
-
-void MainComponent::DataLoadingThread::loadFileToView (File fileToLoad, FileBasedView* targetView)
-{
-    file = fileToLoad;
-    view = targetView;
-
-    if (auto m = main.getComponent())
-    {
-        if (auto v = view.getComponent())
-        {
-            m->dataLoadingThreadWaiting();
-            stopThread (-1);
-            m->dataLoadingThreadRunning();
-
-            try {
-                if (v->loadFile (file))
-                {
-                    m->dataLoadingThreadFinished();
-                }
-                else
-                {
-                    startThread();
-                }
-            }
-            catch (std::exception& e)
-            {
-                DBG("failed to open: " << e.what());
-            }
-        }
-    }
-}
-
-void MainComponent::DataLoadingThread::run()
-{
-    try {
-        if (auto v = view.getComponent())
-        {
-            v->loadFileAsync (file, [this] { return threadShouldExit(); });
-        }
-    }
-    catch (const std::exception& e)
-    {
-        DBG("failed to open: " << e.what());
-    }
-
-    if (! threadShouldExit())
-    {
-        MessageManager::callAsync ([this]
-        {
-            if (auto m = main.getComponent())
-            {
-                if (auto v = view.getComponent())
-                {
-                    m->dataLoadingThreadFinished();
-                }
-            }
-        });
-    }
-}
-
-
-
-
-//=============================================================================
-MainComponent::MainComponent() : dataLoadingThread (*this)
+MainComponent::MainComponent()
 {
     directoryTree.setDirectoryToShow (File::getSpecialLocation (File::userHomeDirectory));
     directoryTree.addListener (this);
@@ -188,7 +119,6 @@ MainComponent::MainComponent() : dataLoadingThread (*this)
 
 MainComponent::~MainComponent()
 {
-    dataLoadingThread.stopThread (-1);
 }
 
 void MainComponent::setCurrentDirectory (File newCurrentDirectory)
@@ -207,7 +137,7 @@ void MainComponent::reloadCurrentFile()
         {
             found = true;
             view->setVisible (true);
-            dataLoadingThread.loadFileToView (file, view);
+            view->loadFile (file);
             statusBar.setCurrentViewerName (view->getViewerName());
         }
         else
