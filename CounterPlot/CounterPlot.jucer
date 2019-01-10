@@ -32,6 +32,7 @@
       <FILE id="vC31Xm" name="VariantView.hpp" compile="0" resource="0" file="Source/Views/VariantView.hpp"/>
     </GROUP>
     <GROUP id="{20D2690F-9E07-C6A9-1EA6-2EF9B1D6C816}" name="Resources">
+      <FILE id="XA8lBl" name="Durian-512.png" compile="0" resource="1" file="../Resources/Durian-512.png"/>
       <FILE id="snk8h0" name="cividis.cmap" compile="0" resource="1" file="../Resources/cividis.cmap"/>
       <FILE id="q3gzrE" name="dawn.cmap" compile="0" resource="1" file="../resources/dawn.cmap"/>
       <FILE id="y1t0Kg" name="fire.cmap" compile="0" resource="1" file="../resources/fire.cmap"/>
@@ -60,7 +61,8 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5" customXcodeResourceFolders="../third_party/embed-hdf5-macos/lib/libhdf5.dylib">
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5" customXcodeResourceFolders="../third_party/embed-hdf5-macos/lib/libhdf5.dylib"
+               smallIcon="XA8lBl" bigIcon="XA8lBl">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/embed-hdf5-macos/include"
                        libraryPath="../../../third_party/embed-hdf5-macos/lib"/>
