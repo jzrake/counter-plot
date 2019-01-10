@@ -233,7 +233,7 @@ uint32 ColourMapHelpers::toRGBA (const juce::Colour &c)
 //=============================================================================
 std::vector<simd::float2> MeshHelpers::triangulateUniformRectilinearMesh (int ni, int nj, std::array<float, 4> extent, Bailout bailout)
 {
-    if (bailout())
+    if (bailout != nullptr && bailout())
     {
         return {};
     }
@@ -273,7 +273,7 @@ std::vector<simd::float2> MeshHelpers::triangulateUniformRectilinearMesh (int ni
 
 std::vector<simd::float1> MeshHelpers::makeRectilinearGridScalars (const nd::array<double, 2>& scalar, Bailout bailout)
 {
-    if (bailout())
+    if (bailout != nullptr && bailout())
     {
         return {};
     }
@@ -297,7 +297,7 @@ std::vector<simd::float1> MeshHelpers::makeRectilinearGridScalars (const nd::arr
 
 std::array<float, 2> MeshHelpers::findScalarExtent (const nd::array<double, 2>& scalar, Bailout bailout)
 {
-    if (bailout())
+    if (bailout != nullptr && bailout())
     {
         return {0.f, 1.f};
     }
@@ -320,7 +320,7 @@ std::array<float, 2> MeshHelpers::findScalarExtent (const nd::array<double, 2>& 
 
 nd::array<double, 2> MeshHelpers::scaleByLog10 (const nd::array<double, 2>& scalar, Bailout bailout)
 {
-    if (bailout())
+    if (bailout != nullptr && bailout())
     {
         return nd::array<double, 2>();
     }

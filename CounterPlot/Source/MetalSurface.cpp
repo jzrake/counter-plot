@@ -70,37 +70,49 @@ void MetalRenderingSurface::resized()
 //=============================================================================
 metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::float1>& data)
 {
-    if (cachedBuffers1.count (&data))
+    if (data.empty())
     {
-        return cachedBuffers1.at (&data);
+        return metal::Buffer();
+    }
+    if (cachedBuffers1.count (&data.front()))
+    {
+        return cachedBuffers1.at (&data.front());
     }
     auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float1));
     cleanBufferCaches();
-    cachedBuffers1[&data] = newBuffer;
+    cachedBuffers1[&data.front()] = newBuffer;
     return newBuffer;
 }
 
 metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::float2>& data)
 {
-    if (cachedBuffers2.count (&data))
+    if (data.empty())
     {
-        return cachedBuffers2.at (&data);
+        return metal::Buffer();
+    }
+    if (cachedBuffers2.count (&data.front()))
+    {
+        return cachedBuffers2.at (&data.front());
     }
     auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float2));
     cleanBufferCaches();
-    cachedBuffers2[&data] = newBuffer;
+    cachedBuffers2[&data.front()] = newBuffer;
     return newBuffer;
 }
 
 metal::Buffer MetalRenderingSurface::getOrCreateBuffer (const std::vector<simd::float4>& data)
 {
-    if (cachedBuffers4.count (&data))
+    if (data.empty())
     {
-        return cachedBuffers4.at (&data);
+        return metal::Buffer();
+    }
+    if (cachedBuffers4.count (&data.front()))
+    {
+        return cachedBuffers4.at (&data.front());
     }
     auto newBuffer = metal::Device::makeBuffer (data.data(), data.size() * sizeof (simd::float4));
     cleanBufferCaches();
-    cachedBuffers4[&data] = newBuffer;
+    cachedBuffers4[&data.front()] = newBuffer;
     return newBuffer;
 }
 

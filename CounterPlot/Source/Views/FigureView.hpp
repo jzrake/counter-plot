@@ -17,7 +17,16 @@ public:
     };
 
     //=========================================================================
-    ColourGradientArtist (ScalarMapping model);
+    /** Default constructor. */
+    ColourGradientArtist();
+
+    /** Construct with a mapping */
+    ColourGradientArtist (ScalarMapping mapping);
+
+    /**
+     * Replace the mapping drawn by this artist.
+     */
+    void setMapping (ScalarMapping newMappingToShow);
 
     /**
      * Set the orientation of the gradient: left-to-right or top-to-bottom.
@@ -36,7 +45,7 @@ public:
 
 private:
     //=========================================================================
-    ScalarMapping model;
+    ScalarMapping mapping;
     Orientation orientation = Orientation::vertical;
     bool transformGradient = false;
 };

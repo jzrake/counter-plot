@@ -172,7 +172,8 @@ MainComponent::MainComponent() : dataLoadingThread (*this)
     views.add (new JsonFileViewer);
     views.add (new ImageFileViewer);
     views.add (new JetInCloudView);
-    views.add (new BinaryTorquesView);
+    // views.add (new BinaryTorquesView);
+    views.add (BinaryTorquesViewFactory::createNewVersion());
     views.add (new ColourMapView);
     views.add (new DefaultView);
 

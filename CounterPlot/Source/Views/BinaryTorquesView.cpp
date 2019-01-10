@@ -5,39 +5,60 @@
 
 
 //=============================================================================
-class BinaryTorquesView::QuadmeshArtist : public PlotArtist
+struct TriangleVertexData
+{
+    std::array<float, 2> scalarExtent = {0.f, 1.f};
+    std::shared_ptr<std::vector<simd::float2>> vertices;
+    std::shared_ptr<std::vector<simd::float1>> scalars;
+};
+
+static struct TriangleVertexData loadTriangleDataFromFile (File file)
+{
+    try {
+        auto h5f  = h5::File (file.getFullPathName().toStdString());
+        auto h5d  = h5f.open_dataset ("primitive/sigma");
+        auto data = h5d.read<nd::array<double, 2>>();
+        auto scaled = MeshHelpers::scaleByLog10 (data);
+        auto V = MeshHelpers::triangulateUniformRectilinearMesh (data.shape(0), data.shape(1), {-8.f, 8.f, -8.f, 8.f});
+        auto S = MeshHelpers::makeRectilinearGridScalars (scaled);
+        auto E = MeshHelpers::findScalarExtent (scaled);
+
+        return {
+            E,
+            std::make_shared<std::vector<simd::float2>> (V),
+            std::make_shared<std::vector<simd::float1>> (S)
+        };
+    }
+    catch (std::exception& e)
+    {
+        DBG("failed to load: " << e.what());
+        return {};
+    }
+}
+
+
+
+
+//=============================================================================
+class BinaryTorquesViewFactory::QuadmeshArtist : public PlotArtist
 {
 public:
-    QuadmeshArtist (nd::array<double, 2> data, std::function<bool()> bailout)
+    void setVertices (TriangleVertexData dataToUse)
     {
-        auto scaledData  = MeshHelpers::scaleByLog10 (data, bailout);
-        triangleVertices = MeshHelpers::triangulateUniformRectilinearMesh (data.shape(0), data.shape(1), {-8.f, 8.f, -8.f, 8.f}, bailout);
-        triangleScalars  = MeshHelpers::makeRectilinearGridScalars (scaledData, bailout);
-        scalarExtent     = MeshHelpers::findScalarExtent (scaledData, bailout);
-        mapping.vmin     = scalarExtent[0];
-        mapping.vmax     = scalarExtent[1];
+        data = dataToUse;
     }
 
-    void setColorMap (const Array<Colour>& stops)
+    void setMapping (ScalarMapping mappingToUse)
     {
-        mapping.stops = stops;
-    }
-
-    void setScalarDomain (float vmin, float vmax)
-    {
-        mapping.vmin = vmin;
-        mapping.vmax = vmax;
-    }
-
-    void resetScalarDomainToExtent()
-    {
-        mapping.vmin = scalarExtent[0];
-        mapping.vmax = scalarExtent[1];
+        mapping = mappingToUse;
     }
 
     void render (RenderingSurface& surface) override
     {
-        surface.renderTriangles (triangleVertices, triangleScalars, mapping);
+        if (data.vertices && data.scalars)
+        {
+            surface.renderTriangles (*data.vertices, *data.scalars, mapping);
+        }
     }
 
     bool isScalarMappable() const override
@@ -52,65 +73,253 @@ public:
 
     std::array<float, 2> getScalarExtent() const override
     {
-        return scalarExtent;
+        return data.scalarExtent;
     }
 
-    std::array<float, 2> scalarExtent;
     ScalarMapping mapping;
-    std::vector<simd::float2> triangleVertices;
-    std::vector<simd::float1> triangleScalars;
+    TriangleVertexData data;
 };
 
 
 
 
 //=============================================================================
-BinaryTorquesView::BinaryTorquesView()
+using GradientArtist = ColourGradientArtist;
+using QuadmeshArtist = BinaryTorquesViewFactory::QuadmeshArtist;
+
+
+
+
+//=============================================================================
+struct State
+{
+    std::shared_ptr<QuadmeshArtist>       quadmesh;
+    std::shared_ptr<GradientArtist>       gradient;
+    TriangleVertexData                    triangles;
+    ScalarMapping                         mapping;
+    FigureModel                           cmapModel;
+    FigureModel                           mainModel;
+    File                                  file;
+
+    State()
+    {
+        mapping.stops = ColourMapCollection().getCurrentStops();
+        mapping.vmin = 0.f;
+        mapping.vmax = 1.f;
+
+        gradient = std::make_shared<GradientArtist>();
+        quadmesh = std::make_shared<QuadmeshArtist>();
+        gradient->setMapping (mapping);
+        quadmesh->setMapping (mapping);
+
+        mainModel.titleShowing = true;
+        mainModel.xlabelShowing = false;
+        mainModel.ylabelShowing = false;
+        mainModel.canEditMargin = true;
+        mainModel.canEditXlabel = false;
+        mainModel.canEditYlabel = false;
+        mainModel.canEditTitle = false;
+        mainModel.margin.setRight (20);
+        mainModel.margin.setLeft (40);
+        mainModel.xtickCount = 5;
+        mainModel.ytickCount = 5;
+        mainModel.xmin = -5;
+        mainModel.xmax = +5;
+        mainModel.ymin = -5;
+        mainModel.ymax = +5;
+        mainModel.content = {quadmesh};
+
+        cmapModel.titleShowing = false;
+        cmapModel.xlabelShowing = false;
+        cmapModel.ylabelShowing = false;
+        cmapModel.canEditMargin = false;
+        cmapModel.canEditXlabel = false;
+        cmapModel.canEditYlabel = false;
+        cmapModel.canEditTitle = false;
+        cmapModel.margin.setLeft (40);
+        cmapModel.margin.setRight (20);
+        cmapModel.xtickCount = 0;
+        cmapModel.ytickCount = 10;
+        cmapModel.xmin = -0.f;
+        cmapModel.xmax = +1.f;
+        cmapModel.ymin = -0.f;
+        cmapModel.ymax = +1.f;
+        cmapModel.gridlinesColour = Colours::transparentBlack;
+        cmapModel.content = {gradient};
+    }
+};
+
+
+
+
+//=============================================================================
+struct Action
+{
+    struct SetFile           { File file; };
+    struct SetTriangleData   { TriangleVertexData triangles; };
+    struct SetColourMap      { Array<Colour> stops; };
+    struct SetFigureMargin   { BorderSize<int> margin; };
+    struct SetFigureDomain   { float xmin=0, xmax=1, ymin=0, ymax=1; };
+    struct SetScalarDomain   { float vmin=0, vmax=1; };
+    struct SetScalarDomainToExtent {};
+};
+
+
+
+
+//=============================================================================
+struct Store
+{
+    class Subscriber
+    {
+    public:
+        virtual ~Subscriber() {}
+        virtual void update (const State&) = 0;
+    };
+
+    Subscriber& subscriber;
+
+    Store (Subscriber& subscriber) : subscriber (subscriber)
+    {
+    }
+
+    void dispatch (Action::SetFile action)
+    {
+        state.file = action.file;
+        state.mainModel.title = action.file.getFileName();
+        dispatch ([action] { return Action::SetTriangleData { loadTriangleDataFromFile (action.file) }; });
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetTriangleData action)
+    {
+        state.triangles = action.triangles;
+        state.quadmesh->setVertices (action.triangles);
+        dispatch (Action::SetScalarDomainToExtent());
+    }
+
+    void dispatch (Action::SetColourMap action)
+    {
+        state.mapping.stops = action.stops;
+        state.gradient->setMapping (state.mapping);
+        state.quadmesh->setMapping (state.mapping);
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetScalarDomain action)
+    {
+        state.mapping.vmin = action.vmin;
+        state.mapping.vmax = action.vmax;
+        state.cmapModel.ymin = action.vmin;
+        state.cmapModel.ymax = action.vmax;
+        state.gradient->setMapping (state.mapping);
+        state.quadmesh->setMapping (state.mapping);
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetScalarDomainToExtent)
+    {
+        dispatch (Action::SetScalarDomain {state.triangles.scalarExtent[0], state.triangles.scalarExtent[1]});
+    }
+
+    void dispatch (Action::SetFigureDomain action)
+    {
+        state.mainModel.xmin = action.xmin;
+        state.mainModel.xmax = action.xmax;
+        state.mainModel.ymin = action.ymin;
+        state.mainModel.ymax = action.ymax;
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetFigureMargin action)
+    {
+        state.mainModel.margin = action.margin;
+        state.cmapModel.margin.setTop (action.margin.getTop());
+        state.cmapModel.margin.setBottom (action.margin.getBottom());
+        subscriber.update (state);
+    }
+
+    template<typename T>
+    void dispatch (T callable)
+    {
+        dispatch (callable()); // will be async
+    }
+
+    State state;
+};
+
+
+
+
+//=============================================================================
+class BinaryTorquesView
+: public FileBasedView
+, public Store::Subscriber
+, public FigureView::Listener
+, public ApplicationCommandTarget
+{
+public:
+    class QuadmeshArtist;
+
+    //=========================================================================
+    BinaryTorquesView();
+    ~BinaryTorquesView();
+
+    //=========================================================================
+    void update (const State&) override;
+
+    //=========================================================================
+    bool isInterestedInFile (File file) const override;
+    bool loadFile (File fileToDisplay) override;
+    void loadFileAsync (File fileToDisplay, std::function<bool()> bailout) override;
+    String getViewerName() const override { return "Binary Torque Problem"; }
+
+    //=========================================================================
+    void resized() override;
+
+    //=========================================================================
+    void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
+    void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
+    void figureViewSetXlabel (FigureView*, const String&) override;
+    void figureViewSetYlabel (FigureView*, const String&) override;
+    void figureViewSetTitle (FigureView*, const String&) override;
+
+    //=========================================================================
+    void getAllCommands (Array<CommandID>& commands) override;
+    void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
+    bool perform (const InvocationInfo& info) override;
+    ApplicationCommandTarget* getNextCommandTarget() override;
+
+private:
+    //=========================================================================
+    void saveSnapshot (bool toTempDirectory);
+
+    //=========================================================================
+    FigureView mainFigure;
+    FigureView cmapFigure;
+    Grid layout;
+    ColourMapCollection cmaps;
+
+    State state;
+    Store store;
+};
+
+
+
+
+//=============================================================================
+BinaryTorquesView::BinaryTorquesView() : store (*this)
 {
     layout.templateRows    = { Grid::TrackInfo (4_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (100_px) };
     layout.items.add (mainFigure.getGridItem());
     layout.items.add (cmapFigure.getGridItem());
 
-    mainModel.titleShowing = true;
-    mainModel.xlabelShowing = false;
-    mainModel.ylabelShowing = false;
-    mainModel.canEditMargin = true;
-    mainModel.canEditXlabel = false;
-    mainModel.canEditYlabel = false;
-    mainModel.canEditTitle = false;
-    mainModel.margin.setRight (20);
-    mainModel.margin.setLeft (40);
-    mainModel.xtickCount = 10;
-    mainModel.ytickCount = 5;
-    mainModel.xmin = -0.1f;
-    mainModel.xmax = +1.1f;
-    mainModel.ymin = -0.1f;
-    mainModel.ymax = +1.1f;
-
-    cmapModel.titleShowing = false;
-    cmapModel.xlabelShowing = false;
-    cmapModel.ylabelShowing = false;
-    cmapModel.canEditMargin = false;
-    cmapModel.canEditXlabel = false;
-    cmapModel.canEditYlabel = false;
-    cmapModel.canEditTitle = false;
-    cmapModel.margin.setLeft (40);
-    cmapModel.margin.setRight (20);
-    cmapModel.xtickCount = 0;
-    cmapModel.ytickCount = 10;
-    cmapModel.xmin = -0.1f;
-    cmapModel.xmax = +1.1f;
-    cmapModel.ymin = -0.1f;
-    cmapModel.ymax = +1.1f;
-    cmapModel.gridlinesColour = Colours::transparentBlack;
-
     mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
     mainFigure.addListener (this);
     cmapFigure.addListener (this);
 
-    updateFigures();
-    setWantsKeyboardFocus (true);
+    setWantsKeyboardFocus (true); // need?
     addAndMakeVisible (mainFigure);
     addAndMakeVisible (cmapFigure);
 }
@@ -119,51 +328,26 @@ BinaryTorquesView::~BinaryTorquesView()
 {
 }
 
+void BinaryTorquesView::update (const State &newState)
+{
+    state = newState;
+    mainFigure.setModel (state.mainModel);
+    cmapFigure.setModel (state.cmapModel);
+}
+
 bool BinaryTorquesView::loadFile (File viewedDocument)
 {
-    return false;
+    store.dispatch (Action::SetFile { viewedDocument });
+    return true;
 }
 
 void BinaryTorquesView::loadFileAsync (File viewedDocument, std::function<bool()> bailout)
 {
-    auto h5f = h5::File (viewedDocument.getFullPathName().toStdString());
-    auto h5d = h5f.open_dataset ("primitive/sigma");
-    auto res = h5d.read<nd::array<double, 2>>();
-    quadmesh = std::make_shared<QuadmeshArtist> (res, bailout);
-
-    if (! bailout())
-    {
-        currentFile = viewedDocument;
-
-        MessageManager::callAsync ([viewedDocument, self = SafePointer<BinaryTorquesView> (this)]
-        {
-            if (self.getComponent())
-                self.getComponent()->updateFigures();
-        });
-    }
 }
 
 bool BinaryTorquesView::isInterestedInFile (File file) const
 {
     return file.hasFileExtension (".h5");
-}
-
-void BinaryTorquesView::updateFigures()
-{
-    if (quadmesh)
-    {
-        quadmesh->setColorMap (cmaps.getCurrentStops());
-        gradient = std::make_shared<ColourGradientArtist> (quadmesh->mapping);
-
-        mainModel.title = currentFile.getFileName();
-        mainModel.content = { quadmesh };
-        cmapModel.content = { gradient };
-        cmapModel.ymin = quadmesh->getScalarMapping().vmin;
-        cmapModel.ymax = quadmesh->getScalarMapping().vmax;
-
-        mainFigure.setModel (mainModel);
-        cmapFigure.setModel (cmapModel);
-    }
 }
 
 
@@ -183,31 +367,22 @@ void BinaryTorquesView::figureViewSetMargin (FigureView* figure, const BorderSiz
 {
     if (figure == &mainFigure)
     {
-        mainModel.margin = margin;
-        cmapModel.margin.setTop (margin.getTop());
-        cmapModel.margin.setBottom (margin.getBottom());
-        updateFigures();
-        return;
+        store.dispatch (Action::SetFigureMargin { margin });
     }
 }
 
 void BinaryTorquesView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
 {
+    auto d = domain.toFloat();
+
     if (figure == &mainFigure)
     {
-        mainModel.setDomain (domain);
+        store.dispatch (Action::SetFigureDomain { d.getX(), d.getRight(), d.getY(), d.getBottom() });
     }
-    if (figure == &cmapFigure)
+    else
     {
-        cmapModel.setDomain (domain);
-
-        if (quadmesh)
-        {
-            quadmesh->mapping.vmin = domain.getY();
-            quadmesh->mapping.vmax = domain.getBottom();
-        }
+        store.dispatch (Action::SetScalarDomain { d.getY(), d.getBottom() });
     }
-    updateFigures();
 }
 
 void BinaryTorquesView::figureViewSetXlabel (FigureView* figure, const String& value)
@@ -242,12 +417,9 @@ bool BinaryTorquesView::perform (const InvocationInfo& info)
     {
         case Commands::makeSnapshotAndOpen: saveSnapshot (true); break;
         case Commands::saveSnapshotAs: saveSnapshot (false); break;
-        case Commands::nextColourMap: cmaps.next(); updateFigures(); break;
-        case Commands::prevColourMap: cmaps.prev(); updateFigures(); break;
-        case Commands::resetScalarRange:
-            if (quadmesh) quadmesh->resetScalarDomainToExtent();
-            updateFigures();
-            break;
+        case Commands::nextColourMap: store.dispatch (Action::SetColourMap {cmaps.next()}); break;
+        case Commands::prevColourMap: store.dispatch (Action::SetColourMap {cmaps.prev()}); break;
+        case Commands::resetScalarRange: store.dispatch (Action::SetScalarDomainToExtent()); break;
     }
     return true;
 }
@@ -271,7 +443,7 @@ void BinaryTorquesView::saveSnapshot (bool toTempDirectory)
     }
     else
     {
-        FileChooser chooser ("Open directory...", currentFile.getParentDirectory(), "", true, false, nullptr);
+        FileChooser chooser ("Open directory...", state.file.getParentDirectory(), "", true, false, nullptr);
 
         if (chooser.browseForFileToSave (true))
             target = chooser.getResult();
@@ -291,4 +463,13 @@ void BinaryTorquesView::saveSnapshot (bool toTempDirectory)
     {
         target.startAsProcess();
     }
+}
+
+
+
+
+//=============================================================================
+FileBasedView* BinaryTorquesViewFactory::createNewVersion()
+{
+    return new BinaryTorquesView;
 }

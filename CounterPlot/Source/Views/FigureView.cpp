@@ -171,17 +171,40 @@ void LinePlotArtist::paint (Graphics& g, const PlotTransformer& trans)
 
 
 //=============================================================================
-ColourGradientArtist::ColourGradientArtist (ScalarMapping model) : model (model)
+ColourGradientArtist::ColourGradientArtist()
 {
 }
 
+ColourGradientArtist::ColourGradientArtist (ScalarMapping mapping) : mapping (mapping)
+{
+}
+
+void ColourGradientArtist::setMapping(ScalarMapping newMappingToShow)
+{
+    mapping = newMappingToShow;
+}
+
+void ColourGradientArtist::setOrientation (Orientation orientationToUse)
+{
+    orientation = orientationToUse;
+}
+
+void ColourGradientArtist::setGradientFollowsTransform (bool shouldGradientBeTransformed)
+{
+    transformGradient = shouldGradientBeTransformed;
+}
+
+
+
+
+//=============================================================================
 void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
 {
     auto gradient = ColourGradient();
     auto n = 0;
-    auto ds = 1.0 / (model.stops.size() - 1);
+    auto ds = 1.0 / (mapping.stops.size() - 1);
 
-    for (auto c : model.stops)
+    for (auto c : mapping.stops)
     {
         gradient.addColour (n++ * ds, c);
     }
@@ -216,16 +239,6 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
     }
     g.setGradientFill (gradient);
     g.fillAll();
-}
-
-void ColourGradientArtist::setOrientation (Orientation orientationToUse)
-{
-    orientation = orientationToUse;
-}
-
-void ColourGradientArtist::setGradientFollowsTransform (bool shouldGradientBeTransformed)
-{
-    transformGradient = shouldGradientBeTransformed;
 }
 
 
