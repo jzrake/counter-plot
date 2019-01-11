@@ -131,15 +131,15 @@ public:
     private:
         //=====================================================================
         BorderSize<int> computeMargin() const;
-        void sendSetMarginIfNeeded();
+        void sendSetMargin (const BorderSize<int>& margin);
         void sendSetDomain (const Rectangle<double>& domain);
+        void sendSetDomainAndMargin (const Rectangle<double>& domain, const BorderSize<int>& margin);
 
         //=====================================================================
         FigureView& figure;
         ComponentBoundsConstrainer constrainer;
         ResizableBorderComponent resizer;
         Rectangle<double> domainBeforePan;
-        Point<double> domainPointAtComponentCentre;
         Point<double> domainLengthPerPixel;
         friend class FigureView;
     };

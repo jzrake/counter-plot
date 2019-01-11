@@ -119,6 +119,7 @@ struct State
         mainModel.canEditXlabel = false;
         mainModel.canEditYlabel = false;
         mainModel.canEditTitle = false;
+        mainModel.canDeformDomain = false;
         mainModel.margin.setRight (20);
         mainModel.margin.setLeft (40);
         mainModel.xtickCount = 5;

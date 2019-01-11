@@ -283,22 +283,25 @@ void FigureView::PlotArea::paint (Graphics& g)
 
 void FigureView::PlotArea::resized()
 {
-    if (! resizer.getBounds().isEmpty())
-    {
-        auto newx0 = domainPointAtComponentCentre.x - 0.5 * domainLengthPerPixel.x * getWidth();
-        auto newx1 = domainPointAtComponentCentre.x + 0.5 * domainLengthPerPixel.x * getWidth();
-        auto newy0 = domainPointAtComponentCentre.y - 0.5 * domainLengthPerPixel.y * getHeight();
-        auto newy1 = domainPointAtComponentCentre.y + 0.5 * domainLengthPerPixel.y * getHeight();
-        auto newDomain = Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
-        auto newMargin = computeMargin();
+    resizer.setBounds (getLocalBounds());
+    auto newMargin = computeMargin();
 
-        resizer.setBounds (getLocalBounds());
-        figure.listeners.call (&Listener::figureViewSetDomainAndMargin, &figure, newDomain, newMargin);
-    }
-    else
+    if (! figure.model.canDeformDomain && ! domainLengthPerPixel.isOrigin())
     {
-        resizer.setBounds (getLocalBounds());
-        sendSetMarginIfNeeded();
+        auto newx0 = 0.5 * (figure.model.xmin + figure.model.xmax - domainLengthPerPixel.x * getWidth());
+        auto newx1 = 0.5 * (figure.model.xmin + figure.model.xmax + domainLengthPerPixel.x * getWidth());
+        auto newy0 = 0.5 * (figure.model.ymin + figure.model.ymax - domainLengthPerPixel.y * getHeight());
+        auto newy1 = 0.5 * (figure.model.ymin + figure.model.ymax + domainLengthPerPixel.y * getHeight());
+        auto newDomain = Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
+
+        if (figure.model.margin == newMargin)
+            sendSetDomain (newDomain);
+        else
+            sendSetDomainAndMargin (newDomain, newMargin);
+    }
+    else if (figure.model.margin != newMargin)
+    {
+        sendSetMargin (newMargin);
     }
 }
 
@@ -395,19 +398,19 @@ Rectangle<int> FigureView::PlotArea::getRange() const
     return getLocalBounds();
 }
 
-void FigureView::PlotArea::sendSetMarginIfNeeded()
+void FigureView::PlotArea::sendSetMargin (const BorderSize<int>& margin)
 {
-    auto newMargin = computeMargin();
-
-    if (newMargin != figure.model.margin)
-    {
-        figure.listeners.call (&Listener::figureViewSetMargin, &figure, newMargin);
-    }
+    figure.listeners.call (&Listener::figureViewSetMargin, &figure, margin);
 }
 
 void FigureView::PlotArea::sendSetDomain (const Rectangle<double>& domain)
 {
     figure.listeners.call (&Listener::figureViewSetDomain, &figure, domain);
+}
+
+void FigureView::PlotArea::sendSetDomainAndMargin (const Rectangle<double>& domain, const BorderSize<int>& margin)
+{
+    figure.listeners.call (&Listener::figureViewSetDomainAndMargin, &figure, domain, margin);
 }
 
 
@@ -503,14 +506,15 @@ void FigureView::setModel (const FigureModel& newModel)
         surface->setContent (model.content, plotArea);
     }
 
+    if (! getBounds().isEmpty())
+    {
+        plotArea.domainLengthPerPixel.x = (model.xmax - model.xmin) / (getWidth() - model.margin.getLeftAndRight());
+        plotArea.domainLengthPerPixel.y = (model.ymax - model.ymin) / (getHeight() - model.margin.getTopAndBottom());
+    }
+
     xlabel.setText (model.xlabel, NotificationType::dontSendNotification);
     ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
     title .setText (model.title , NotificationType::dontSendNotification);
-
-    plotArea.domainLengthPerPixel.x = (model.xmax - model.xmin) / jmax(1, plotArea.getWidth());
-    plotArea.domainLengthPerPixel.y = (model.ymax - model.ymin) / jmax(1, plotArea.getHeight());
-    plotArea.domainPointAtComponentCentre.x = 0.5 * (model.xmax + model.xmin);
-    plotArea.domainPointAtComponentCentre.y = 0.5 * (model.ymax + model.ymin);
 
     setComponentColours (*this, model);
     refreshModes (false);
@@ -678,6 +682,11 @@ void FigureView::mouseDown (const MouseEvent& e)
 //=============================================================================
 void FigureView::layout()
 {
+    if (getBounds().isEmpty())
+    {
+        DBG("Skipping layout, empty");
+        return;
+    }
     auto g = computeGeometry();
 
     AffineTransform ylabelRot = AffineTransform::rotation (-M_PI_2, g.marginL.getCentreX(), g.marginL.getCentreY());

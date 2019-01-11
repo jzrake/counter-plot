@@ -142,6 +142,7 @@ struct FigureModel
     bool                    canEditTitle     = true;
     bool                    canEditXlabel    = true;
     bool                    canEditYlabel    = true;
+    bool                    canDeformDomain  = true;
     BorderSize<int>         margin           = BorderSize<int> (90, 90, 60, 60);
     float                   borderWidth      = 1.f;
     float                   axesWidth        = 1.f;
