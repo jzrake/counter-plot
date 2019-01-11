@@ -22,6 +22,7 @@ public:
         openDirectory       = 101,
         reloadCurrentFile   = 102,
         toggleDirectoryView = 103,
+        reloadDirectoryView = 104,
     };
 
 

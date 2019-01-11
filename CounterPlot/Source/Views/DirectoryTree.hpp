@@ -21,6 +21,7 @@ public:
     void addListener (Listener*);
     void removeListener (Listener*);
     void setDirectoryToShow (File directoryToShow);
+    void reloadAll();
 
     //=========================================================================
     void resized() override;

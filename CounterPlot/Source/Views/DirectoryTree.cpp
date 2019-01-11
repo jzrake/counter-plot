@@ -124,9 +124,18 @@ void DirectoryTree::removeListener (Listener* listener)
 
 void DirectoryTree::setDirectoryToShow (File directoryToShow)
 {
+    if (currentDirectory != directoryToShow)
+    {
+        currentDirectory = directoryToShow;
+        reloadAll();
+    }
+}
+
+void DirectoryTree::reloadAll()
+{
     setMouseOverItem (nullptr);
     tree.setRootItem (nullptr);
-    root = std::make_unique<Item> (*this, currentDirectory = directoryToShow);
+    root = std::make_unique<Item> (*this, currentDirectory);
     tree.setRootItem (root.get());
     root->setOpen (true);
 }

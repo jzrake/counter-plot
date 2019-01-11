@@ -45,6 +45,7 @@ public:
     ~MainComponent();
     void setCurrentDirectory (File newCurrentDirectory);
     void reloadCurrentFile();
+    void reloadDirectoryTree();
     void toggleDirectoryTreeShown();
     bool isDirectoryTreeShowing() const;
 

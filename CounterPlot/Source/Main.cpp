@@ -71,6 +71,7 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
     if (menuName == "View")
     {
         menu.addCommandItem (manager, Commands::toggleDirectoryView);
+        menu.addCommandItem (manager, Commands::reloadDirectoryView);
         menu.addSeparator();
         menu.addCommandItem (manager, FileBasedView::Commands::nextColourMap);
         menu.addCommandItem (manager, FileBasedView::Commands::prevColourMap);
@@ -162,6 +163,7 @@ void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
         Commands::openDirectory,
         Commands::reloadCurrentFile,
         Commands::toggleDirectoryView,
+        Commands::reloadDirectoryView,
     };
     commands.addArray (ids, numElementsInArray (ids));
 }
@@ -182,6 +184,10 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Side Bar", "", "View", mainWindow->content->isDirectoryTreeShowing() ? ApplicationCommandInfo::isTicked : 0);
             result.defaultKeypresses.add (KeyPress ('K', ModifierKeys::commandModifier, 0));
             break;
+        case Commands::reloadDirectoryView:
+            result.setInfo ("Reload Directory Tree", "", "View", 0);
+            result.defaultKeypresses.add (KeyPress ('r', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0));
+            break;
         default:
             JUCEApplication::getCommandInfo (commandID, result);
             break;
@@ -195,6 +201,7 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
         case Commands::openDirectory:             return presentOpenDirectoryDialog();
         case Commands::reloadCurrentFile:         mainWindow->content->reloadCurrentFile(); return true;
         case Commands::toggleDirectoryView:       mainWindow->content->toggleDirectoryTreeShown(); return true;
+        case Commands::reloadDirectoryView:       mainWindow->content->reloadDirectoryTree(); return true;
         default:                                  return JUCEApplication::perform (info);
     }
 }

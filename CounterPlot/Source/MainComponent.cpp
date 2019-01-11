@@ -5,7 +5,7 @@
 #include "Views/FileBasedView.hpp"
 #include "Views/ColourMapView.hpp"
 
-
+#include "yaml-cpp/yaml.h"
 
 
 //=============================================================================
@@ -101,9 +101,8 @@ MainComponent::MainComponent()
 
     views.add (new JsonFileViewer);
     views.add (new ImageFileViewer);
-    views.add (new JetInCloudView);
-    // views.add (new BinaryTorquesView);
-    views.add (BinaryTorquesViewFactory::createNewVersion());
+    views.add (BinaryTorques::create());
+    views.add (JetInCloud::create());
     views.add (new ColourMapView);
     views.add (new DefaultView);
 
@@ -144,6 +143,11 @@ void MainComponent::reloadCurrentFile()
             view->setVisible (false);
         }
     }
+}
+
+void MainComponent::reloadDirectoryTree()
+{
+    directoryTree.reloadAll();
 }
 
 void MainComponent::toggleDirectoryTreeShown()

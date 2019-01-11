@@ -1,19 +1,31 @@
 #include "JetInCloudView.hpp"
+#include "FigureView.hpp"
 #include "../MetalSurface.hpp"
 
 
 
 
 //=============================================================================
-class JetInCloudView::QuadmeshArtist : public PlotArtist
+struct JetInCloud::TriangleVertexData
 {
-public:
-    QuadmeshArtist (const patches2d::Database& model)
-    {
-        for (auto patch : model.all (patches2d::Field::vert_coords))
+    std::array<float, 2> scalarExtent = {0.f, 1.f};
+    std::shared_ptr<std::vector<simd::float2>> vertices;
+    std::shared_ptr<std::vector<simd::float1>> scalars;
+};
+
+JetInCloud::TriangleVertexData JetInCloud::loadTriangleDataFromFile (File file, std::function<bool()> bailout)
+{
+    try {
+        auto ser = FileSystemSerializer (file);
+        auto db  = patches2d::Database::load (ser);
+        auto scalars  = std::vector<simd::float1>();
+        auto vertices = std::vector<simd::float2>();
+        auto iter = 0;
+
+        for (auto patch : db.all (patches2d::Field::vert_coords))
         {
             auto verts = patch.second;
-            auto cells = model.at (patch.first, patches2d::Field::conserved);
+            auto cells = db.at (patch.first, patches2d::Field::conserved);
 
             for (int i = 0; i < verts.shape(0) - 1; ++i)
             {
@@ -37,135 +49,440 @@ public:
                     const float y11 = r11 * std::cosf (q11);
                     const float c = std::log10f (cells (i, j, 0));
 
-                    triangleVertices.push_back (simd::float2 {x00, y00});
-                    triangleVertices.push_back (simd::float2 {x01, y01});
-                    triangleVertices.push_back (simd::float2 {x10, y10});
-                    triangleVertices.push_back (simd::float2 {x01, y01});
-                    triangleVertices.push_back (simd::float2 {x10, y10});
-                    triangleVertices.push_back (simd::float2 {x11, y11});
+                    vertices.push_back (simd::float2 {x00, y00});
+                    vertices.push_back (simd::float2 {x01, y01});
+                    vertices.push_back (simd::float2 {x10, y10});
+                    vertices.push_back (simd::float2 {x01, y01});
+                    vertices.push_back (simd::float2 {x10, y10});
+                    vertices.push_back (simd::float2 {x11, y11});
 
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
-                    triangleColors.push_back (simd::float4 {c, c, c, 1.f});
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
 
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
-                    triangleScalars.push_back (simd::float1 (c));
+                    if (++iter % 1000 == 0 && bailout && bailout())
+                    {
+                        return {};
+                    }
                 }
             }
         }
 
-        mapping.stops = ColourMapHelpers::coloursFromRGBTable (BinaryData::magma_cmap);
-        mapping.vmin = *std::min_element (triangleScalars.begin(), triangleScalars.end());
-        mapping.vmax = *std::max_element (triangleScalars.begin(), triangleScalars.end());
-        scalarExtent = { mapping.vmin, mapping.vmax };
-    }
+        auto lower = *std::min_element (scalars.begin(), scalars.end());
+        auto upper = *std::max_element (scalars.begin(), scalars.end());
 
-    void setColorMap (const Array<Colour>& stops)
+        return {
+            {lower, upper},
+            std::make_shared<std::vector<simd::float2>> (vertices),
+            std::make_shared<std::vector<simd::float1>> (scalars)
+        };
+    }
+    catch (std::exception& e)
     {
-        mapping.stops = stops;
+        DBG("jet-in-cloud: failed to load: " << e.what());
+        return {};
     }
+}
 
-    void setScalarDomain (float vmin, float vmax)
+
+
+
+//=============================================================================
+class JetInCloud::QuadmeshArtist : public PlotArtist
+{
+public:
+    void setVertices (TriangleVertexData dataToUse)
     {
-        mapping.vmin = vmin;
-        mapping.vmax = vmax;
+        data = dataToUse;
     }
 
-    void render (RenderingSurface& surface) override { surface.renderTriangles (triangleVertices, triangleScalars, mapping); }
-    bool isScalarMappable() const override { return true; }
-    ScalarMapping getScalarMapping() const override { return mapping; }
-    std::array<float, 2> getScalarExtent() const override { return scalarExtent; }
+    void setMapping (ScalarMapping mappingToUse)
+    {
+        mapping = mappingToUse;
+    }
 
-private:
-    std::array<float, 2> scalarExtent;
+    void render (RenderingSurface& surface) override
+    {
+        if (data.vertices && data.scalars)
+        {
+            surface.renderTriangles (*data.vertices, *data.scalars, mapping);
+        }
+    }
+
+    bool isScalarMappable() const override
+    {
+        return true;
+    }
+
+    ScalarMapping getScalarMapping() const override
+    {
+        return mapping;
+    }
+
+    std::array<float, 2> getScalarExtent() const override
+    {
+        return data.scalarExtent;
+    }
+
     ScalarMapping mapping;
-    std::vector<simd::float2> triangleVertices;
-    std::vector<simd::float4> triangleColors;
-    std::vector<simd::float1> triangleScalars;
+    TriangleVertexData data;
+};
+
+
+namespace jic {
+
+//=============================================================================
+using GradientArtist = ColourGradientArtist;
+using QuadmeshArtist = JetInCloud::QuadmeshArtist;
+
+
+
+
+//=============================================================================
+struct State
+{
+    std::shared_ptr<QuadmeshArtist>       quadmesh;
+    std::shared_ptr<GradientArtist>       gradient;
+    JetInCloud::TriangleVertexData triangles;
+    ScalarMapping                         mapping;
+    FigureModel                           cmapModel;
+    FigureModel                           mainModel;
+    File                                  file;
+
+    State()
+    {
+        mapping.stops = ColourMapCollection().getCurrentStops();
+        mapping.vmin = 0.f;
+        mapping.vmax = 1.f;
+
+        gradient = std::make_shared<GradientArtist>();
+        quadmesh = std::make_shared<QuadmeshArtist>();
+        gradient->setMapping (mapping);
+        quadmesh->setMapping (mapping);
+
+        mainModel.titleShowing = true;
+        mainModel.xlabelShowing = false;
+        mainModel.ylabelShowing = false;
+        mainModel.canEditMargin = true;
+        mainModel.canEditXlabel = false;
+        mainModel.canEditYlabel = false;
+        mainModel.canEditTitle = false;
+        mainModel.canDeformDomain = false;
+        mainModel.margin.setRight (20);
+        mainModel.margin.setLeft (40);
+        mainModel.xtickCount = 5;
+        mainModel.ytickCount = 5;
+        mainModel.xmin = -5;
+        mainModel.xmax = +5;
+        mainModel.ymin = -5;
+        mainModel.ymax = +5;
+        mainModel.content = {quadmesh};
+
+        cmapModel.titleShowing = false;
+        cmapModel.xlabelShowing = false;
+        cmapModel.ylabelShowing = false;
+        cmapModel.canEditMargin = false;
+        cmapModel.canEditXlabel = false;
+        cmapModel.canEditYlabel = false;
+        cmapModel.canEditTitle = false;
+        cmapModel.margin.setLeft (40);
+        cmapModel.margin.setRight (20);
+        cmapModel.xtickCount = 0;
+        cmapModel.ytickCount = 10;
+        cmapModel.xmin = -0.f;
+        cmapModel.xmax = +1.f;
+        cmapModel.ymin = -0.f;
+        cmapModel.ymax = +1.f;
+        cmapModel.gridlinesColour = Colours::transparentBlack;
+        cmapModel.content = {gradient};
+    }
 };
 
 
 
 
 //=============================================================================
-JetInCloudView::JetInCloudView()
+struct Action
 {
-    layout.templateRows    = { Grid::TrackInfo (1_fr) };
-    layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (80_px) };
+    struct SetFile           { File file; };
+    struct SetTriangleData   { JetInCloud::TriangleVertexData triangles; };
+    struct SetColourMap      { Array<Colour> stops; };
+    struct SetFigureMargin   { BorderSize<int> margin; };
+    struct SetFigureDomain   { float xmin=0, xmax=1, ymin=0, ymax=1; };
+    struct SetScalarDomain   { float vmin=0, vmax=1; };
+    struct SetScalarDomainToExtent {};
+};
 
-    figures.add (new FigureView);
-    figures.add (new FigureView);
 
-    FigureModel mainModel;
-    mainModel.margin.setRight (20);
-    figures[0]->setModel (mainModel);
-    figures[0]->setRenderingSurface (std::make_unique<MetalRenderingSurface>());
 
-    FigureModel colorbarModel;
-    colorbarModel.titleShowing = false;
-    colorbarModel.xlabelShowing = false;
-    colorbarModel.ylabelShowing = false;
-    colorbarModel.margin.setLeft (40);
-    colorbarModel.margin.setRight (20);
-    colorbarModel.gridlinesColour = Colours::transparentBlack;
-    colorbarModel.xtickCount = 0;
-    colorbarModel.canEditMargin = false;
-    figures[1]->setModel (colorbarModel);
 
-    for (const auto& figure : figures)
+//=============================================================================
+class Store
+{
+public:
+
+    //=========================================================================
+    /**
+     * The subscriber will likely be a component. It must implement the update
+     * method, which will be invoke by the store when the state has changed.
+     */
+    class Subscriber
     {
-        figure->addListener (this);
-        addAndMakeVisible (figure);
-        layout.items.add (figure->getGridItem());
+    public:
+        virtual ~Subscriber() {}
+        virtual void update (const State&) = 0;
+        virtual void asynchronousTaskStarted() {}
+        virtual void asynchronousTaskFinished() {}
+    };
+
+    //=========================================================================
+    template<typename JobReturnType>
+    class Worker : public ThreadPoolJob
+    {
+    public:
+        using Bailout = std::function<bool()>;
+        using Job = std::function<JobReturnType(Bailout)>;
+
+        Worker (Store* recipient, Subscriber* subscriber, Job job)
+        : ThreadPoolJob ("worker")
+        , recipient (recipient)
+        , subscriber (subscriber)
+        , job (job)
+        {
+            subscriber->asynchronousTaskStarted();
+        }
+
+    private:
+        JobStatus runJob() override
+        {
+            auto result = job ([this] { return shouldExit(); });
+
+            if (! shouldExit())
+            {
+                MessageManager::callAsync ([recipient=recipient, result] { recipient->dispatch (result); });
+            }
+            MessageManager::callAsync ([subscriber=subscriber] { subscriber->asynchronousTaskFinished(); });
+            return jobHasFinished;
+        }
+
+        Store* recipient;
+        Subscriber* subscriber;
+        Job job;
+    };
+
+
+    //=========================================================================
+    Store (Subscriber& subscriber) : subscriber (subscriber), pool (2)
+    {
+        subscriber.update (state);
     }
+
+    template <typename Callable>
+    void dispatch (Callable job)
+    {
+        pool.removeAllJobs (true, 0);
+        pool.addJob (new Worker<decltype(job(nullptr))> (this, &subscriber, job), true);
+    }
+
+    void dispatch (Action::SetFile action)
+    {
+        state.file = action.file;
+        state.mainModel.title = action.file.getFileName();
+        dispatch ([action] (auto bailout) { return Action::SetTriangleData { JetInCloud::loadTriangleDataFromFile (action.file, bailout)}; });
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetTriangleData action)
+    {
+        bool wasEmpty = state.triangles.vertices == nullptr;
+
+        state.triangles = action.triangles;
+        state.quadmesh->setVertices (action.triangles);
+
+        if (wasEmpty)
+            dispatch (Action::SetScalarDomainToExtent());
+        else
+            subscriber.update (state);
+    }
+
+    void dispatch (Action::SetColourMap action)
+    {
+        state.mapping.stops = action.stops;
+        state.gradient->setMapping (state.mapping);
+        state.quadmesh->setMapping (state.mapping);
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetScalarDomain action)
+    {
+        state.mapping.vmin = action.vmin;
+        state.mapping.vmax = action.vmax;
+        state.cmapModel.ymin = action.vmin;
+        state.cmapModel.ymax = action.vmax;
+        state.gradient->setMapping (state.mapping);
+        state.quadmesh->setMapping (state.mapping);
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetScalarDomainToExtent)
+    {
+        dispatch (Action::SetScalarDomain {state.triangles.scalarExtent[0], state.triangles.scalarExtent[1]});
+    }
+
+    void dispatch (Action::SetFigureDomain action)
+    {
+        state.mainModel.xmin = action.xmin;
+        state.mainModel.xmax = action.xmax;
+        state.mainModel.ymin = action.ymin;
+        state.mainModel.ymax = action.ymax;
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetFigureMargin action)
+    {
+        state.mainModel.margin = action.margin;
+        state.cmapModel.margin.setTop (action.margin.getTop());
+        state.cmapModel.margin.setBottom (action.margin.getBottom());
+        subscriber.update (state);
+    }
+
+    void dispatch (Action::SetFigureDomain action1, Action::SetFigureMargin action2)
+    {
+        state.mainModel.xmin = action1.xmin;
+        state.mainModel.xmax = action1.xmax;
+        state.mainModel.ymin = action1.ymin;
+        state.mainModel.ymax = action1.ymax;
+        state.mainModel.margin = action2.margin;
+        state.cmapModel.margin.setTop (action2.margin.getTop());
+        state.cmapModel.margin.setBottom (action2.margin.getBottom());
+        subscriber.update (state);
+    }
+
+private:
+    State state;
+    Subscriber& subscriber;
+    ThreadPool pool;
+};
+
+}
+
+using namespace jic;
+
+
+
+
+//=============================================================================
+class JetInCloudView
+: public FileBasedView
+, public Store::Subscriber
+, public FigureView::Listener
+, public ApplicationCommandTarget
+{
+public:
+    class QuadmeshArtist;
+
+    //=========================================================================
+    JetInCloudView();
+    ~JetInCloudView();
+
+    //=========================================================================
+    void update (const State&) override;
+    void asynchronousTaskStarted() override;
+    void asynchronousTaskFinished() override;
+
+    //=========================================================================
+    bool isInterestedInFile (File file) const override;
+    void loadFile (File fileToDisplay) override;
+    String getViewerName() const override { return "Jet In Cloud Problem"; }
+
+    //=========================================================================
+    void resized() override;
+
+    //=========================================================================
+    void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) override;
+    void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
+    void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
+    void figureViewSetXlabel (FigureView*, const String&) override;
+    void figureViewSetYlabel (FigureView*, const String&) override;
+    void figureViewSetTitle (FigureView*, const String&) override;
+
+    //=========================================================================
+    void getAllCommands (Array<CommandID>& commands) override;
+    void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
+    bool perform (const InvocationInfo& info) override;
+    ApplicationCommandTarget* getNextCommandTarget() override;
+
+private:
+    //=========================================================================
+    void saveSnapshot (bool toTempDirectory);
+
+    //=========================================================================
+    FigureView mainFigure;
+    FigureView cmapFigure;
+    Grid layout;
+    ColourMapCollection cmaps;
+    State state;
+    Store store;
+};
+
+
+
+
+//=============================================================================
+JetInCloudView::JetInCloudView() : store (*this)
+{
+    layout.templateRows    = { Grid::TrackInfo (4_fr) };
+    layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (100_px) };
+    layout.items.add (mainFigure.getGridItem());
+    layout.items.add (cmapFigure.getGridItem());
+
+    mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+    mainFigure.addListener (this);
+    cmapFigure.addListener (this);
+
     setWantsKeyboardFocus (true);
+    addAndMakeVisible (mainFigure);
+    addAndMakeVisible (cmapFigure);
 }
 
 JetInCloudView::~JetInCloudView()
 {
 }
 
-bool JetInCloudView::isInterestedInFile(File file) const
+void JetInCloudView::update (const State &newState)
 {
-    return FileSystemSerializer::looksLikeDatabase (file);
+    state = newState;
+    mainFigure.setModel (state.mainModel);
+    cmapFigure.setModel (state.cmapModel);
+}
+
+void JetInCloudView::asynchronousTaskStarted()
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->fileBasedViewAsyncTaskStarted();
+    }
+}
+
+void JetInCloudView::asynchronousTaskFinished()
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->fileBasedViewAsyncTaskFinished();
+    }
 }
 
 void JetInCloudView::loadFile (File viewedDocument)
 {
-    auto ser = FileSystemSerializer (viewedDocument);
-    auto db = patches2d::Database::load (ser);
-    artist = std::make_shared<QuadmeshArtist> (db);
-    scalarExtent = artist->getScalarExtent();
-    currentFile = viewedDocument;
-    reloadFigures();
+    store.dispatch (Action::SetFile { viewedDocument });
 }
 
-void JetInCloudView::reloadFigures()
+bool JetInCloudView::isInterestedInFile (File file) const
 {
-    auto mainModel     = figures[0]->getModel();
-    auto colorbarModel = figures[1]->getModel();
-
-    mainModel.title = currentFile.getFileName();
-    colorbarModel.ymin = scalarExtent[0];
-    colorbarModel.ymax = scalarExtent[1];
-
-    if (artist)
-    {
-        artist->setColorMap (cmaps.getCurrentStops());
-        artist->setScalarDomain (scalarExtent[0], scalarExtent[1]);
-        mainModel.content = { artist };
-        colorbarModel.content = { std::make_shared<ColourGradientArtist> (mainModel.content[0]->getScalarMapping()) };
-    }
-
-    figures[0]->setModel (mainModel);
-    figures[1]->setModel (colorbarModel);
+    return FileSystemSerializer::looksLikeDatabase (file);
 }
 
 
@@ -177,132 +494,129 @@ void JetInCloudView::resized()
     layout.performLayout (getLocalBounds());
 }
 
-bool JetInCloudView::keyPressed (const KeyPress& key)
+
+
+
+//=============================================================================
+void JetInCloudView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
 {
-    if (key == KeyPress::leftKey)
+    if (figure == &mainFigure)
     {
-        cmaps.prev();
-        reloadFigures();
-        return true;
+        store.dispatch (Action::SetFigureMargin { margin });
     }
-    if (key == KeyPress::rightKey)
+}
+
+void JetInCloudView::figureViewSetDomainAndMargin (FigureView* figure,
+                                                      const Rectangle<double>& domain,
+                                                      const BorderSize<int>& margin)
+{
+    if (figure == &mainFigure)
     {
-        cmaps.next();
-        reloadFigures();
-        return true;
+        auto d = domain.toFloat();
+        store.dispatch (Action::SetFigureDomain { d.getX(), d.getRight(), d.getY(), d.getBottom() },
+                        Action::SetFigureMargin { margin });
     }
-    if (key == KeyPress::spaceKey)
+}
+
+void JetInCloudView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
+{
+    auto d = domain.toFloat();
+
+    if (figure == &mainFigure)
     {
-        scalarExtent = artist->getScalarExtent();
-        reloadFigures();
-        return true;
+        store.dispatch (Action::SetFigureDomain { d.getX(), d.getRight(), d.getY(), d.getBottom() });
     }
-    return false;
+    else
+    {
+        store.dispatch (Action::SetScalarDomain { d.getY(), d.getBottom() });
+    }
+}
+
+void JetInCloudView::figureViewSetXlabel (FigureView* figure, const String& value)
+{
+}
+
+void JetInCloudView::figureViewSetYlabel (FigureView* figure, const String& value)
+{
+}
+
+void JetInCloudView::figureViewSetTitle (FigureView* figure, const String& value)
+{
 }
 
 
 
 
 //=============================================================================
-void JetInCloudView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& value)
+void JetInCloudView::getAllCommands (Array<CommandID>& commands)
 {
-    mutateFigure (figure, [value] (FigureModel& model)
-    {
-        model.margin = value;
-    });
-
-    mutateFiguresInRow (figure, [value] (FigureModel& model)
-    {
-        model.margin.setTop (value.getTop());
-        model.margin.setBottom (value.getBottom());
-    });
-
-    mutateFiguresInCol (figure, [value] (FigureModel& model)
-    {
-        model.margin.setLeft (value.getLeft());
-        model.margin.setRight (value.getRight());
-    });
+    FileBasedView::getAllCommands (commands);
 }
 
-void JetInCloudView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& value)
+void JetInCloudView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
 {
-    mutateFigure (figure, [value] (FigureModel& model)
-    {
-        model.xmin = value.getX();
-        model.xmax = value.getRight();
-        model.ymin = value.getY();
-        model.ymax = value.getBottom();
-    });
+    FileBasedView::getCommandInfo (commandID, result);
+}
 
-    if (artist && figure == figures[1])
+bool JetInCloudView::perform (const InvocationInfo& info)
+{
+    switch (info.commandID)
     {
-        scalarExtent[0] = figure->getModel().ymin;
-        scalarExtent[1] = figure->getModel().ymax;
-        reloadFigures();
+        case Commands::makeSnapshotAndOpen: saveSnapshot (true); break;
+        case Commands::saveSnapshotAs: saveSnapshot (false); break;
+        case Commands::nextColourMap: store.dispatch (Action::SetColourMap {cmaps.next()}); break;
+        case Commands::prevColourMap: store.dispatch (Action::SetColourMap {cmaps.prev()}); break;
+        case Commands::resetScalarRange: store.dispatch (Action::SetScalarDomainToExtent()); break;
+    }
+    return true;
+}
+
+ApplicationCommandTarget* JetInCloudView::getNextCommandTarget()
+{
+    return nullptr;
+}
+
+
+
+
+//=============================================================================
+void JetInCloudView::saveSnapshot (bool toTempDirectory)
+{
+    auto target = File();
+
+    if (toTempDirectory)
+    {
+        target = File::createTempFile (".png");
+    }
+    else
+    {
+        FileChooser chooser ("Open directory...", state.file.getParentDirectory(), "", true, false, nullptr);
+
+        if (chooser.browseForFileToSave (true))
+            target = chooser.getResult();
+        else
+            return;
+    }
+
+    auto image = mainFigure.createSnapshot();
+    target.deleteFile();
+
+    if (auto stream = std::unique_ptr<FileOutputStream> (target.createOutputStream()))
+    {
+        auto fmt = PNGImageFormat();
+        fmt.writeImageToStream (image, *stream);
+    }
+    if (toTempDirectory)
+    {
+        target.startAsProcess();
     }
 }
 
-void JetInCloudView::figureViewSetXlabel (FigureView* figure, const String& value)
+
+
+
+//=============================================================================
+FileBasedView* JetInCloud::create()
 {
-    mutateFigure (figure, [value] (FigureModel& model)
-    {
-        model.xlabel = value;
-    });
-}
-
-void JetInCloudView::figureViewSetYlabel (FigureView* figure, const String& value)
-{
-    mutateFigure (figure, [value] (FigureModel& model)
-    {
-        model.ylabel = value;
-    });
-}
-
-void JetInCloudView::figureViewSetTitle (FigureView* figure, const String& value)
-{
-    mutateFigure (figure, [value] (FigureModel& model)
-    {
-        model.title = value;
-    });
-}
-
-void JetInCloudView::mutateFigure (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
-{
-    auto m = eventFigure->getModel();
-    mutation (m);
-    eventFigure->setModel (m);
-}
-
-void JetInCloudView::mutateFiguresInRow (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
-{
-    int sourceRow = figures.indexOf (eventFigure) / 2;
-    int n = 0;
-
-    for (const auto& f : figures)
-    {
-        if (n / 2 == sourceRow)
-        {
-            auto m = f->getModel();
-            mutation (m);
-            f->setModel (m);
-        }
-        ++n;
-    }
-}
-
-void JetInCloudView::mutateFiguresInCol (FigureView* eventFigure, std::function<void(FigureModel&)> mutation)
-{
-    int sourceCol = figures.indexOf (eventFigure) % 2;
-    int n = 0;
-
-    for (const auto& f : figures)
-    {
-        if (n % 2 == sourceCol)
-        {
-            auto m = f->getModel();
-            mutation (m);
-            f->setModel (m);
-        }
-        ++n;
-    }
+    return new JetInCloudView;
 }

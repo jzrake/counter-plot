@@ -1,15 +1,16 @@
 #pragma once
 #include "JuceHeader.h"
-#include "FigureView.hpp"
 #include "FileBasedView.hpp"
 
 
 
 
 //=============================================================================
-class BinaryTorquesViewFactory
+class BinaryTorques
 {
 public:
     class QuadmeshArtist;
-    static FileBasedView* createNewVersion();
+    class TriangleVertexData;
+    static TriangleVertexData loadTriangleDataFromFile (File file, std::function<bool()> bailout);
+    static FileBasedView* create();
 };

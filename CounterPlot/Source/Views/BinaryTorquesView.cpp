@@ -1,18 +1,19 @@
 #include "BinaryTorquesView.hpp"
+#include "FigureView.hpp"
 #include "../MetalSurface.hpp"
 
 
 
 
 //=============================================================================
-struct TriangleVertexData
+struct BinaryTorques::TriangleVertexData
 {
     std::array<float, 2> scalarExtent = {0.f, 1.f};
     std::shared_ptr<std::vector<simd::float2>> vertices;
     std::shared_ptr<std::vector<simd::float1>> scalars;
 };
 
-static struct TriangleVertexData loadTriangleDataFromFile (File file, std::function<bool()> bailout)
+BinaryTorques::TriangleVertexData BinaryTorques::loadTriangleDataFromFile (File file, std::function<bool()> bailout)
 {
     try {
         auto h5f  = h5::File (file.getFullPathName().toStdString());
@@ -31,7 +32,7 @@ static struct TriangleVertexData loadTriangleDataFromFile (File file, std::funct
     }
     catch (std::exception& e)
     {
-        DBG("failed to load: " << e.what());
+        DBG("binary-torques: failed to load: " << e.what());
         return {};
     }
 }
@@ -40,7 +41,7 @@ static struct TriangleVertexData loadTriangleDataFromFile (File file, std::funct
 
 
 //=============================================================================
-class BinaryTorquesViewFactory::QuadmeshArtist : public PlotArtist
+class BinaryTorques::QuadmeshArtist : public PlotArtist
 {
 public:
     void setVertices (TriangleVertexData dataToUse)
@@ -77,15 +78,17 @@ public:
     }
 
     ScalarMapping mapping;
-    TriangleVertexData data;
+    BinaryTorques::TriangleVertexData data;
 };
 
 
 
 
+namespace binary {
+
 //=============================================================================
 using GradientArtist = ColourGradientArtist;
-using QuadmeshArtist = BinaryTorquesViewFactory::QuadmeshArtist;
+using QuadmeshArtist = BinaryTorques::QuadmeshArtist;
 
 
 
@@ -95,7 +98,7 @@ struct State
 {
     std::shared_ptr<QuadmeshArtist>       quadmesh;
     std::shared_ptr<GradientArtist>       gradient;
-    TriangleVertexData                    triangles;
+    BinaryTorques::TriangleVertexData     triangles;
     ScalarMapping                         mapping;
     FigureModel                           cmapModel;
     FigureModel                           mainModel;
@@ -157,7 +160,7 @@ struct State
 struct Action
 {
     struct SetFile           { File file; };
-    struct SetTriangleData   { TriangleVertexData triangles; };
+    struct SetTriangleData   { BinaryTorques::TriangleVertexData triangles; };
     struct SetColourMap      { Array<Colour> stops; };
     struct SetFigureMargin   { BorderSize<int> margin; };
     struct SetFigureDomain   { float xmin=0, xmax=1, ymin=0, ymax=1; };
@@ -240,7 +243,7 @@ public:
     {
         state.file = action.file;
         state.mainModel.title = action.file.getFileName();
-        dispatch ([action] (auto bailout) { return Action::SetTriangleData { loadTriangleDataFromFile (action.file, bailout)}; });
+        dispatch ([action] (auto bailout) { return Action::SetTriangleData { BinaryTorques::loadTriangleDataFromFile (action.file, bailout)}; });
         subscriber.update (state);
     }
 
@@ -315,6 +318,10 @@ private:
     Subscriber& subscriber;
     ThreadPool pool;
 };
+
+}
+
+using namespace binary;
 
 
 
@@ -561,7 +568,7 @@ void BinaryTorquesView::saveSnapshot (bool toTempDirectory)
 
 
 //=============================================================================
-FileBasedView* BinaryTorquesViewFactory::createNewVersion()
+FileBasedView* BinaryTorques::create()
 {
     return new BinaryTorquesView;
 }
