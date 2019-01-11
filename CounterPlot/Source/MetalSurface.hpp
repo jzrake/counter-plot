@@ -30,12 +30,12 @@ private:
     metal::Buffer getOrCreateBuffer (const std::vector<simd::float2>& data);
     metal::Buffer getOrCreateBuffer (const std::vector<simd::float4>& data);
 
-//    std::map<const std::vector<simd::float1>*, metal::Buffer> cachedBuffers1;
-//    std::map<const std::vector<simd::float2>*, metal::Buffer> cachedBuffers2;
-//    std::map<const std::vector<simd::float4>*, metal::Buffer> cachedBuffers4;
-    std::map<const simd::float1*, metal::Buffer> cachedBuffers1;
-    std::map<const simd::float2*, metal::Buffer> cachedBuffers2;
-    std::map<const simd::float4*, metal::Buffer> cachedBuffers4;
+    std::map<const std::vector<simd::float1>*, metal::Buffer> cachedBuffers1;
+    std::map<const std::vector<simd::float2>*, metal::Buffer> cachedBuffers2;
+    std::map<const std::vector<simd::float4>*, metal::Buffer> cachedBuffers4;
+//    std::map<const simd::float1*, metal::Buffer> cachedBuffers1;
+//    std::map<const simd::float2*, metal::Buffer> cachedBuffers2;
+//    std::map<const simd::float4*, metal::Buffer> cachedBuffers4;
 
     void cleanBufferCaches();
 
