@@ -161,6 +161,7 @@ struct FigureModel
 
     //=========================================================================
     static FigureModel fromVar (const var&);
+    var toVar() const;
     Rectangle<double> getDomain() const;
     void setDomain (const Rectangle<double>& domain);
 };

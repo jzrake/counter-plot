@@ -5,6 +5,36 @@
 
 
 //=============================================================================
+YAML::Node nodeFromVar (const var& value)
+{
+    if (value.isVoid()) return YAML::Node();
+    if (value.isString()) return YAML::Node (value.toString().toStdString());
+    if (value.isBool()) return YAML::Node (bool (value));
+    if (value.isInt()) return YAML::Node (int (value));
+    if (value.isDouble()) return YAML::Node (double (value));
+    if (value.isArray())
+    {
+        YAML::Node node;
+
+        for (const auto& element : *value.getArray())
+        {
+            node.push_back (nodeFromVar (element));
+        }
+        return node;
+    }
+    if (auto obj = value.getDynamicObject())
+    {
+        YAML::Node node;
+
+        for (const auto& item : obj->getProperties())
+        {
+            node[item.name.toString().toStdString()] = nodeFromVar (item.value);
+        }
+        return node;
+    }
+    return YAML::Node();
+}
+
 static var varFromYamlScalar (const YAML::Node& scalar)
 {
     assert (scalar.IsScalar());
@@ -60,7 +90,6 @@ static juce::Array<Grid::TrackInfo> getTrackInfoArray (const var& value)
 
 
 
-
 //=============================================================================
 UserExtensionView::UserExtensionView()
 {
@@ -96,7 +125,6 @@ void UserExtensionView::configure (const String& name, const var& config)
 		layout.items.add (figure->getGridItem());
         figures.add (figure.release());
     }
-
     layout.performLayout (getLocalBounds());
 }
 

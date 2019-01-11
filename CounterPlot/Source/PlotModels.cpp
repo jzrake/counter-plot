@@ -366,11 +366,7 @@ static void convert (const var& source, String& value)
 }
 static void convert (const var& source, BorderSize<int>& value)
 {
-    if (source.size() == 4)
-    {
-        value = { int(source[0]), int(source[1]), int(source[2]), int(source[3]) };
-    }
-    else if (auto obj = source.getDynamicObject())
+    if (auto obj = source.getDynamicObject())
     {
         for (const auto& item : obj->getProperties())
         {
@@ -384,6 +380,15 @@ static void convert (const var& source, BorderSize<int>& value)
 static void convert (const var& source, Colour& value)
 {
     value = LookAndFeelHelpers::colourFromVariant (source);
+}
+static var borderSizeToVar (BorderSize<int> border)
+{
+    auto obj = std::make_unique<DynamicObject>();
+    obj->setProperty ("top", border.getTop());
+    obj->setProperty ("bottom", border.getBottom());
+    obj->setProperty ("left", border.getLeft());
+    obj->setProperty ("right", border.getRight());
+    return obj.release();
 }
 
 
@@ -437,4 +442,42 @@ FigureModel FigureModel::fromVar (const var& value)
         }
     }
     return model;
+}
+
+var FigureModel::toVar() const
+{
+    FigureModel ref;
+    auto obj = std::make_unique<DynamicObject>();
+
+    if (xmin != ref.xmin) obj->setProperty ("xmin", xmin);
+    if (xmax != ref.xmax) obj->setProperty ("xmax", xmax);
+    if (ymin != ref.ymin) obj->setProperty ("ymin", ymin);
+    if (ymax != ref.ymax) obj->setProperty ("ymax", ymax);
+    if (title != ref.title) obj->setProperty ("title", title);
+    if (xlabel != ref.xlabel) obj->setProperty ("xlabel", xlabel);
+    if (ylabel != ref.ylabel) obj->setProperty ("ylabel", ylabel);
+    if (titleShowing != ref.titleShowing) obj->setProperty ("title-showing", titleShowing);
+    if (xlabelShowing != ref.xlabelShowing) obj->setProperty ("xlabel-showing", xlabelShowing);
+    if (ylabelShowing != ref.ylabelShowing) obj->setProperty ("ylabel-showing", ylabelShowing);
+    if (canEditMargin != ref.canEditMargin) obj->setProperty ("can-edit-margin", canEditMargin);
+    if (canEditTitle != ref.canEditTitle) obj->setProperty ("can-edit-title", canEditTitle);
+    if (canEditXlabel != ref.canEditXlabel) obj->setProperty ("can-edit-xlabel", canEditXlabel);
+    if (canEditYlabel != ref.canEditYlabel) obj->setProperty ("can-edit-ylabel", canEditYlabel);
+    if (canDeformDomain != ref.canDeformDomain) obj->setProperty ("can-deform-domain", canDeformDomain);
+    if (margin != ref.margin) obj->setProperty ("margin", borderSizeToVar (margin));
+    if (borderWidth != ref.borderWidth) obj->setProperty ("border-width", borderWidth);
+    if (axesWidth != ref.axesWidth) obj->setProperty ("axes-width", axesWidth);
+    if (gridlinesWidth != ref.gridlinesWidth) obj->setProperty ("gridlines-width", gridlinesWidth);
+    if (tickLength != ref.tickLength) obj->setProperty ("tick-length", tickLength);
+    if (tickWidth != ref.tickWidth) obj->setProperty ("tick-width", tickWidth);
+    if (tickLabelPadding != ref.tickLabelPadding) obj->setProperty ("tick-label-padding", tickLabelPadding);
+    if (tickLabelWidth != ref.tickLabelWidth) obj->setProperty ("tick-label-width", tickLabelWidth);
+    if (tickLabelHeight != ref.tickLabelHeight) obj->setProperty ("tick-label-height", tickLabelHeight);
+    if (xtickCount != ref.xtickCount) obj->setProperty ("xtick-count", xtickCount);
+    if (ytickCount != ref.ytickCount) obj->setProperty ("ytick-count", ytickCount);
+    if (marginColour != ref.marginColour) obj->setProperty ("margin-colour", marginColour.toString());
+    if (borderColour != ref.borderColour) obj->setProperty ("border-colour", borderColour.toString());
+    if (backgroundColour != ref.backgroundColour) obj->setProperty ("background-colour", backgroundColour.toString());
+    if (gridlinesColour != ref.gridlinesColour) obj->setProperty ("gridlines-colour", gridlinesColour.toString());
+    return obj.release();
 }
