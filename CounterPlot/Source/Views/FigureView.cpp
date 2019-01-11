@@ -682,24 +682,20 @@ void FigureView::mouseDown (const MouseEvent& e)
 //=============================================================================
 void FigureView::layout()
 {
-    if (getBounds().isEmpty())
+    if (! getBounds().isEmpty())
     {
-        DBG("Skipping layout, empty");
-        return;
-    }
-    auto g = computeGeometry();
+        auto g = computeGeometry();
 
-    AffineTransform ylabelRot = AffineTransform::rotation (-M_PI_2, g.marginL.getCentreX(), g.marginL.getCentreY());
-    ylabel.setTransform (ylabelRot);
+        AffineTransform ylabelRot = AffineTransform::rotation (-M_PI_2, g.marginL.getCentreX(), g.marginL.getCentreY());
+        ylabel.setTransform (ylabelRot);
 
-    plotArea.setBounds (model.margin.subtractedFrom (getLocalBounds()));
-    xlabel.setBounds (g.marginB);
-    ylabel.setBounds (g.marginL.transformedBy (ylabelRot.inverted()));
-    title.setBounds (g.marginT);
+        plotArea.setBounds (model.margin.subtractedFrom (getLocalBounds()));
+        xlabel.setBounds (g.marginB);
+        ylabel.setBounds (g.marginL.transformedBy (ylabelRot.inverted()));
+        title.setBounds (g.marginT);
 
-    if (surface)
-    {
-        surface->setBounds (model.margin.subtractedFrom (getLocalBounds()));
+        if (surface)
+            surface->setBounds (model.margin.subtractedFrom (getLocalBounds()));
     }
 }
 
@@ -714,9 +710,7 @@ void FigureView::refreshModes (bool alsoRepaint)
     title .setEditable (model.canEditTitle);
 
     if (alsoRepaint)
-    {
         repaint();
-    }
 }
 
 PlotGeometry FigureView::computeGeometry() const

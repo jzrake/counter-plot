@@ -13,3 +13,6 @@
 [submodule "third_party/embed-hdf5-macos"]
 	path = third_party/embed-hdf5-macos
 	url = https://github.com/jzrake/embed-hdf5-macos.git
+[submodule "third_party/embed-yaml-macos"]
+	path = third_party/embed-yaml-macos
+	url = https://github.com/jzrake/embed-yaml-macos.git

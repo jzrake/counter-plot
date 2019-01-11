@@ -61,13 +61,14 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5" customXcodeResourceFolders="../third_party/embed-hdf5-macos/lib/libhdf5.dylib"
+    <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5&#10;yaml-cpp&#10;"
+               customXcodeResourceFolders="../third_party/embed-hdf5-macos/lib/libhdf5.dylib&#10;../third_party/embed-yaml-macos/lib/libyaml-cpp.dylib"
                smallIcon="XA8lBl" bigIcon="XA8lBl">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/embed-hdf5-macos/include"
-                       libraryPath="../../../third_party/embed-hdf5-macos/lib"/>
-        <CONFIGURATION name="Release" headerPath="../../../third_party/embed-hdf5-macos/include"
-                       libraryPath="../../../third_party/embed-hdf5-macos/lib"/>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/embed-hdf5-macos/include&#10;../../../third_party/embed-yaml-macos/include"
+                       libraryPath="../../../third_party/embed-hdf5-macos/lib&#10;../../../third_party/embed-yaml-macos/lib"/>
+        <CONFIGURATION name="Release" headerPath="../../../third_party/embed-hdf5-macos/include&#10;../../../third_party/embed-yaml-macos/include"
+                       libraryPath="../../../third_party/embed-hdf5-macos/lib&#10;../../../third_party/embed-yaml-macos/lib"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../third_party/JUCE/modules"/>
