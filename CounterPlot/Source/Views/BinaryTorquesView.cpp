@@ -297,6 +297,18 @@ public:
         subscriber.update (state);
     }
 
+    void dispatch (Action::SetFigureDomain action1, Action::SetFigureMargin action2)
+    {
+        state.mainModel.xmin = action1.xmin;
+        state.mainModel.xmax = action1.xmax;
+        state.mainModel.ymin = action1.ymin;
+        state.mainModel.ymax = action1.ymax;
+        state.mainModel.margin = action2.margin;
+        state.cmapModel.margin.setTop (action2.margin.getTop());
+        state.cmapModel.margin.setBottom (action2.margin.getBottom());
+        subscriber.update (state);
+    }
+
 private:
     State state;
     Subscriber& subscriber;
@@ -334,6 +346,7 @@ public:
     void resized() override;
 
     //=========================================================================
+    void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) override;
     void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
     void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
     void figureViewSetXlabel (FigureView*, const String&) override;
@@ -434,6 +447,18 @@ void BinaryTorquesView::figureViewSetMargin (FigureView* figure, const BorderSiz
     if (figure == &mainFigure)
     {
         store.dispatch (Action::SetFigureMargin { margin });
+    }
+}
+
+void BinaryTorquesView::figureViewSetDomainAndMargin (FigureView* figure,
+                                                      const Rectangle<double>& domain,
+                                                      const BorderSize<int>& margin)
+{
+    if (figure == &mainFigure)
+    {
+        auto d = domain.toFloat();
+        store.dispatch (Action::SetFigureDomain { d.getX(), d.getRight(), d.getY(), d.getBottom() },
+                        Action::SetFigureMargin { margin });
     }
 }
 

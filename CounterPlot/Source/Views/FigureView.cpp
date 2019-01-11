@@ -283,8 +283,23 @@ void FigureView::PlotArea::paint (Graphics& g)
 
 void FigureView::PlotArea::resized()
 {
-    resizer.setBounds (getLocalBounds());
-    sendSetMarginIfNeeded();
+    if (! resizer.getBounds().isEmpty())
+    {
+        auto newx0 = domainPointAtComponentCentre.x - 0.5 * domainLengthPerPixel.x * getWidth();
+        auto newx1 = domainPointAtComponentCentre.x + 0.5 * domainLengthPerPixel.x * getWidth();
+        auto newy0 = domainPointAtComponentCentre.y - 0.5 * domainLengthPerPixel.y * getHeight();
+        auto newy1 = domainPointAtComponentCentre.y + 0.5 * domainLengthPerPixel.y * getHeight();
+        auto newDomain = Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
+        auto newMargin = computeMargin();
+
+        resizer.setBounds (getLocalBounds());
+        figure.listeners.call (&Listener::figureViewSetDomainAndMargin, &figure, newDomain, newMargin);
+    }
+    else
+    {
+        resizer.setBounds (getLocalBounds());
+        sendSetMarginIfNeeded();
+    }
 }
 
 void FigureView::PlotArea::mouseMove (const MouseEvent& e)
@@ -491,6 +506,11 @@ void FigureView::setModel (const FigureModel& newModel)
     xlabel.setText (model.xlabel, NotificationType::dontSendNotification);
     ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
     title .setText (model.title , NotificationType::dontSendNotification);
+
+    plotArea.domainLengthPerPixel.x = (model.xmax - model.xmin) / jmax(1, plotArea.getWidth());
+    plotArea.domainLengthPerPixel.y = (model.ymax - model.ymin) / jmax(1, plotArea.getHeight());
+    plotArea.domainPointAtComponentCentre.x = 0.5 * (model.xmax + model.xmin);
+    plotArea.domainPointAtComponentCentre.y = 0.5 * (model.ymax + model.ymin);
 
     setComponentColours (*this, model);
     refreshModes (false);
