@@ -123,11 +123,18 @@ bool PatchViewApplication::moreThanOneInstanceAllowed()
 void PatchViewApplication::initialise (const String& commandLine)
 {
     H5Eset_auto(H5E_DEFAULT, h5_error_handler, NULL);
+
+    // Read app properties to restore last session
+    applicationProperties.setStorageParameters (makePropertiesFileOptions());
+    auto& settings = *applicationProperties.getUserSettings();
+    auto cwd = settings.getValue ("LastCurrentDirectory", File::getSpecialLocation (File::userHomeDirectory).getFullPathName());
+
     configureLookAndFeel();
 
     commandManager = std::make_unique<ApplicationCommandManager>();
     menu           = std::make_unique<MainMenu>();
     mainWindow     = std::make_unique<MainWindow> (getApplicationName());
+    mainWindow->content->setCurrentDirectory (cwd);
 
     commandManager->registerAllCommandsForTarget (this);
     FileBasedView::registerCommands (*commandManager);
@@ -208,6 +215,8 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
 
 void PatchViewApplication::timerCallback()
 {
+    // This is some experimental code to support user colour schemes
+    // -------------------------------------------------------------
     auto settingsFile = File::getSpecialLocation (File::userHomeDirectory).getChildFile ("patch_view_settings.json");
 
     if (settingsLastPolled > settingsFile.getLastModificationTime())
@@ -265,11 +274,28 @@ void PatchViewApplication::configureLookAndFeel()
 
 bool PatchViewApplication::presentOpenDirectoryDialog()
 {
-    FileChooser chooser ("Open directory...", currentDirectory, "", true, false, nullptr);
+    FileChooser chooser ("Open directory...", mainWindow->content->getCurrentDirectory(), "", true, false, nullptr);
 
     if (chooser.browseForDirectory())
     {
-        mainWindow->content->setCurrentDirectory (chooser.getResult());
+        auto nwd = chooser.getResult();
+        mainWindow->content->setCurrentDirectory (nwd);
+        applicationProperties.getUserSettings()->setValue ("LastCurrentDirectory", nwd.getFullPathName());
     }
     return true;
+}
+
+PropertiesFile::Options PatchViewApplication::makePropertiesFileOptions()
+{
+    PropertiesFile::Options opts;
+    opts.applicationName = getApplicationName();
+    opts.commonToAllUsers = false;
+    opts.doNotSave = false;
+    opts.filenameSuffix = ".settings";
+    opts.folderName = "";
+    opts.osxLibrarySubFolder = "Application Support";
+    opts.ignoreCaseOfKeyNames = false;
+    opts.millisecondsBeforeSaving = 1000;
+    opts.storageFormat = PropertiesFile::StorageFormat::storeAsXML;
+    return opts;
 }

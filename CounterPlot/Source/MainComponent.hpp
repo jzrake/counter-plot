@@ -48,6 +48,7 @@ public:
     void reloadDirectoryTree();
     void toggleDirectoryTreeShown();
     bool isDirectoryTreeShowing() const;
+    File getCurrentDirectory() const;
 
     //=========================================================================
     void paint (Graphics&) override;

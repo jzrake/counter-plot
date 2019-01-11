@@ -16,11 +16,15 @@ struct JetInCloud::TriangleVertexData
 JetInCloud::TriangleVertexData JetInCloud::loadTriangleDataFromFile (File file, std::function<bool()> bailout)
 {
     try {
+        auto startTime = Time::getMillisecondCounterHiRes();
+
         auto ser = FileSystemSerializer (file);
         auto db  = patches2d::Database::load (ser);
         auto scalars  = std::vector<simd::float1>();
         auto vertices = std::vector<simd::float2>();
         auto iter = 0;
+
+        DBG("jet-in-cloud: serializer ran in " << (Time::getMillisecondCounterHiRes() - startTime) / 1e3 << "s");
 
         for (auto patch : db.all (patches2d::Field::vert_coords))
         {
@@ -74,6 +78,7 @@ JetInCloud::TriangleVertexData JetInCloud::loadTriangleDataFromFile (File file, 
         auto lower = *std::min_element (scalars.begin(), scalars.end());
         auto upper = *std::max_element (scalars.begin(), scalars.end());
 
+        DBG("jet-in-cloud: data loaded in " << (Time::getMillisecondCounterHiRes() - startTime) / 1e3 << "s");
         return {
             {lower, upper},
             std::make_shared<std::vector<simd::float2>> (vertices),

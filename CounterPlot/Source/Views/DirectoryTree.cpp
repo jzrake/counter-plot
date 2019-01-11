@@ -140,6 +140,15 @@ void DirectoryTree::reloadAll()
     root->setOpen (true);
 }
 
+File DirectoryTree::getCurrentDirectory() const
+{
+    return currentDirectory;
+}
+
+
+
+
+//=============================================================================
 void DirectoryTree::resized()
 {
     tree.setBounds (getLocalBounds());

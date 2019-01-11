@@ -93,7 +93,6 @@ void StatusBar::resized()
 //=============================================================================
 MainComponent::MainComponent()
 {
-    directoryTree.setDirectoryToShow (File::getSpecialLocation (File::userHomeDirectory));
     directoryTree.addListener (this);
 
     addAndMakeVisible (statusBar);
@@ -159,6 +158,11 @@ void MainComponent::toggleDirectoryTreeShown()
 bool MainComponent::isDirectoryTreeShowing() const
 {
     return directoryTreeShowing;
+}
+
+File MainComponent::getCurrentDirectory() const
+{
+    return directoryTree.getCurrentDirectory();
 }
 
 

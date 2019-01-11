@@ -78,11 +78,12 @@ private:
     //=========================================================================
     void configureLookAndFeel();
     bool presentOpenDirectoryDialog();
+    PropertiesFile::Options makePropertiesFileOptions();
 
     //=========================================================================
     std::unique_ptr<ApplicationCommandManager> commandManager;
     std::unique_ptr<MainMenu> menu;
     std::unique_ptr<MainWindow> mainWindow;
-    File currentDirectory;
+    ApplicationProperties applicationProperties;
     Time settingsLastPolled;
 };

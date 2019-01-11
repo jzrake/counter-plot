@@ -22,6 +22,7 @@ public:
     void removeListener (Listener*);
     void setDirectoryToShow (File directoryToShow);
     void reloadAll();
+    File getCurrentDirectory() const;
 
     //=========================================================================
     void resized() override;
