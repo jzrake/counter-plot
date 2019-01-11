@@ -19,7 +19,7 @@ JetInCloud::TriangleVertexData JetInCloud::loadTriangleDataFromFile (File file, 
         auto startTime = Time::getMillisecondCounterHiRes();
 
         auto ser = FileSystemSerializer (file);
-        auto db  = patches2d::Database::load (ser);
+        auto db  = patches2d::Database::load (ser, {patches2d::Field::conserved, patches2d::Field::vert_coords});
         auto scalars  = std::vector<simd::float1>();
         auto vertices = std::vector<simd::float2>();
         auto iter = 0;
