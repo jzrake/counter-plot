@@ -439,7 +439,7 @@ private:
 //=============================================================================
 JetInCloudView::JetInCloudView() : store (*this)
 {
-    layout.templateRows    = { Grid::TrackInfo (4_fr) };
+    layout.templateRows    = { Grid::TrackInfo (1_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (100_px) };
     layout.items.add (mainFigure.getGridItem());
     layout.items.add (cmapFigure.getGridItem());

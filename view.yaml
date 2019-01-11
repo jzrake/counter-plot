@@ -1,0 +1,20 @@
+
+rows: [1]
+columns: [1, 1]
+
+figures:
+
+- title: The first
+  xlabel: You guy
+  xmin: -10
+  xmax: +100
+  margin: {top: 60, bottom: 60, left: 80, right: 80}
+
+- title: The second
+  xlabel: X axis label
+  ylabel: Y axis label
+  background-color: [12, 180, 200]
+  gridlines-color: [120, 180, 200]
+  margin: {top: 60, bottom: 60, left: 80, right: 80}
+  content:
+  - [(sim_time file) (ell_dot file)]

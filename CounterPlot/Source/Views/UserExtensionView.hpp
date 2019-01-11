@@ -1,0 +1,40 @@
+#pragma once
+#include "FileBasedView.hpp"
+#include "FigureView.hpp"
+
+
+
+//=============================================================================
+class UserExtensionView
+: public FileBasedView
+, public FigureView::Listener
+{
+public:
+
+    //=========================================================================
+    UserExtensionView();
+    void configure (const String& name, const var& config);
+    void configure (File file);
+
+    //=========================================================================
+    void resized() override;
+
+    //=========================================================================
+    bool isInterestedInFile (File file) const override;
+    void loadFile (File fileToDisplay) override;
+    String getViewerName() const override;
+
+    //=========================================================================
+    void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) override;
+    void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
+    void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
+    void figureViewSetXlabel (FigureView*, const String&) override;
+    void figureViewSetYlabel (FigureView*, const String&) override;
+    void figureViewSetTitle (FigureView*, const String&) override;
+
+private:
+    String viewerName;
+    Array<FigureModel> models;
+    OwnedArray<FigureView> figures;
+    Grid layout;
+};

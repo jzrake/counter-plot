@@ -160,6 +160,7 @@ struct FigureModel
     Colour                  gridlinesColour  = Colours::transparentWhite;
 
     //=========================================================================
+    static FigureModel fromVar (const var&);
     Rectangle<double> getDomain() const;
     void setDomain (const Rectangle<double>& domain);
 };

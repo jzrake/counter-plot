@@ -1,4 +1,5 @@
 #include "PlotModels.hpp"
+#include "Views/LookAndFeel.hpp"
 
 
 
@@ -337,4 +338,103 @@ nd::array<double, 2> MeshHelpers::scaleByLog10 (const nd::array<double, 2>& scal
         }
     }
     return result;
+}
+
+
+
+
+//=============================================================================
+static void convert (const var& source, bool& value)
+{
+    value = source;
+}
+static void convert (const var& source, int& value)
+{
+    value = source;
+}
+static void convert (const var& source, float& value)
+{
+    value = source;
+}
+static void convert (const var& source, double& value)
+{
+    value = source;
+}
+static void convert (const var& source, String& value)
+{
+    value = source;
+}
+static void convert (const var& source, BorderSize<int>& value)
+{
+    if (source.size() == 4)
+    {
+        value = { int(source[0]), int(source[1]), int(source[2]), int(source[3]) };
+    }
+    else if (auto obj = source.getDynamicObject())
+    {
+        for (const auto& item : obj->getProperties())
+        {
+            if (item.name == Identifier ("top")) value.setTop (item.value);
+            if (item.name == Identifier ("bottom")) value.setBottom (item.value);
+            if (item.name == Identifier ("left")) value.setLeft (item.value);
+            if (item.name == Identifier ("right")) value.setRight (item.value);
+        }
+    }
+}
+static void convert (const var& source, Colour& value)
+{
+    value = LookAndFeelHelpers::colourFromVariant (source);
+}
+
+
+
+
+//=============================================================================
+FigureModel FigureModel::fromVar (const var& value)
+{
+    auto model = FigureModel();
+
+    if (value.isString())
+    {
+        model.title = value.toString();
+    }
+    else if (auto obj = value.getDynamicObject())
+    {
+        for (const auto& item : obj->getProperties())
+        {
+            if (false) {}
+            else if (item.name == Identifier ("xmin")) convert (item.value, model.xmin);
+            else if (item.name == Identifier ("xmax")) convert (item.value, model.xmax);
+            else if (item.name == Identifier ("ymin")) convert (item.value, model.ymin);
+            else if (item.name == Identifier ("ymax")) convert (item.value, model.ymax);
+            else if (item.name == Identifier ("title")) convert (item.value, model.title);
+            else if (item.name == Identifier ("xlabel")) convert (item.value, model.xlabel);
+            else if (item.name == Identifier ("ylabel")) convert (item.value, model.ylabel);
+            else if (item.name == Identifier ("title-showing")) convert (item.value, model.titleShowing);
+            else if (item.name == Identifier ("xlabel-showing")) convert (item.value, model.xlabelShowing);
+            else if (item.name == Identifier ("ylabel-showing")) convert (item.value, model.ylabelShowing);
+            else if (item.name == Identifier ("can-edit-margin")) convert (item.value, model.canEditMargin);
+            else if (item.name == Identifier ("can-edit-title")) convert (item.value, model.canEditTitle);
+            else if (item.name == Identifier ("can-edit-xlabel")) convert (item.value, model.canEditXlabel);
+            else if (item.name == Identifier ("can-edit-ylabel")) convert (item.value, model.canEditYlabel);
+            else if (item.name == Identifier ("can-deform-domain")) convert (item.value, model.canDeformDomain);
+            else if (item.name == Identifier ("margin")) convert (item.value, model.margin);
+            else if (item.name == Identifier ("border-width")) convert (item.value, model.borderWidth);
+            else if (item.name == Identifier ("axes-width")) convert (item.value, model.axesWidth);
+            else if (item.name == Identifier ("gridlines-width")) convert (item.value, model.gridlinesWidth);
+            else if (item.name == Identifier ("tick-length")) convert (item.value, model.tickLength);
+            else if (item.name == Identifier ("tick-width")) convert (item.value, model.tickWidth);
+            else if (item.name == Identifier ("tick-label-padding")) convert (item.value, model.tickLabelPadding);
+            else if (item.name == Identifier ("tick-label-width")) convert (item.value, model.tickLabelWidth);
+            else if (item.name == Identifier ("tick-label-height")) convert (item.value, model.tickLabelHeight);
+            else if (item.name == Identifier ("xtick-count")) convert (item.value, model.xtickCount);
+            else if (item.name == Identifier ("ytick-count")) convert (item.value, model.ytickCount);
+            else if (item.name == Identifier ("margin-color")) convert (item.value, model.marginColour);
+            else if (item.name == Identifier ("border-color")) convert (item.value, model.borderColour);
+            else if (item.name == Identifier ("background-color")) convert (item.value, model.backgroundColour);
+            else if (item.name == Identifier ("gridlines-color")) convert (item.value, model.gridlinesColour);
+            else DBG("unknown figure property: " << item.name.toString());
+        }
+    }
+    return model;
 }

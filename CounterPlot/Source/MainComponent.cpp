@@ -4,8 +4,9 @@
 #include "Views/BinaryTorquesView.hpp"
 #include "Views/FileBasedView.hpp"
 #include "Views/ColourMapView.hpp"
+#include "Views/UserExtensionView.hpp"
 
-#include "yaml-cpp/yaml.h"
+
 
 
 //=============================================================================
@@ -103,7 +104,8 @@ MainComponent::MainComponent()
     views.add (BinaryTorques::create());
     views.add (JetInCloud::create());
     views.add (new ColourMapView);
-    views.add (new DefaultView);
+    views.add (new UserExtensionView);
+    // views.add (new DefaultView);
 
     for (const auto& view : views)
     {
@@ -184,6 +186,14 @@ void MainComponent::resized()
 
 bool MainComponent::keyPressed (const KeyPress& key)
 {
+    if (key == KeyPress::returnKey)
+    {
+        auto view = dynamic_cast<UserExtensionView*>(views.getLast());
+        view->configure (File ("/Users/jzrake/Work/CounterPlot/view.yaml"));
+        view->setVisible (true);
+        statusBar.setCurrentViewerName (view->getViewerName());
+        return true;
+    }
     return false;
 }
 
