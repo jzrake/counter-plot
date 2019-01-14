@@ -15,8 +15,10 @@ public:
     {
     public:
         virtual ~MessageSink() {}
-        virtual void ViewerAsyncTaskStarted() = 0;
-        virtual void ViewerAsyncTaskFinished() = 0;
+        virtual void viewerAsyncTaskStarted() = 0;
+        virtual void viewerAsyncTaskFinished() = 0;
+        virtual void viewerLogErrorMessage (const String& what) = 0;
+        virtual void viewerIndicateSuccess() = 0;
     };
 
     /**
@@ -47,6 +49,13 @@ public:
      * Subclass views can defer to this method to get command descriptions.
      */
     static void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result);
+
+    /**
+     * Derived classes can call these method to find the nearest parent that is a message
+     * sink and call the appropriate method.
+     */
+    void sendErrorMessage (const String& what) const;
+    void sendIndicateSuccess() const;
 
     /**
      * Destructor.

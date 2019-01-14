@@ -26,6 +26,7 @@ public:
 
         statusBarBackground       = 0x0771613,
         statusBarText             = 0x0771614,
+        statusBarErrorText        = 0x0771615,
     };
 
     enum class TextColourScheme

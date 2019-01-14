@@ -16,7 +16,7 @@ hdf5-groups:
 
 environment:
   x: (linspace 0.3 0.5 128)
-  y: (linspace 0.4 0.8 128)
+  z: (linspace 0.4 0.8 128)
 
 
 figures:
@@ -47,4 +47,4 @@ figures:
   gridlines-color: [0, 0, 0, 0]
   margin: {top: 0, bottom: 50, left: 80, right: *right-margin}
   content:
-    - (plot x y)
+    - (plot x z)

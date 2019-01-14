@@ -54,6 +54,12 @@ void StatusBar::setCurrentViewerName (const String& viewerName)
     repaint();
 }
 
+void StatusBar::setCurrentErrorMessage (const String& what)
+{
+    currentErrorMessage = what;
+    repaint();
+}
+
 
 
 
@@ -64,8 +70,10 @@ void StatusBar::paint (Graphics& g)
     auto indicatorArea       = area.removeFromRight (getHeight());
     auto viewerNameArea      = area.removeFromRight (200);
     auto mousePositionArea   = area.removeFromRight (200);
+    auto errorMessageArea    = area.withTrimmedLeft (12);
     auto backgroundColour    = findColour (LookAndFeelHelpers::statusBarBackground);
     auto fontColour          = findColour (LookAndFeelHelpers::statusBarText);
+    auto errorColour         = findColour (LookAndFeelHelpers::statusBarErrorText);
     auto busyIndicatorColour = numberOfAsyncTasks ? Colours::yellow : Colours::transparentBlack;
 
     g.setColour (backgroundColour);
@@ -77,11 +85,11 @@ void StatusBar::paint (Graphics& g)
     g.setColour (fontColour);
     g.setFont (Font ("Monaco", 11, 0));
 
-    if (! mousePositionInFigure.isOrigin())
-    {
-        g.drawText (mousePositionInFigure.toString(), mousePositionArea, Justification::centredLeft);
-    }
+    g.drawText (mousePositionInFigure.isOrigin() ? mousePositionInFigure.toString() : "", mousePositionArea, Justification::centredLeft);
     g.drawText (currentViewerName, viewerNameArea, Justification::centredRight);
+
+    g.setColour (errorColour);
+    g.drawText (currentErrorMessage, errorMessageArea, Justification::centredLeft);
 }
 
 void StatusBar::resized()
@@ -201,14 +209,24 @@ void MainComponent::figureMousePosition (Point<double> position)
 
 
 //=============================================================================
-void MainComponent::ViewerAsyncTaskStarted()
+void MainComponent::viewerAsyncTaskStarted()
 {
     statusBar.incrementAsyncTaskCount();
 }
 
-void MainComponent::ViewerAsyncTaskFinished()
+void MainComponent::viewerAsyncTaskFinished()
 {
     statusBar.decrementAsyncTaskCount();
+}
+
+void MainComponent::viewerLogErrorMessage (const String& what)
+{
+    statusBar.setCurrentErrorMessage (what);
+}
+
+void MainComponent::viewerIndicateSuccess()
+{
+    statusBar.setCurrentErrorMessage (String());
 }
 
 

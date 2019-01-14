@@ -25,14 +25,7 @@ public:
         {
             if (part == expr.front())
             {
-                try {
-                    head = scope.at (part.sym());
-                }
-                catch (const std::exception& e)
-                {
-                    DBG("unresolved in scope: " << part.sym());
-                    throw e;
-                }
+                head = part.resolve<ObjectType, VarCallAdapter> (scope);
             }
             else if (expr.key().empty())
             {
@@ -51,7 +44,13 @@ public:
     template<typename Mapping>
     static const ObjectType& at (const Mapping& scope, const std::string& key)
     {
-        return scope.at (key);
+        try {
+            return scope.at (key);
+        }
+        catch (const std::exception&)
+        {
+            throw std::runtime_error ("unresolved symbol in scope: " + key);
+        }
     }
 
     static ObjectType convert (const crt::expression::none&) { return var(); }

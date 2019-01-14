@@ -468,7 +468,7 @@ void JetInCloudView::asynchronousTaskStarted()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->ViewerAsyncTaskStarted();
+        sink->viewerAsyncTaskStarted();
     }
 }
 
@@ -476,7 +476,7 @@ void JetInCloudView::asynchronousTaskFinished()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->ViewerAsyncTaskFinished();
+        sink->viewerAsyncTaskFinished();
     }
 }
 

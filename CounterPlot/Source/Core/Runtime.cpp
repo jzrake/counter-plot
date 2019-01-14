@@ -8,29 +8,28 @@
 namespace builtin
 {
     template<typename T>
-    T checkArg (var::NativeFunctionArgs args, int index)
+    T checkArg (const std::string& caller, var::NativeFunctionArgs args, int index)
     {
         if (index >= args.numArguments)
         {
-            throw std::runtime_error ("required argument at index " + std::to_string (index) + " not found");
+            throw std::runtime_error (caller + ": required argument at index " + std::to_string (index) + " not found");
         }
         return args.arguments[index];
     }
 
     template<typename T>
-    const T& checkArgData (var::NativeFunctionArgs args, int index)
+    const T& checkArgData (const std::string& caller, var::NativeFunctionArgs args, int index)
     {
         if (index >= args.numArguments)
         {
-            throw std::runtime_error ("required argument at index " + std::to_string (index) + " not found");
+            throw std::runtime_error (caller + ": required argument at index " + std::to_string (index) + " not found");
         }
         try {
             return Runtime::check_data<T> (args.arguments[index]);
         }
         catch (const std::exception& e)
         {
-            DBG("checkArgData argument at index " << index);
-            throw e;
+            throw std::runtime_error (caller + ": wrong type for argument at index " + std::to_string (index));
         }
     }
 
@@ -46,27 +45,27 @@ namespace builtin
 
     var item (var::NativeFunctionArgs args)
     {
-        return checkArg<var>(args, 0)[checkArg<int>(args, 1)];
+        return checkArg<var>("item", args, 0)[checkArg<int>("item", args, 1)];
     }
 
     var attr (var::NativeFunctionArgs args)
     {
-        return checkArg<var>(args, 0)[Identifier (checkArg<String>(args, 1))];
+        return checkArg<var>("attr", args, 0)[Identifier (checkArg<String>("attr", args, 1))];
     }
 
     var linspace (var::NativeFunctionArgs args)
     {
-        auto x0  = checkArg<double> (args, 0);
-        auto x1  = checkArg<double> (args, 1);
-        auto num = checkArg<int>    (args, 2);
+        auto x0  = checkArg<double> ("linspace", args, 0);
+        auto x1  = checkArg<double> ("linspace", args, 1);
+        auto num = checkArg<int>    ("linspace", args, 2);
         return Runtime::make_data (nd::linspace<double> (x0, x1, num));
     }
 
     var plot (var::NativeFunctionArgs args)
     {
         LinePlotModel model;
-        model.x.become (checkArgData<nd::array<double, 1>> (args, 0));
-        model.y.become (checkArgData<nd::array<double, 1>> (args, 1));
+        model.x.become (checkArgData<nd::array<double, 1>> ("plot", args, 0));
+        model.y.become (checkArgData<nd::array<double, 1>> ("plot", args, 1));
         return Runtime::make_data (std::shared_ptr<PlotArtist> (new LinePlotArtist (model)));
     }
 }

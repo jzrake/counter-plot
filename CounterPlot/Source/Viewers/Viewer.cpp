@@ -57,6 +57,23 @@ void Viewer::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result
     }
 }
 
+void Viewer::sendErrorMessage (const String& what) const
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->viewerLogErrorMessage (what);
+    }
+}
+
+void Viewer::sendIndicateSuccess() const
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->viewerIndicateSuccess();
+    }
+}
+
+
 
 
 

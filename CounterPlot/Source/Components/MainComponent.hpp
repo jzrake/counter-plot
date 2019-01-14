@@ -136,6 +136,7 @@ public:
     void decrementAsyncTaskCount();
     void setMousePositionInFigure (Point<double> position);
     void setCurrentViewerName (const String& viewerName);
+    void setCurrentErrorMessage (const String& what);
 
     //=========================================================================
     void paint (Graphics& g) override;
@@ -144,6 +145,7 @@ public:
 private:
     Point<double> mousePositionInFigure;
     String currentViewerName;
+    String currentErrorMessage;
     int numberOfAsyncTasks = 0;
 };
 
@@ -183,8 +185,10 @@ public:
     void figureMousePosition (Point<double> position) override;
 
     //=========================================================================
-    void ViewerAsyncTaskStarted() override;
-    void ViewerAsyncTaskFinished() override;
+    void viewerAsyncTaskStarted() override;
+    void viewerAsyncTaskFinished() override;
+    void viewerLogErrorMessage (const String&) override;
+    void viewerIndicateSuccess() override;
 
     //=========================================================================
     void extensionViewerReconfigured (UserExtensionView*) override;

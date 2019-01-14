@@ -415,7 +415,7 @@ void BinaryTorquesView::asynchronousTaskStarted()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->ViewerAsyncTaskStarted();
+        sink->viewerAsyncTaskStarted();
     }
 }
 
@@ -423,7 +423,7 @@ void BinaryTorquesView::asynchronousTaskFinished()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->ViewerAsyncTaskFinished();
+        sink->viewerAsyncTaskFinished();
     }
 }
 

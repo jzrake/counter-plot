@@ -17,6 +17,8 @@ UserExtensionView::UserExtensionView()
 
 void UserExtensionView::configure (const var& config)
 {
+    int errors = 0;
+
     kernel.clear();
     models.clear();
     figures.clear();
@@ -49,7 +51,8 @@ void UserExtensionView::configure (const var& config)
                 }
                 catch (const std::exception& e)
                 {
-                    DBG("UserExtensionView::configure: bad expression in environment block " << e.what());
+                    sendErrorMessage ("bad expression in environment block: " + std::string (e.what()));
+                    ++errors;
                 }
             }
             else
@@ -65,7 +68,8 @@ void UserExtensionView::configure (const var& config)
         {
             if (! kernel.update (item.first))
             {
-                DBG("warning: could not resolve kernel symbol " << item.first);
+                sendErrorMessage ("could not resolve kernel symbol: " + item.first);
+                ++errors;
             }
         }
     }
@@ -85,28 +89,24 @@ void UserExtensionView::configure (const var& config)
                 {
                     try {
                         auto artistExpression = crt::parser::parse (element.toString().toStdString().data());
-
-                        DBG("artistExpression is an object? " << 1);
-
                         auto artistAsVar = artistExpression.resolve<var, VarCallAdapter> (kernel);
-
-                        DBG("artistAsVar is an object? " << int(artistAsVar.isObject()));
-
                         auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (artistAsVar);
-
                         model.content.push_back (artist);
                     }
                     catch (const crt::parser_error& e)
                     {
-                        DBG("UserExtensionView::configure: bad expression syntax in content block " << e.what());
+                        sendErrorMessage ("bad expression in figure content block: " + std::string (e.what()));
+                        ++errors;
                     }
                     catch (const std::out_of_range& e)
                     {
-                        DBG("UserExtensionView::configure: unresolved variable " << e.what());
+                        sendErrorMessage (e.what());
+                        ++errors;
                     }
                     catch (const std::exception& e)
                     {
-                        DBG("UserExtensionView::configure: bad expression result in content block " << e.what());
+                        sendErrorMessage (e.what());
+                        ++errors;
                     }
                 }
             }
@@ -130,15 +130,13 @@ void UserExtensionView::configure (const var& config)
 		layout.items.add (figure->getGridItem());
         figures.add (figure.release());
     }
+
     layout.performLayout (getLocalBounds());
 
-
-
-
-//    for (const auto& item : kernel)
-//    {
-//        DBG(item.first << " " << int(kernel.expr_at(item.first).dtype() == crt::data_type::composite));
-//    }
+    if (errors == 0)
+    {
+        sendIndicateSuccess();
+    }
 }
 
 void UserExtensionView::configure (File file)
@@ -152,7 +150,7 @@ void UserExtensionView::configure (File file)
     }
     catch (YAML::ParserException& e)
     {
-        DBG(e.what());
+        return sendErrorMessage (e.what());
     }
 }
 
