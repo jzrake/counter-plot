@@ -1,6 +1,7 @@
 #pragma once
 #include "Viewer.hpp"
 #include "../Plotting/FigureView.hpp"
+#include "../Core/Runtime.hpp"
 
 
 
@@ -38,4 +39,5 @@ private:
     Array<FigureModel> models;
     OwnedArray<FigureView> figures;
     Grid layout;
+    Runtime::Kernel kernel;
 };

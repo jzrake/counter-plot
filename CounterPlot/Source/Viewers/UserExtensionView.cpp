@@ -1,6 +1,7 @@
 #include "UserExtensionView.hpp"
 #include "yaml-cpp/yaml.h"
 #include "../Core/DataHelpers.hpp"
+#include "../Core/Runtime.hpp"
 
 
 
@@ -8,27 +9,117 @@
 //=============================================================================
 UserExtensionView::UserExtensionView()
 {
+
+    auto data = Runtime::make_data (nd::linspace<double> (0.0, 1.0, 10));
+    auto res = Runtime::check_data<nd::array<double, 1>>(data);
+
 }
 
 void UserExtensionView::configure (const var& config)
 {
+    kernel.clear();
     models.clear();
     figures.clear();
     layout.items.clear();
 
-	if (auto root = config.getDynamicObject())
-	{
-		if (auto figureItems = root->getProperty ("figures").getArray())
-		{
-			for (auto f : *figureItems)
-			{
-                models.add (FigureModel::fromVar (f));
-			}
-		}
-        layout.templateColumns = DataHelpers::gridTrackInfoArrayFromVar (root->getProperty ("cols"));
-        layout.templateRows    = DataHelpers::gridTrackInfoArrayFromVar (root->getProperty ("rows"));
-        viewerName = root->getProperty ("name");
+
+    // Set the name of the viewer
+    // -----------------------------------------------------------------------
+    if (config.hasProperty ("name"))
+    {
+        viewerName = config["name"];
     }
+
+
+    // Load the viewer environment into the kernel
+    // -----------------------------------------------------------------------
+    Runtime::load_builtins (kernel);
+
+    if (auto environment = config["environment"].getDynamicObject())
+    {
+        for (const auto& item : environment->getProperties())
+        {
+            auto key = item.name.toString().toStdString();
+
+            if (item.value.isString())
+            {
+                try {
+                    auto val = item.value.toString().toStdString();
+                    kernel.insert (key, crt::parser::parse (val.data()));
+                }
+                catch (const std::exception& e)
+                {
+                    DBG("UserExtensionView::configure: bad expression in environment block " << e.what());
+                }
+            }
+            else
+            {
+                kernel.insert (key, item.value);
+            }
+        }
+    }
+
+    for (const auto& item : kernel)
+    {
+        if (kernel.dirty (item.first))
+        {
+            if (! kernel.update (item.first))
+            {
+                DBG("warning: could not resolve kernel symbol " << item.first);
+            }
+        }
+    }
+
+
+    // Add figures
+    // -----------------------------------------------------------------------
+    if (auto figureItems = config["figures"].getArray())
+    {
+        for (auto f : *figureItems)
+        {
+            auto model = FigureModel::fromVar (f);
+
+            if (auto content = f["content"].getArray())
+            {
+                for (const auto& element : *content)
+                {
+                    try {
+                        auto artistExpression = crt::parser::parse (element.toString().toStdString().data());
+
+                        DBG("artistExpression is an object? " << 1);
+
+                        auto artistAsVar = artistExpression.resolve<var, VarCallAdapter> (kernel);
+
+                        DBG("artistAsVar is an object? " << int(artistAsVar.isObject()));
+
+                        auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (artistAsVar);
+
+                        model.content.push_back (artist);
+                    }
+                    catch (const crt::parser_error& e)
+                    {
+                        DBG("UserExtensionView::configure: bad expression syntax in content block " << e.what());
+                    }
+                    catch (const std::out_of_range& e)
+                    {
+                        DBG("UserExtensionView::configure: unresolved variable " << e.what());
+                    }
+                    catch (const std::exception& e)
+                    {
+                        DBG("UserExtensionView::configure: bad expression result in content block " << e.what());
+                    }
+                }
+            }
+            models.add (model);
+        }
+    }
+
+
+    // Load layout specification
+    // -----------------------------------------------------------------------
+    layout.templateColumns = DataHelpers::gridTrackInfoArrayFromVar (config["cols"]);
+    layout.templateRows    = DataHelpers::gridTrackInfoArrayFromVar (config["rows"]);
+
 
 	for (const auto& model : models)
 	{
@@ -40,6 +131,14 @@ void UserExtensionView::configure (const var& config)
         figures.add (figure.release());
     }
     layout.performLayout (getLocalBounds());
+
+
+
+
+//    for (const auto& item : kernel)
+//    {
+//        DBG(item.first << " " << int(kernel.expr_at(item.first).dtype() == crt::data_type::composite));
+//    }
 }
 
 void UserExtensionView::configure (File file)

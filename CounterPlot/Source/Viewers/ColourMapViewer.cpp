@@ -82,12 +82,12 @@ void ColourMapViewer::updateFigures()
         lineR.lineWidth = 2.f;
         lineG.lineWidth = 2.f;
         lineB.lineWidth = 2.f;
-        lineR.x = linspace (0, 1, mapping.stops.size());
-        lineG.x = linspace (0, 1, mapping.stops.size());
-        lineB.x = linspace (0, 1, mapping.stops.size());
-        lineR.y = smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'r'));
-        lineG.y = smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'g'));
-        lineB.y = smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'b'));
+        lineR.x.become (nd::linspace (0.0, 1.0, mapping.stops.size()));
+        lineG.x.become (nd::linspace (0.0, 1.0, mapping.stops.size()));
+        lineB.x.become (nd::linspace (0.0, 1.0, mapping.stops.size()));
+        lineR.y.become (smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'r')));
+        lineG.y.become (smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'g')));
+        lineB.y.become (smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'b')));
 
         auto artist = std::make_shared<ColourGradientArtist> (mapping);
         artist->setOrientation (ColourGradientArtist::Orientation::horizontal);
@@ -151,30 +151,30 @@ void ColourMapViewer::figureViewSetTitle (FigureView* figure, const String& titl
 
 
 //=============================================================================
-Array<double> ColourMapViewer::linspace (double x0, double x1, int num)
-{
-    Array<double> res;
-    res.ensureStorageAllocated (num);
+//Array<double> ColourMapViewer::linspace (double x0, double x1, int num)
+//{
+//    Array<double> res;
+//    res.ensureStorageAllocated (num);
+//
+//    for (int n = 0; n < num; ++n)
+//    {
+//        res.add (x0 + (x1 - x0) * n / (num - 1));
+//    }
+//    return res;
+//}
 
-    for (int n = 0; n < num; ++n)
-    {
-        res.add (x0 + (x1 - x0) * n / (num - 1));
-    }
-    return res;
-}
-
-Array<double> ColourMapViewer::smooth (const Array<double>& x)
+nd::array<double, 1> ColourMapViewer::smooth (const nd::array<double, 1>& x)
 {
-    Array<double> res = x;
+    auto res = x.copy();
 
     for (int n = 2; n < x.size() - 2; ++n)
     {
-        const float a = res.getUnchecked (n - 2);
-        const float b = res.getUnchecked (n - 1);
-        const float c = res.getUnchecked (n + 0);
-        const float d = res.getUnchecked (n + 1);
-        const float e = res.getUnchecked (n + 2);
-        res.setUnchecked (n, (a + 2 * b + 3 * c + 2 * d + e) / 9);
+        const float a = res (n - 2);
+        const float b = res (n - 1);
+        const float c = res (n + 0);
+        const float d = res (n + 1);
+        const float e = res (n + 2);
+        res (n) = (a + 2 * b + 3 * c + 2 * d + e) / 9;
     }
     return res;
 }

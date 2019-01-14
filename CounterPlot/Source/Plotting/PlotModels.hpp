@@ -21,8 +21,8 @@ class FigureModel;
 //=============================================================================
 struct LinePlotModel
 {
-    Array<double> x;
-    Array<double> y;
+    nd::array<double, 1> x;
+    nd::array<double, 1> y;
     float         lineWidth    = 1.f;
     float         markerSize   = 1.f;
     Colour        lineColour   = Colours::black;
@@ -229,7 +229,7 @@ public:
      * Return an array of doubles for a channel in the given array of colours.
      * The channel value must be 'r', 'g', 'b', or 'a'.
      */
-    static Array<double> extractChannelAsDouble (const Array<Colour>& colours, char channel);
+    static nd::array<double, 1> extractChannelAsDouble (const Array<Colour>& colours, char channel);
 
     /**
      * Load RGBA texture data from a whitespace-seperated ASCII table. The string

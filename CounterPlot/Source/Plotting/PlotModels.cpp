@@ -189,20 +189,21 @@ Array<Colour> ColourMapHelpers::coloursFromRGBTable (const String& string)
     return res;
 }
 
-Array<double> ColourMapHelpers::extractChannelAsDouble (const Array<Colour>& colours, char channel)
+nd::array<double, 1> ColourMapHelpers::extractChannelAsDouble (const Array<Colour>& colours, char channel)
 {
-    Array<double> res;
-    res.ensureStorageAllocated (colours.size());
+    nd::array<double, 1> res (colours.size());
+    int n = 0;
 
     for (const auto& c : colours)
     {
         switch (channel)
         {
-            case 'r': res.add (c.getFloatRed()); break;
-            case 'g': res.add (c.getFloatGreen()); break;
-            case 'b': res.add (c.getFloatBlue()); break;
-            case 'a': res.add (c.getFloatAlpha()); break;
+            case 'r': res(n) = c.getFloatRed(); break;
+            case 'g': res(n) = c.getFloatGreen(); break;
+            case 'b': res(n) = c.getFloatBlue(); break;
+            case 'a': res(n) = c.getFloatAlpha(); break;
         }
+        ++n;
     }
     return res;
 }

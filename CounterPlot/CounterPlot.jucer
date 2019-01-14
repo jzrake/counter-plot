@@ -33,6 +33,8 @@
       <FILE id="fAMC19" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Core/LookAndFeel.hpp"/>
       <FILE id="r0cb3N" name="Main.cpp" compile="1" resource="0" file="Source/Core/Main.cpp"/>
       <FILE id="aM5cVk" name="Main.hpp" compile="0" resource="0" file="Source/Core/Main.hpp"/>
+      <FILE id="yDoSBI" name="Runtime.cpp" compile="1" resource="0" file="Source/Core/Runtime.cpp"/>
+      <FILE id="B2aO6O" name="Runtime.hpp" compile="0" resource="0" file="Source/Core/Runtime.hpp"/>
     </GROUP>
     <GROUP id="{5A420E7E-4900-A138-6F00-634E7A3A41F9}" name="Plotting">
       <FILE id="Ou4Rrw" name="FigureView.cpp" compile="1" resource="0" file="Source/Plotting/FigureView.cpp"/>

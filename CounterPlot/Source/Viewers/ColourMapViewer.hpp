@@ -29,8 +29,7 @@ public:
 private:
     //=========================================================================
     void updateFigures();
-    static Array<double> linspace (double x0, double x1, int num);
-    static Array<double> smooth (const Array<double>&);
+    static nd::array<double, 1> smooth (const nd::array<double, 1>&);
 
     //=========================================================================
     ScalarMapping mapping;

@@ -57,6 +57,7 @@ private:
 class LinePlotArtist : public PlotArtist
 {
 public:
+    LinePlotArtist() {}
     LinePlotArtist (LinePlotModel model);
     void paint (Graphics& g, const PlotTransformer& trans) override;
 private:

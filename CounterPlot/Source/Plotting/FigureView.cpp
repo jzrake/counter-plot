@@ -148,20 +148,20 @@ LinePlotArtist::LinePlotArtist (LinePlotModel model) : model (model)
 void LinePlotArtist::paint (Graphics& g, const PlotTransformer& trans)
 {
     jassert (model.x.size() == model.y.size());
-    
-    if (model.x.isEmpty())
+
+    if (model.x.empty())
     {
         return;
     }
-    
+
     Path p;
-    p.startNewSubPath (trans.fromDomainX (model.x.getUnchecked (0)),
-                       trans.fromDomainY (model.y.getUnchecked (0)));
-    
+    p.startNewSubPath (trans.fromDomainX (model.x (0)),
+                       trans.fromDomainY (model.y (0)));
+
     for (int n = 1; n < model.x.size(); ++n)
     {
-        p.lineTo (trans.fromDomainX (model.x.getUnchecked (n)),
-                  trans.fromDomainY (model.y.getUnchecked (n)));
+        p.lineTo (trans.fromDomainX (model.x (n)),
+                  trans.fromDomainY (model.y (n)));
     }
     g.setColour (model.lineColour);
     g.strokePath (p, PathStrokeType (model.lineWidth));
