@@ -1,31 +1,25 @@
 #pragma once
 #include "FileBasedView.hpp"
-#include "FigureView.hpp"
+#include "../Plotting/FigureView.hpp"
+
 
 
 
 //=============================================================================
-class UserExtensionView
-: public FileBasedView
-, public FigureView::Listener
+class ColourMapViewer : public FileBasedView, public FigureView::Listener
 {
 public:
+    ColourMapViewer();
 
     //=========================================================================
-    UserExtensionView();
-    void configure (const var& config);
-    void configure (File file);
+    bool isInterestedInFile (File file) const override;
+    void loadFile (File fileToDisplay) override;
+    String getViewerName() const override { return "Color Map Viewer"; }
 
     //=========================================================================
     void resized() override;
 
     //=========================================================================
-    bool isInterestedInFile (File file) const override;
-    void loadFile (File fileToDisplay) override;
-    String getViewerName() const override;
-
-    //=========================================================================
-    void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) override;
     void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
     void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
     void figureViewSetXlabel (FigureView*, const String&) override;
@@ -33,8 +27,16 @@ public:
     void figureViewSetTitle (FigureView*, const String&) override;
 
 private:
-    String viewerName;
-    Array<FigureModel> models;
-    OwnedArray<FigureView> figures;
+    //=========================================================================
+    void updateFigures();
+    static Array<double> linspace (double x0, double x1, int num);
+    static Array<double> smooth (const Array<double>&);
+
+    //=========================================================================
+    ScalarMapping mapping;
+    FigureModel lineModel;
+    FigureModel cmapModel;
+    FigureView lineFigure;
+    FigureView cmapFigure;
     Grid layout;
 };

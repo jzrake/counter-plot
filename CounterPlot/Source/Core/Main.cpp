@@ -1,8 +1,8 @@
 #include "Main.hpp"
-#include "MainComponent.hpp"
-#include "Views/FigureView.hpp"
-#include "Views/LookAndFeel.hpp"
-#include "Views/FileBasedView.hpp"
+#include "LookAndFeel.hpp"
+#include "../Components/MainComponent.hpp"
+#include "../Plotting/FigureView.hpp"
+#include "../Viewers/FileBasedView.hpp"
 
 
 

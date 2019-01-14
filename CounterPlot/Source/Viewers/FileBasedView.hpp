@@ -1,6 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
-#include "VariantView.hpp"
+#include "../Components/VariantView.hpp"
 
 
 

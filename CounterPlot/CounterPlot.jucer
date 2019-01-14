@@ -3,42 +3,10 @@
 <JUCERPROJECT id="SNyzUC" name="Counter Plot" projectType="guiapp" jucerVersion="5.4.1"
               projectLineFeed="&#10;">
   <MAINGROUP id="Iv1B3G" name="Counter Plot">
-    <GROUP id="{6EA5EAB6-53AF-3CB0-E496-7A5E1E6015C9}" name="Views">
-      <FILE id="RYs1Mj" name="BinaryTorquesView.cpp" compile="1" resource="0"
-            file="Source/Views/BinaryTorquesView.cpp"/>
-      <FILE id="QK5y18" name="BinaryTorquesView.hpp" compile="0" resource="0"
-            file="Source/Views/BinaryTorquesView.hpp"/>
-      <FILE id="hx3wM7" name="ColourMapViewer.cpp" compile="1" resource="0"
-            file="Source/Views/ColourMapViewer.cpp"/>
-      <FILE id="lvozah" name="ColourMapViewer.hpp" compile="0" resource="0"
-            file="Source/Views/ColourMapViewer.hpp"/>
-      <FILE id="Oy1lsd" name="DirectoryTree.cpp" compile="1" resource="0"
-            file="Source/Views/DirectoryTree.cpp"/>
-      <FILE id="SNzB4o" name="DirectoryTree.hpp" compile="0" resource="0"
-            file="Source/Views/DirectoryTree.hpp"/>
-      <FILE id="rMtKLh" name="FigureView.cpp" compile="1" resource="0" file="Source/Views/FigureView.cpp"/>
-      <FILE id="JyvA3Q" name="FigureView.hpp" compile="0" resource="0" file="Source/Views/FigureView.hpp"/>
-      <FILE id="q5fkEe" name="FileBasedView.cpp" compile="1" resource="0"
-            file="Source/Views/FileBasedView.cpp"/>
-      <FILE id="FLfpYu" name="FileBasedView.hpp" compile="0" resource="0"
-            file="Source/Views/FileBasedView.hpp"/>
-      <FILE id="t3Md0B" name="JetInCloudView.cpp" compile="1" resource="0"
-            file="Source/Views/JetInCloudView.cpp"/>
-      <FILE id="FBXSzX" name="JetInCloudView.hpp" compile="0" resource="0"
-            file="Source/Views/JetInCloudView.hpp"/>
-      <FILE id="MBpGoc" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/Views/LookAndFeel.cpp"/>
-      <FILE id="e3UJAs" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Views/LookAndFeel.hpp"/>
-      <FILE id="hoSmXY" name="UserExtensionView.cpp" compile="1" resource="0"
-            file="Source/Views/UserExtensionView.cpp"/>
-      <FILE id="fDYKWm" name="UserExtensionView.hpp" compile="0" resource="0"
-            file="Source/Views/UserExtensionView.hpp"/>
-      <FILE id="tvvdLn" name="VariantView.cpp" compile="1" resource="0" file="Source/Views/VariantView.cpp"/>
-      <FILE id="vC31Xm" name="VariantView.hpp" compile="0" resource="0" file="Source/Views/VariantView.hpp"/>
-    </GROUP>
     <GROUP id="{20D2690F-9E07-C6A9-1EA6-2EF9B1D6C816}" name="Resources">
-      <FILE id="XA8lBl" name="Durian-512.png" compile="0" resource="0" file="../Resources/Durian-512.png"/>
       <FILE id="snk8h0" name="cividis.cmap" compile="0" resource="1" file="../Resources/cividis.cmap"/>
       <FILE id="q3gzrE" name="dawn.cmap" compile="0" resource="1" file="../resources/dawn.cmap"/>
+      <FILE id="XA8lBl" name="Durian-512.png" compile="0" resource="0" file="../Resources/Durian-512.png"/>
       <FILE id="y1t0Kg" name="fire.cmap" compile="0" resource="1" file="../resources/fire.cmap"/>
       <FILE id="Vnm15D" name="inferno.cmap" compile="0" resource="1" file="../Resources/inferno.cmap"/>
       <FILE id="j0Y4Sw" name="magma.cmap" compile="0" resource="1" file="../Resources/magma.cmap"/>
@@ -46,22 +14,55 @@
       <FILE id="eyIT1E" name="seashore.cmap" compile="0" resource="1" file="../resources/seashore.cmap"/>
       <FILE id="INelMr" name="viridis.cmap" compile="0" resource="1" file="../Resources/viridis.cmap"/>
     </GROUP>
-    <GROUP id="{D11203F9-963F-1C73-7148-7F81D61F5445}" name="Metal">
-      <FILE id="BjbHDA" name="MetalSurface.cpp" compile="1" resource="0"
-            file="Source/MetalSurface.cpp"/>
-      <FILE id="iYURxW" name="MetalSurface.hpp" compile="0" resource="0"
-            file="Source/MetalSurface.hpp"/>
-      <FILE id="RmYUmP" name="Shader.metal" compile="1" resource="0" file="../juce_metal/src/Shader.metal"/>
+    <GROUP id="{319AACF5-4B34-15A5-D642-1C0E473C217C}" name="Components">
+      <FILE id="RgzlD2" name="DirectoryTree.cpp" compile="1" resource="0"
+            file="Source/Components/DirectoryTree.cpp"/>
+      <FILE id="kEbeR6" name="DirectoryTree.hpp" compile="0" resource="0"
+            file="Source/Components/DirectoryTree.hpp"/>
+      <FILE id="WvsQAp" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/Components/MainComponent.cpp"/>
+      <FILE id="JetBqA" name="MainComponent.hpp" compile="0" resource="0"
+            file="Source/Components/MainComponent.hpp"/>
+      <FILE id="qmxHXh" name="VariantView.cpp" compile="1" resource="0" file="Source/Components/VariantView.cpp"/>
+      <FILE id="MKAbw1" name="VariantView.hpp" compile="0" resource="0" file="Source/Components/VariantView.hpp"/>
     </GROUP>
-    <GROUP id="{383CB217-B9DF-75A7-732C-A29573B05904}" name="Source">
-      <FILE id="L4fFDD" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
-      <FILE id="VAyeBU" name="Main.hpp" compile="0" resource="0" file="Source/Main.hpp"/>
-      <FILE id="NTdkxG" name="MainComponent.cpp" compile="1" resource="0"
-            file="Source/MainComponent.cpp"/>
-      <FILE id="XnyaUu" name="MainComponent.hpp" compile="0" resource="0"
-            file="Source/MainComponent.hpp"/>
-      <FILE id="IqGgfM" name="PlotModels.cpp" compile="1" resource="0" file="Source/PlotModels.cpp"/>
-      <FILE id="dZDnm4" name="PlotModels.hpp" compile="0" resource="0" file="Source/PlotModels.hpp"/>
+    <GROUP id="{B598C4C2-9FA1-7CA8-758B-F1B244C19DD5}" name="Core">
+      <FILE id="vAyfG9" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/Core/LookAndFeel.cpp"/>
+      <FILE id="fAMC19" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Core/LookAndFeel.hpp"/>
+      <FILE id="r0cb3N" name="Main.cpp" compile="1" resource="0" file="Source/Core/Main.cpp"/>
+      <FILE id="aM5cVk" name="Main.hpp" compile="0" resource="0" file="Source/Core/Main.hpp"/>
+    </GROUP>
+    <GROUP id="{5A420E7E-4900-A138-6F00-634E7A3A41F9}" name="Plotting">
+      <FILE id="Ou4Rrw" name="FigureView.cpp" compile="1" resource="0" file="Source/Plotting/FigureView.cpp"/>
+      <FILE id="M7HHhx" name="FigureView.hpp" compile="0" resource="0" file="Source/Plotting/FigureView.hpp"/>
+      <FILE id="ys8PyL" name="MetalSurface.cpp" compile="1" resource="0"
+            file="Source/Plotting/MetalSurface.cpp"/>
+      <FILE id="N32wtU" name="MetalSurface.hpp" compile="0" resource="0"
+            file="Source/Plotting/MetalSurface.hpp"/>
+      <FILE id="AHWlxo" name="PlotModels.cpp" compile="1" resource="0" file="Source/Plotting/PlotModels.cpp"/>
+      <FILE id="qGdvq0" name="PlotModels.hpp" compile="0" resource="0" file="Source/Plotting/PlotModels.hpp"/>
+    </GROUP>
+    <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers">
+      <FILE id="ZmxzWh" name="BinaryTorquesView.cpp" compile="1" resource="0"
+            file="Source/Viewers/BinaryTorquesView.cpp"/>
+      <FILE id="okfExZ" name="BinaryTorquesView.hpp" compile="0" resource="0"
+            file="Source/Viewers/BinaryTorquesView.hpp"/>
+      <FILE id="AlD8AC" name="ColourMapViewer.cpp" compile="1" resource="0"
+            file="Source/Viewers/ColourMapViewer.cpp"/>
+      <FILE id="pbZzX4" name="ColourMapViewer.hpp" compile="0" resource="0"
+            file="Source/Viewers/ColourMapViewer.hpp"/>
+      <FILE id="Hv1u5F" name="FileBasedView.cpp" compile="1" resource="0"
+            file="Source/Viewers/FileBasedView.cpp"/>
+      <FILE id="rrtFGL" name="FileBasedView.hpp" compile="0" resource="0"
+            file="Source/Viewers/FileBasedView.hpp"/>
+      <FILE id="OPDZ7f" name="JetInCloudView.cpp" compile="1" resource="0"
+            file="Source/Viewers/JetInCloudView.cpp"/>
+      <FILE id="VQm2Na" name="JetInCloudView.hpp" compile="0" resource="0"
+            file="Source/Viewers/JetInCloudView.hpp"/>
+      <FILE id="o97Nc0" name="UserExtensionView.cpp" compile="1" resource="0"
+            file="Source/Viewers/UserExtensionView.cpp"/>
+      <FILE id="oyO9TP" name="UserExtensionView.hpp" compile="0" resource="0"
+            file="Source/Viewers/UserExtensionView.hpp"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>

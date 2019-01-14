@@ -1,38 +1,93 @@
-#include "BinaryTorquesView.hpp"
-#include "FigureView.hpp"
-#include "../MetalSurface.hpp"
+#include "JetInCloudView.hpp"
+#include "../Plotting/FigureView.hpp"
+#include "../Plotting/MetalSurface.hpp"
 
 
 
 
 //=============================================================================
-struct BinaryTorques::TriangleVertexData
+struct JetInCloud::TriangleVertexData
 {
     std::array<float, 2> scalarExtent = {0.f, 1.f};
     std::shared_ptr<std::vector<simd::float2>> vertices;
     std::shared_ptr<std::vector<simd::float1>> scalars;
 };
 
-BinaryTorques::TriangleVertexData BinaryTorques::loadTriangleDataFromFile (File file, std::function<bool()> bailout)
+JetInCloud::TriangleVertexData JetInCloud::loadTriangleDataFromFile (File file, std::function<bool()> bailout)
 {
     try {
-        auto h5f  = h5::File (file.getFullPathName().toStdString());
-        auto h5d  = h5f.open_dataset ("primitive/sigma");
-        auto data = h5d.read<nd::array<double, 2>>();
-        auto scaled = MeshHelpers::scaleByLog10 (data, bailout);
-        auto V = MeshHelpers::triangulateUniformRectilinearMesh (data.shape(0), data.shape(1), {-8.f, 8.f, -8.f, 8.f}, bailout);
-        auto S = MeshHelpers::makeRectilinearGridScalars (scaled, bailout);
-        auto E = MeshHelpers::findScalarExtent (scaled, bailout);
+        auto startTime = Time::getMillisecondCounterHiRes();
 
+        auto ser = FileSystemSerializer (file);
+        auto db  = patches2d::Database::load (ser, {patches2d::Field::conserved, patches2d::Field::vert_coords});
+        auto scalars  = std::vector<simd::float1>();
+        auto vertices = std::vector<simd::float2>();
+        auto iter = 0;
+
+        DBG("jet-in-cloud: serializer ran in " << (Time::getMillisecondCounterHiRes() - startTime) / 1e3 << "s");
+
+        for (auto patch : db.all (patches2d::Field::vert_coords))
+        {
+            auto verts = patch.second;
+            auto cells = db.at (patch.first, patches2d::Field::conserved);
+
+            for (int i = 0; i < verts.shape(0) - 1; ++i)
+            {
+                for (int j = 0; j < verts.shape(1) - 1; ++j)
+                {
+                    const float r00 = verts (i + 0, j + 0, 0);
+                    const float r01 = verts (i + 0, j + 1, 0);
+                    const float r10 = verts (i + 1, j + 0, 0);
+                    const float r11 = verts (i + 1, j + 1, 0);
+                    const float q00 = verts (i + 0, j + 0, 1);
+                    const float q01 = verts (i + 0, j + 1, 1);
+                    const float q10 = verts (i + 1, j + 0, 1);
+                    const float q11 = verts (i + 1, j + 1, 1);
+                    const float x00 = r00 * std::sinf (q00);
+                    const float x01 = r01 * std::sinf (q01);
+                    const float x10 = r10 * std::sinf (q10);
+                    const float x11 = r11 * std::sinf (q11);
+                    const float y00 = r00 * std::cosf (q00);
+                    const float y01 = r01 * std::cosf (q01);
+                    const float y10 = r10 * std::cosf (q10);
+                    const float y11 = r11 * std::cosf (q11);
+                    const float c = std::log10f (cells (i, j, 0));
+
+                    vertices.push_back (simd::float2 {x00, y00});
+                    vertices.push_back (simd::float2 {x01, y01});
+                    vertices.push_back (simd::float2 {x10, y10});
+                    vertices.push_back (simd::float2 {x01, y01});
+                    vertices.push_back (simd::float2 {x10, y10});
+                    vertices.push_back (simd::float2 {x11, y11});
+
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+                    scalars.push_back (simd::float1 (c));
+
+                    if (++iter % 1000 == 0 && bailout && bailout())
+                    {
+                        return {};
+                    }
+                }
+            }
+        }
+
+        auto lower = *std::min_element (scalars.begin(), scalars.end());
+        auto upper = *std::max_element (scalars.begin(), scalars.end());
+
+        DBG("jet-in-cloud: data loaded in " << (Time::getMillisecondCounterHiRes() - startTime) / 1e3 << "s");
         return {
-            E,
-            std::make_shared<std::vector<simd::float2>> (V),
-            std::make_shared<std::vector<simd::float1>> (S)
+            {lower, upper},
+            std::make_shared<std::vector<simd::float2>> (vertices),
+            std::make_shared<std::vector<simd::float1>> (scalars)
         };
     }
     catch (std::exception& e)
     {
-        DBG("binary-torques: failed to load: " << e.what());
+        DBG("jet-in-cloud: failed to load: " << e.what());
         return {};
     }
 }
@@ -41,7 +96,7 @@ BinaryTorques::TriangleVertexData BinaryTorques::loadTriangleDataFromFile (File 
 
 
 //=============================================================================
-class BinaryTorques::QuadmeshArtist : public PlotArtist
+class JetInCloud::QuadmeshArtist : public PlotArtist
 {
 public:
     void setVertices (TriangleVertexData dataToUse)
@@ -78,17 +133,15 @@ public:
     }
 
     ScalarMapping mapping;
-    BinaryTorques::TriangleVertexData data;
+    TriangleVertexData data;
 };
 
 
-
-
-namespace binary {
+namespace jic {
 
 //=============================================================================
 using GradientArtist = ColourGradientArtist;
-using QuadmeshArtist = BinaryTorques::QuadmeshArtist;
+using QuadmeshArtist = JetInCloud::QuadmeshArtist;
 
 
 
@@ -98,7 +151,7 @@ struct State
 {
     std::shared_ptr<QuadmeshArtist>       quadmesh;
     std::shared_ptr<GradientArtist>       gradient;
-    BinaryTorques::TriangleVertexData     triangles;
+    JetInCloud::TriangleVertexData triangles;
     ScalarMapping                         mapping;
     FigureModel                           cmapModel;
     FigureModel                           mainModel;
@@ -160,7 +213,7 @@ struct State
 struct Action
 {
     struct SetFile           { File file; };
-    struct SetTriangleData   { BinaryTorques::TriangleVertexData triangles; };
+    struct SetTriangleData   { JetInCloud::TriangleVertexData triangles; };
     struct SetColourMap      { Array<Colour> stops; };
     struct SetFigureMargin   { BorderSize<int> margin; };
     struct SetFigureDomain   { float xmin=0, xmax=1, ymin=0, ymax=1; };
@@ -243,7 +296,7 @@ public:
     {
         state.file = action.file;
         state.mainModel.title = action.file.getFileName();
-        dispatch ([action] (auto bailout) { return Action::SetTriangleData { BinaryTorques::loadTriangleDataFromFile (action.file, bailout)}; });
+        dispatch ([action] (auto bailout) { return Action::SetTriangleData { JetInCloud::loadTriangleDataFromFile (action.file, bailout)}; });
         subscriber.update (state);
     }
 
@@ -321,13 +374,13 @@ private:
 
 }
 
-using namespace binary;
+using namespace jic;
 
 
 
 
 //=============================================================================
-class BinaryTorquesView
+class JetInCloudView
 : public FileBasedView
 , public Store::Subscriber
 , public FigureView::Listener
@@ -337,8 +390,8 @@ public:
     class QuadmeshArtist;
 
     //=========================================================================
-    BinaryTorquesView();
-    ~BinaryTorquesView();
+    JetInCloudView();
+    ~JetInCloudView();
 
     //=========================================================================
     void update (const State&) override;
@@ -348,7 +401,7 @@ public:
     //=========================================================================
     bool isInterestedInFile (File file) const override;
     void loadFile (File fileToDisplay) override;
-    String getViewerName() const override { return "Binary Torque Problem"; }
+    String getViewerName() const override { return "Jet In Cloud Problem"; }
 
     //=========================================================================
     void resized() override;
@@ -384,7 +437,7 @@ private:
 
 
 //=============================================================================
-BinaryTorquesView::BinaryTorquesView() : store (*this)
+JetInCloudView::JetInCloudView() : store (*this)
 {
     layout.templateRows    = { Grid::TrackInfo (1_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (100_px) };
@@ -400,18 +453,18 @@ BinaryTorquesView::BinaryTorquesView() : store (*this)
     addAndMakeVisible (cmapFigure);
 }
 
-BinaryTorquesView::~BinaryTorquesView()
+JetInCloudView::~JetInCloudView()
 {
 }
 
-void BinaryTorquesView::update (const State &newState)
+void JetInCloudView::update (const State &newState)
 {
     state = newState;
     mainFigure.setModel (state.mainModel);
     cmapFigure.setModel (state.cmapModel);
 }
 
-void BinaryTorquesView::asynchronousTaskStarted()
+void JetInCloudView::asynchronousTaskStarted()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
@@ -419,7 +472,7 @@ void BinaryTorquesView::asynchronousTaskStarted()
     }
 }
 
-void BinaryTorquesView::asynchronousTaskFinished()
+void JetInCloudView::asynchronousTaskFinished()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
@@ -427,21 +480,21 @@ void BinaryTorquesView::asynchronousTaskFinished()
     }
 }
 
-void BinaryTorquesView::loadFile (File viewedDocument)
+void JetInCloudView::loadFile (File viewedDocument)
 {
     store.dispatch (Action::SetFile { viewedDocument });
 }
 
-bool BinaryTorquesView::isInterestedInFile (File file) const
+bool JetInCloudView::isInterestedInFile (File file) const
 {
-    return file.hasFileExtension (".h5");
+    return FileSystemSerializer::looksLikeDatabase (file);
 }
 
 
 
 
 //=============================================================================
-void BinaryTorquesView::resized()
+void JetInCloudView::resized()
 {
     layout.performLayout (getLocalBounds());
 }
@@ -450,7 +503,7 @@ void BinaryTorquesView::resized()
 
 
 //=============================================================================
-void BinaryTorquesView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
+void JetInCloudView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
 {
     if (figure == &mainFigure)
     {
@@ -458,7 +511,7 @@ void BinaryTorquesView::figureViewSetMargin (FigureView* figure, const BorderSiz
     }
 }
 
-void BinaryTorquesView::figureViewSetDomainAndMargin (FigureView* figure,
+void JetInCloudView::figureViewSetDomainAndMargin (FigureView* figure,
                                                       const Rectangle<double>& domain,
                                                       const BorderSize<int>& margin)
 {
@@ -470,7 +523,7 @@ void BinaryTorquesView::figureViewSetDomainAndMargin (FigureView* figure,
     }
 }
 
-void BinaryTorquesView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
+void JetInCloudView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
 {
     auto d = domain.toFloat();
 
@@ -484,15 +537,15 @@ void BinaryTorquesView::figureViewSetDomain (FigureView* figure, const Rectangle
     }
 }
 
-void BinaryTorquesView::figureViewSetXlabel (FigureView* figure, const String& value)
+void JetInCloudView::figureViewSetXlabel (FigureView* figure, const String& value)
 {
 }
 
-void BinaryTorquesView::figureViewSetYlabel (FigureView* figure, const String& value)
+void JetInCloudView::figureViewSetYlabel (FigureView* figure, const String& value)
 {
 }
 
-void BinaryTorquesView::figureViewSetTitle (FigureView* figure, const String& value)
+void JetInCloudView::figureViewSetTitle (FigureView* figure, const String& value)
 {
 }
 
@@ -500,17 +553,17 @@ void BinaryTorquesView::figureViewSetTitle (FigureView* figure, const String& va
 
 
 //=============================================================================
-void BinaryTorquesView::getAllCommands (Array<CommandID>& commands)
+void JetInCloudView::getAllCommands (Array<CommandID>& commands)
 {
     FileBasedView::getAllCommands (commands);
 }
 
-void BinaryTorquesView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
+void JetInCloudView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
 {
     FileBasedView::getCommandInfo (commandID, result);
 }
 
-bool BinaryTorquesView::perform (const InvocationInfo& info)
+bool JetInCloudView::perform (const InvocationInfo& info)
 {
     switch (info.commandID)
     {
@@ -523,7 +576,7 @@ bool BinaryTorquesView::perform (const InvocationInfo& info)
     return true;
 }
 
-ApplicationCommandTarget* BinaryTorquesView::getNextCommandTarget()
+ApplicationCommandTarget* JetInCloudView::getNextCommandTarget()
 {
     return nullptr;
 }
@@ -532,7 +585,7 @@ ApplicationCommandTarget* BinaryTorquesView::getNextCommandTarget()
 
 
 //=============================================================================
-void BinaryTorquesView::saveSnapshot (bool toTempDirectory)
+void JetInCloudView::saveSnapshot (bool toTempDirectory)
 {
     auto target = File();
 
@@ -568,7 +621,7 @@ void BinaryTorquesView::saveSnapshot (bool toTempDirectory)
 
 
 //=============================================================================
-FileBasedView* BinaryTorques::create()
+FileBasedView* JetInCloud::create()
 {
-    return new BinaryTorquesView;
+    return new JetInCloudView;
 }

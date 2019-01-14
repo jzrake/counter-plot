@@ -1,9 +1,9 @@
 #pragma once
 #include "JuceHeader.h"
-#include "Views/DirectoryTree.hpp"
-#include "Views/FigureView.hpp"
-#include "Views/FileBasedView.hpp"
-#include "Views/UserExtensionView.hpp"
+#include "DirectoryTree.hpp"
+#include "../Plotting/FigureView.hpp"
+#include "../Viewers/FileBasedView.hpp"
+#include "../Viewers/UserExtensionView.hpp"
 
 
 

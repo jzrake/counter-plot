@@ -1,10 +1,10 @@
 #include "MainComponent.hpp"
-#include "Views/LookAndFeel.hpp"
-#include "Views/JetInCloudView.hpp"
-#include "Views/BinaryTorquesView.hpp"
-#include "Views/FileBasedView.hpp"
-#include "Views/ColourMapViewer.hpp"
-#include "Views/UserExtensionView.hpp"
+#include "../Core/LookAndFeel.hpp"
+#include "../Viewers/JetInCloudView.hpp"
+#include "../Viewers/BinaryTorquesView.hpp"
+#include "../Viewers/FileBasedView.hpp"
+#include "../Viewers/ColourMapViewer.hpp"
+#include "../Viewers/UserExtensionView.hpp"
 
 
 

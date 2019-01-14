@@ -1,6 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
-#include "../PlotModels.hpp"
+#include "PlotModels.hpp"
 
 
 
