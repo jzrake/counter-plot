@@ -516,6 +516,9 @@ void FigureView::setModel (const FigureModel& newModel)
     ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
     title .setText (model.title , NotificationType::dontSendNotification);
 
+//    gridItem.setArea (model.gridArea);
+//    gridItem.setArea (GridItem::useDefaultValue, GridItem::useDefaultValue);
+
     setComponentColours (*this, model);
     refreshModes (false);
     layout();

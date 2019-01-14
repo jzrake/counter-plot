@@ -95,10 +95,8 @@ UserExtensionView::UserExtensionView()
 {
 }
 
-void UserExtensionView::configure (const String& name, const var& config)
+void UserExtensionView::configure (const var& config)
 {
-	viewerName = name;
-
     models.clear();
     figures.clear();
     layout.items.clear();
@@ -112,8 +110,9 @@ void UserExtensionView::configure (const String& name, const var& config)
                 models.add (FigureModel::fromVar (f));
 			}
 		}
-        layout.templateColumns = getTrackInfoArray (root->getProperty ("rows"));
-        layout.templateRows    = getTrackInfoArray (root->getProperty ("columns"));
+        layout.templateColumns = getTrackInfoArray (root->getProperty ("cols"));
+        layout.templateRows    = getTrackInfoArray (root->getProperty ("rows"));
+        viewerName = root->getProperty ("name");
     }
 
 	for (const auto& model : models)
@@ -130,10 +129,12 @@ void UserExtensionView::configure (const String& name, const var& config)
 
 void UserExtensionView::configure (File file)
 {
+    viewerName = file.getFileName(); // will get overwritten if name property is specified
+
     try {
         auto yroot = YAML::LoadFile (file.getFullPathName().toStdString());
         auto jroot = varFromYamlNode (yroot);
-        configure (file.getFileNameWithoutExtension(), jroot);
+        configure (jroot);
     }
     catch (YAML::ParserException& e)
     {
@@ -154,16 +155,16 @@ void UserExtensionView::resized()
 
 
 //=============================================================================
-bool  UserExtensionView::isInterestedInFile (File file) const
+bool UserExtensionView::isInterestedInFile (File file) const
 {
 	return true;
 }
 
-void  UserExtensionView::loadFile (File fileToDisplay)
+void UserExtensionView::loadFile (File fileToDisplay)
 {
 }
 
-String  UserExtensionView::getViewerName() const
+String UserExtensionView::getViewerName() const
 {
 	return viewerName;
 }

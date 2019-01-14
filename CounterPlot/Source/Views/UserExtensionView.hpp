@@ -13,7 +13,7 @@ public:
 
     //=========================================================================
     UserExtensionView();
-    void configure (const String& name, const var& config);
+    void configure (const var& config);
     void configure (File file);
 
     //=========================================================================

@@ -6,10 +6,10 @@
 
 
 //=============================================================================
-class ColourMapView : public FileBasedView, public FigureView::Listener
+class ColourMapViewer : public FileBasedView, public FigureView::Listener
 {
 public:
-    ColourMapView();
+    ColourMapViewer();
 
     //=========================================================================
     bool isInterestedInFile (File file) const override;

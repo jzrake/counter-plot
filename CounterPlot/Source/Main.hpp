@@ -1,5 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
+#include "Views/UserExtensionView.hpp"
 
 
 
@@ -28,6 +29,7 @@ public:
 
     //=========================================================================
     PatchViewApplication();
+    virtual ~PatchViewApplication() {}
     static PatchViewApplication& getApp();
     ApplicationCommandManager& getCommandManager();
 

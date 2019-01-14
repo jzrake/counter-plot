@@ -1,10 +1,10 @@
-#include "ColourMapView.hpp"
+#include "ColourMapViewer.hpp"
 
 
 
 
 //=============================================================================
-ColourMapView::ColourMapView()
+ColourMapViewer::ColourMapViewer()
 {
     layout.templateRows    = { Grid::TrackInfo (4_fr), Grid::TrackInfo (3_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr) };
@@ -52,24 +52,24 @@ ColourMapView::ColourMapView()
     addAndMakeVisible (cmapFigure);
 }
 
-bool ColourMapView::isInterestedInFile (File file) const
+bool ColourMapViewer::isInterestedInFile (File file) const
 {
     return file.hasFileExtension (".cmap");
 }
 
-void ColourMapView::loadFile (File fileToDisplay)
+void ColourMapViewer::loadFile (File fileToDisplay)
 {
     lineModel.title = fileToDisplay.getFileName();
     mapping.stops = ColourMapHelpers::coloursFromRGBTable (fileToDisplay.loadFileAsString());
     updateFigures();
 }
 
-void ColourMapView::resized()
+void ColourMapViewer::resized()
 {
     layout.performLayout (getLocalBounds());
 }
 
-void ColourMapView::updateFigures()
+void ColourMapViewer::updateFigures()
 {
     if (! mapping.stops.isEmpty())
     {
@@ -108,7 +108,7 @@ void ColourMapView::updateFigures()
 
 
 //=============================================================================
-void ColourMapView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
+void ColourMapViewer::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
 {
     if (figure == &cmapFigure)
     {
@@ -128,22 +128,22 @@ void ColourMapView::figureViewSetMargin (FigureView* figure, const BorderSize<in
     }
 }
 
-void ColourMapView::figureViewSetDomain (FigureView*, const Rectangle<double>& domain)
+void ColourMapViewer::figureViewSetDomain (FigureView*, const Rectangle<double>& domain)
 {
     cmapModel.setDomain (domain);
     lineModel.setDomain (domain);
     updateFigures();
 }
 
-void ColourMapView::figureViewSetXlabel (FigureView* figure, const String& xlabel)
+void ColourMapViewer::figureViewSetXlabel (FigureView* figure, const String& xlabel)
 {
 }
 
-void ColourMapView::figureViewSetYlabel (FigureView* figure, const String& ylabel)
+void ColourMapViewer::figureViewSetYlabel (FigureView* figure, const String& ylabel)
 {
 }
 
-void ColourMapView::figureViewSetTitle (FigureView* figure, const String& title)
+void ColourMapViewer::figureViewSetTitle (FigureView* figure, const String& title)
 {
 }
 
@@ -151,7 +151,7 @@ void ColourMapView::figureViewSetTitle (FigureView* figure, const String& title)
 
 
 //=============================================================================
-Array<double> ColourMapView::linspace (double x0, double x1, int num)
+Array<double> ColourMapViewer::linspace (double x0, double x1, int num)
 {
     Array<double> res;
     res.ensureStorageAllocated (num);
@@ -163,7 +163,7 @@ Array<double> ColourMapView::linspace (double x0, double x1, int num)
     return res;
 }
 
-Array<double> ColourMapView::smooth (const Array<double>& x)
+Array<double> ColourMapViewer::smooth (const Array<double>& x)
 {
     Array<double> res = x;
 

@@ -3,7 +3,7 @@
 #include "Views/JetInCloudView.hpp"
 #include "Views/BinaryTorquesView.hpp"
 #include "Views/FileBasedView.hpp"
-#include "Views/ColourMapView.hpp"
+#include "Views/ColourMapViewer.hpp"
 #include "Views/UserExtensionView.hpp"
 
 
@@ -99,21 +99,21 @@ MainComponent::MainComponent()
     addAndMakeVisible (statusBar);
     addAndMakeVisible (directoryTree);
 
-    views.add (new JsonFileViewer);
-    views.add (new ImageFileViewer);
-    views.add (BinaryTorques::create());
-    views.add (JetInCloud::create());
-    views.add (new ColourMapView);
-    // views.add (new UserExtensionView);
-    views.add (new DefaultView);
+    viewers.addListener (this);
+    viewers.add (std::make_unique<JsonFileViewer>());
+    viewers.add (std::make_unique<ImageFileViewer>());
+    viewers.add (std::make_unique<ColourMapViewer>());
+    viewers.add (std::unique_ptr<FileBasedView> (BinaryTorques::create()));
+    viewers.add (std::unique_ptr<FileBasedView> (JetInCloud::create()));
+    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Views"));
 
-    for (const auto& view : views)
+    for (auto view : viewers.getAllComponents())
     {
-        addChildComponent (*view);
+        addChildComponent (view);
     }
 
-    views.getLast()->setVisible (true);
     setSize (1024, 768 - 64);
+    reloadCurrentFile();
 }
 
 MainComponent::~MainComponent()
@@ -127,22 +127,11 @@ void MainComponent::setCurrentDirectory (File newCurrentDirectory)
 
 void MainComponent::reloadCurrentFile()
 {
-    bool found = false;
-    File file = currentFile;
-
-    for (const auto& view : views)
+    if (auto component = viewers.findViewerForFile (currentFile))
     {
-        if (! found && view->isInterestedInFile (file))
-        {
-            found = true;
-            view->setVisible (true);
-            view->loadFile (file);
-            statusBar.setCurrentViewerName (view->getViewerName());
-        }
-        else
-        {
-            view->setVisible (false);
-        }
+        component->loadFile (currentFile);
+        statusBar.setCurrentViewerName (component->getViewerName());
+        viewers.showOnly (component);
     }
 }
 
@@ -234,6 +223,18 @@ void MainComponent::fileBasedViewAsyncTaskFinished()
 
 
 //=============================================================================
+void MainComponent::extensionViewerReconfigured (UserExtensionView* viewer)
+{
+    if (viewer->isVisible())
+    {
+        statusBar.setCurrentViewerName (viewer->getViewerName());
+    }
+}
+
+
+
+
+//=============================================================================
 void MainComponent::layout (bool animated)
 {
     auto setBounds = [animated] (Component& component, const Rectangle<int>& bounds)
@@ -252,6 +253,6 @@ void MainComponent::layout (bool animated)
     else
         setBounds (directoryTree, area.withWidth (300).translated (-300, 0));
 
-    for (const auto& view : views)
+    for (auto view : viewers.getAllComponents())
         setBounds (*view, area);
 }

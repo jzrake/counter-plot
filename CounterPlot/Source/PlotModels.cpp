@@ -438,6 +438,7 @@ FigureModel FigureModel::fromVar (const var& value)
             else if (item.name == Identifier ("border-color")) convert (item.value, model.borderColour);
             else if (item.name == Identifier ("background-color")) convert (item.value, model.backgroundColour);
             else if (item.name == Identifier ("gridlines-color")) convert (item.value, model.gridlinesColour);
+            else if (item.name == Identifier ("grid-area")) convert (item.value, model.gridArea);
             else DBG("unknown figure property: " << item.name.toString());
         }
     }
@@ -448,7 +449,6 @@ var FigureModel::toVar() const
 {
     FigureModel ref;
     auto obj = std::make_unique<DynamicObject>();
-
     if (xmin != ref.xmin) obj->setProperty ("xmin", xmin);
     if (xmax != ref.xmax) obj->setProperty ("xmax", xmax);
     if (ymin != ref.ymin) obj->setProperty ("ymin", ymin);
@@ -479,5 +479,6 @@ var FigureModel::toVar() const
     if (borderColour != ref.borderColour) obj->setProperty ("border-colour", borderColour.toString());
     if (backgroundColour != ref.backgroundColour) obj->setProperty ("background-colour", backgroundColour.toString());
     if (gridlinesColour != ref.gridlinesColour) obj->setProperty ("gridlines-colour", gridlinesColour.toString());
+    if (gridArea != ref.gridArea) obj->setProperty ("grid-area", gridArea);
     return obj.release();
 }

@@ -8,10 +8,10 @@
             file="Source/Views/BinaryTorquesView.cpp"/>
       <FILE id="QK5y18" name="BinaryTorquesView.hpp" compile="0" resource="0"
             file="Source/Views/BinaryTorquesView.hpp"/>
-      <FILE id="XfCrU3" name="ColourMapView.cpp" compile="1" resource="0"
-            file="Source/Views/ColourMapView.cpp"/>
-      <FILE id="Y139xu" name="ColourMapView.hpp" compile="0" resource="0"
-            file="Source/Views/ColourMapView.hpp"/>
+      <FILE id="hx3wM7" name="ColourMapViewer.cpp" compile="1" resource="0"
+            file="Source/Views/ColourMapViewer.cpp"/>
+      <FILE id="lvozah" name="ColourMapViewer.hpp" compile="0" resource="0"
+            file="Source/Views/ColourMapViewer.hpp"/>
       <FILE id="Oy1lsd" name="DirectoryTree.cpp" compile="1" resource="0"
             file="Source/Views/DirectoryTree.cpp"/>
       <FILE id="SNzB4o" name="DirectoryTree.hpp" compile="0" resource="0"
