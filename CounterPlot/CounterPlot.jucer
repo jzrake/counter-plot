@@ -27,6 +27,8 @@
       <FILE id="MKAbw1" name="VariantView.hpp" compile="0" resource="0" file="Source/Components/VariantView.hpp"/>
     </GROUP>
     <GROUP id="{B598C4C2-9FA1-7CA8-758B-F1B244C19DD5}" name="Core">
+      <FILE id="tIUuZ3" name="DataHelpers.cpp" compile="1" resource="0" file="Source/Core/DataHelpers.cpp"/>
+      <FILE id="Kx9e4b" name="DataHelpers.hpp" compile="0" resource="0" file="Source/Core/DataHelpers.hpp"/>
       <FILE id="vAyfG9" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/Core/LookAndFeel.cpp"/>
       <FILE id="fAMC19" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Core/LookAndFeel.hpp"/>
       <FILE id="r0cb3N" name="Main.cpp" compile="1" resource="0" file="Source/Core/Main.cpp"/>
@@ -84,11 +86,13 @@
         <MODULEPATH id="juce_ndarray" path="../third_party/ndarray"/>
         <MODULEPATH id="juce_ndh5" path="../third_party/ndh5"/>
         <MODULEPATH id="juce_metal" path=".."/>
+        <MODULEPATH id="juce_crt" path="../third_party/crt-kernel"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_crt" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>

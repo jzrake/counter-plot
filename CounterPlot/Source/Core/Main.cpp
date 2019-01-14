@@ -1,5 +1,6 @@
 #include "Main.hpp"
 #include "LookAndFeel.hpp"
+#include "DataHelpers.hpp"
 #include "../Components/MainComponent.hpp"
 #include "../Plotting/FigureView.hpp"
 #include "../Viewers/Viewer.hpp"
@@ -237,7 +238,7 @@ void PatchViewApplication::timerCallback()
         for (auto item : obj->getProperties())
         {
             auto id = LookAndFeelHelpers::colourIdFromString (item.name.toString());
-            auto colour = LookAndFeelHelpers::colourFromVariant (item.value);
+            auto colour = DataHelpers::colourFromVar (item.value);
 
             if (colour != Colours::transparentWhite)
             {

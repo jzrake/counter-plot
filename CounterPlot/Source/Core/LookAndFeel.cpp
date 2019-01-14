@@ -59,31 +59,6 @@ Colour LookAndFeelHelpers::findColourForPropertyText (const Component& target, i
     return Colours::black;
 }
 
-Colour LookAndFeelHelpers::colourFromVariant (const var& value)
-{
-    if (value.isVoid())
-    {
-        return Colours::transparentWhite;
-    }
-    if (value.isInt())
-    {
-        return Colour (int (value));
-    }
-    if (value.isString())
-    {
-        return Colour::fromString (value.toString());
-    }
-    if (value.size() == 3)
-    {
-        return Colour::fromRGB (int (value[0]), int (value[1]), int (value[2]));
-    }
-    if (value.size() == 4)
-    {
-        return Colour::fromRGBA (int (value[0]), int (value[1]), int (value[2]), int (value[3]));
-    }
-    return Colours::black;
-}
-
 int LookAndFeelHelpers::colourIdFromString (const String& name)
 {
     if (name == "directory_tree.background")    return directoryTreeBackground;

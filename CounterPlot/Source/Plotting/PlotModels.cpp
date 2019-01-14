@@ -1,5 +1,5 @@
 #include "PlotModels.hpp"
-#include "../Core/LookAndFeel.hpp"
+#include "../Core/DataHelpers.hpp"
 
 
 
@@ -379,7 +379,7 @@ static void convert (const var& source, BorderSize<int>& value)
 }
 static void convert (const var& source, Colour& value)
 {
-    value = LookAndFeelHelpers::colourFromVariant (source);
+    value = DataHelpers::colourFromVar (source);
 }
 static var borderSizeToVar (BorderSize<int> border)
 {

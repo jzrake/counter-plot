@@ -42,6 +42,5 @@ public:
     static void setLookAndFeelDefaults (LookAndFeel&, TextColourScheme scheme);
     static void setLookAndFeelDefaults (LookAndFeel&, BackgroundScheme scheme);
     static Colour findColourForPropertyText (const Component&, int index);
-    static Colour colourFromVariant (const var&);
     static int colourIdFromString (const String&);
 };

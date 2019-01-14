@@ -16,3 +16,6 @@
 [submodule "third_party/embed-yaml-macos"]
 	path = third_party/embed-yaml-macos
 	url = https://github.com/jzrake/embed-yaml-macos.git
+[submodule "third_party/crt-kernel"]
+	path = third_party/crt-kernel
+	url = https://github.com/jzrake/crt-kernel.git
