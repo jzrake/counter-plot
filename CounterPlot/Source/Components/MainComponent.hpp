@@ -2,7 +2,7 @@
 #include "JuceHeader.h"
 #include "DirectoryTree.hpp"
 #include "../Plotting/FigureView.hpp"
-#include "../Viewers/FileBasedView.hpp"
+#include "../Viewers/Viewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
 
 
@@ -37,14 +37,14 @@ public:
         listeners.remove (listener);
     }
 
-    void add (std::unique_ptr<FileBasedView> viewToAdd)
+    void add (std::unique_ptr<Viewer> viewerToAdd)
     {
-        viewers.add ({ false, File(), Time(), std::move (viewToAdd) });
+        items.add ({ false, File(), Time(), std::move (viewerToAdd) });
     }
 
     void clear()
     {
-        viewers.clear();
+        items.clear();
     }
 
     void loadAllInDirectory (File directory)
@@ -53,41 +53,41 @@ public:
         {
             if (child.hasFileExtension (".yaml"))
             {
-                auto view = std::make_unique<UserExtensionView>();
-                view->configure (child);
-                listeners.call (&Listener::extensionViewerReconfigured, view.get());
-                viewers.add ({ true, child, Time::getCurrentTime(), std::move (view) });
+                auto viewer = std::make_unique<UserExtensionView>();
+                viewer->configure (child);
+                listeners.call (&Listener::extensionViewerReconfigured, viewer.get());
+                items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });
             }
         }
     }
 
-    FileBasedView* findViewerForFile (File file) const
+    Viewer* findViewerForFile (File file) const
     {
-        for (const auto& viewer : viewers)
-            if (viewer.component->isInterestedInFile (file))
-                return viewer.component.get();
+        for (const auto& item : items)
+            if (item.viewer->isInterestedInFile (file))
+                return item.viewer.get();
         return nullptr;
     }
 
-    Array<FileBasedView*> getAllComponents() const
+    Array<Viewer*> getAllComponents() const
     {
-        Array<FileBasedView*> result;
+        Array<Viewer*> result;
 
-        for (const auto& viewer : viewers)
-            result.add (viewer.component.get());
+        for (const auto& item : items)
+            result.add (item.viewer.get());
         return result;
     }
 
     void setBounds (const Rectangle<int>& bounds) const
     {
-        for (const auto& viewer : viewers)
-            viewer.component->setBounds (bounds);
+        for (const auto& item : items)
+            item.viewer->setBounds (bounds);
     }
 
-    void showOnly (FileBasedView* componentThatShouldBeVisible) const
+    void showOnly (Viewer* componentThatShouldBeVisible) const
     {
-        for (const auto& viewer : viewers)
-            viewer.component->setVisible (viewer.component.get() == componentThatShouldBeVisible);
+        for (const auto& item : items)
+            item.viewer->setVisible (item.viewer.get() == componentThatShouldBeVisible);
     }
 
 private:
@@ -95,31 +95,31 @@ private:
     //=========================================================================
     void timerCallback() override
     {
-        for (auto& viewer : viewers)
+        for (auto& item : items)
         {
-            if (viewer.isExtension && viewer.lastLoaded < viewer.source.getLastModificationTime())
+            if (item.isExtension && item.lastLoaded < item.source.getLastModificationTime())
             {
-                DBG("reloading viewer " << viewer.source.getFileName());
+                DBG("reloading viewer " << item.source.getFileName());
 
-                auto& component = dynamic_cast<UserExtensionView&> (*viewer.component);
-                component.configure (viewer.source);
-                viewer.lastLoaded = Time::getCurrentTime();
+                auto& viewer = dynamic_cast<UserExtensionView&> (*item.viewer);
+                viewer.configure (item.source);
+                item.lastLoaded = Time::getCurrentTime();
 
-                listeners.call (&Listener::extensionViewerReconfigured, &component);
+                listeners.call (&Listener::extensionViewerReconfigured, &viewer);
             }
         }
     }
 
 
     //=========================================================================
-    struct Viewer
+    struct Item
     {
         bool isExtension = false;
         File source;
         Time lastLoaded;
-        std::unique_ptr<FileBasedView> component;
+        std::unique_ptr<Viewer> viewer;
     };
-    Array<Viewer> viewers;
+    Array<Item> items;
     ListenerList<Listener> listeners;
 };
 
@@ -155,7 +155,7 @@ class MainComponent
 : public Component
 , public DirectoryTree::Listener
 , public FigureView::MessageSink
-, public FileBasedView::MessageSink
+, public Viewer::MessageSink
 , public ViewerCollection::Listener
 {
 public:
@@ -183,8 +183,8 @@ public:
     void figureMousePosition (Point<double> position) override;
 
     //=========================================================================
-    void fileBasedViewAsyncTaskStarted() override;
-    void fileBasedViewAsyncTaskFinished() override;
+    void ViewerAsyncTaskStarted() override;
+    void ViewerAsyncTaskFinished() override;
 
     //=========================================================================
     void extensionViewerReconfigured (UserExtensionView*) override;
@@ -200,6 +200,6 @@ private:
     //=========================================================================
     StatusBar statusBar;
     DirectoryTree directoryTree;
-    // OwnedArray<FileBasedView> views;
+    // OwnedArray<Viewer> views;
     ViewerCollection viewers;
 };

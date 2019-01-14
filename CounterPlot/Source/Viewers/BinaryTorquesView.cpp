@@ -328,7 +328,7 @@ using namespace binary;
 
 //=============================================================================
 class BinaryTorquesView
-: public FileBasedView
+: public Viewer
 , public Store::Subscriber
 , public FigureView::Listener
 , public ApplicationCommandTarget
@@ -415,7 +415,7 @@ void BinaryTorquesView::asynchronousTaskStarted()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->fileBasedViewAsyncTaskStarted();
+        sink->ViewerAsyncTaskStarted();
     }
 }
 
@@ -423,7 +423,7 @@ void BinaryTorquesView::asynchronousTaskFinished()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->fileBasedViewAsyncTaskFinished();
+        sink->ViewerAsyncTaskFinished();
     }
 }
 
@@ -502,12 +502,12 @@ void BinaryTorquesView::figureViewSetTitle (FigureView* figure, const String& va
 //=============================================================================
 void BinaryTorquesView::getAllCommands (Array<CommandID>& commands)
 {
-    FileBasedView::getAllCommands (commands);
+    Viewer::getAllCommands (commands);
 }
 
 void BinaryTorquesView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
 {
-    FileBasedView::getCommandInfo (commandID, result);
+    Viewer::getCommandInfo (commandID, result);
 }
 
 bool BinaryTorquesView::perform (const InvocationInfo& info)
@@ -568,7 +568,7 @@ void BinaryTorquesView::saveSnapshot (bool toTempDirectory)
 
 
 //=============================================================================
-FileBasedView* BinaryTorques::create()
+Viewer* BinaryTorques::create()
 {
     return new BinaryTorquesView;
 }

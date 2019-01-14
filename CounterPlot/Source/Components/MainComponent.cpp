@@ -2,7 +2,7 @@
 #include "../Core/LookAndFeel.hpp"
 #include "../Viewers/JetInCloudView.hpp"
 #include "../Viewers/BinaryTorquesView.hpp"
-#include "../Viewers/FileBasedView.hpp"
+#include "../Viewers/Viewer.hpp"
 #include "../Viewers/ColourMapViewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
 
@@ -10,7 +10,7 @@
 
 
 //=============================================================================
-class DefaultView : public FileBasedView
+class DefaultView : public Viewer
 {
 public:
 
@@ -103,8 +103,8 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
-    viewers.add (std::unique_ptr<FileBasedView> (BinaryTorques::create()));
-    viewers.add (std::unique_ptr<FileBasedView> (JetInCloud::create()));
+    viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
+    viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
     viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Views"));
 
     for (auto view : viewers.getAllComponents())
@@ -209,12 +209,12 @@ void MainComponent::figureMousePosition (Point<double> position)
 
 
 //=============================================================================
-void MainComponent::fileBasedViewAsyncTaskStarted()
+void MainComponent::ViewerAsyncTaskStarted()
 {
     statusBar.incrementAsyncTaskCount();
 }
 
-void MainComponent::fileBasedViewAsyncTaskFinished()
+void MainComponent::ViewerAsyncTaskFinished()
 {
     statusBar.decrementAsyncTaskCount();
 }

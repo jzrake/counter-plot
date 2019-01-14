@@ -1,12 +1,12 @@
 #pragma once
-#include "FileBasedView.hpp"
+#include "Viewer.hpp"
 #include "../Plotting/FigureView.hpp"
 
 
 
 
 //=============================================================================
-class ColourMapViewer : public FileBasedView, public FigureView::Listener
+class ColourMapViewer : public Viewer, public FigureView::Listener
 {
 public:
     ColourMapViewer();

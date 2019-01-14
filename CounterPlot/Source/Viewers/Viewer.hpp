@@ -6,7 +6,7 @@
 
 
 //=============================================================================
-class FileBasedView : public Component
+class Viewer : public Component
 {
 public:
 
@@ -15,8 +15,8 @@ public:
     {
     public:
         virtual ~MessageSink() {}
-        virtual void fileBasedViewAsyncTaskStarted() = 0;
-        virtual void fileBasedViewAsyncTaskFinished() = 0;
+        virtual void ViewerAsyncTaskStarted() = 0;
+        virtual void ViewerAsyncTaskFinished() = 0;
     };
 
     /**
@@ -51,7 +51,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~FileBasedView() {}
+    virtual ~Viewer() {}
 
     /**
      * This method should return true if it looks like the given file can be
@@ -81,7 +81,7 @@ public:
 
 
 //=============================================================================
-class JsonFileViewer : public FileBasedView
+class JsonFileViewer : public Viewer
 {
 public:
 
@@ -101,7 +101,7 @@ private:
 
 
 //=============================================================================
-class ImageFileViewer : public FileBasedView
+class ImageFileViewer : public Viewer
 {
 public:
 

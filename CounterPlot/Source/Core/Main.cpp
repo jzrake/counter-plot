@@ -2,7 +2,7 @@
 #include "LookAndFeel.hpp"
 #include "../Components/MainComponent.hpp"
 #include "../Plotting/FigureView.hpp"
-#include "../Viewers/FileBasedView.hpp"
+#include "../Viewers/Viewer.hpp"
 
 
 
@@ -64,8 +64,8 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
     {
         menu.addCommandItem (manager, Commands::openDirectory);
         menu.addSeparator();
-        menu.addCommandItem (manager, FileBasedView::Commands::makeSnapshotAndOpen);
-        menu.addCommandItem (manager, FileBasedView::Commands::saveSnapshotAs);
+        menu.addCommandItem (manager, Viewer::Commands::makeSnapshotAndOpen);
+        menu.addCommandItem (manager, Viewer::Commands::saveSnapshotAs);
         return menu;
     }
     if (menuName == "View")
@@ -73,9 +73,9 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
         menu.addCommandItem (manager, Commands::toggleDirectoryView);
         menu.addCommandItem (manager, Commands::reloadDirectoryView);
         menu.addSeparator();
-        menu.addCommandItem (manager, FileBasedView::Commands::nextColourMap);
-        menu.addCommandItem (manager, FileBasedView::Commands::prevColourMap);
-        menu.addCommandItem (manager, FileBasedView::Commands::resetScalarRange);
+        menu.addCommandItem (manager, Viewer::Commands::nextColourMap);
+        menu.addCommandItem (manager, Viewer::Commands::prevColourMap);
+        menu.addCommandItem (manager, Viewer::Commands::resetScalarRange);
         return menu;
     }
     jassertfalse;
@@ -137,7 +137,7 @@ void PatchViewApplication::initialise (const String& commandLine)
     mainWindow->content->setCurrentDirectory (cwd);
 
     commandManager->registerAllCommandsForTarget (this);
-    FileBasedView::registerCommands (*commandManager);
+    Viewer::registerCommands (*commandManager);
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
 
     startTimer (500);

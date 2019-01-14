@@ -1,6 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
-#include "FileBasedView.hpp"
+#include "Viewer.hpp"
 
 
 
@@ -12,5 +12,5 @@ public:
     class QuadmeshArtist;
     class TriangleVertexData;
     static TriangleVertexData loadTriangleDataFromFile (File file, std::function<bool()> bailout);
-    static FileBasedView* create();
+    static Viewer* create();
 };

@@ -381,7 +381,7 @@ using namespace jic;
 
 //=============================================================================
 class JetInCloudView
-: public FileBasedView
+: public Viewer
 , public Store::Subscriber
 , public FigureView::Listener
 , public ApplicationCommandTarget
@@ -468,7 +468,7 @@ void JetInCloudView::asynchronousTaskStarted()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->fileBasedViewAsyncTaskStarted();
+        sink->ViewerAsyncTaskStarted();
     }
 }
 
@@ -476,7 +476,7 @@ void JetInCloudView::asynchronousTaskFinished()
 {
     if (auto sink = findParentComponentOfClass<MessageSink>())
     {
-        sink->fileBasedViewAsyncTaskFinished();
+        sink->ViewerAsyncTaskFinished();
     }
 }
 
@@ -555,12 +555,12 @@ void JetInCloudView::figureViewSetTitle (FigureView* figure, const String& value
 //=============================================================================
 void JetInCloudView::getAllCommands (Array<CommandID>& commands)
 {
-    FileBasedView::getAllCommands (commands);
+    Viewer::getAllCommands (commands);
 }
 
 void JetInCloudView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
 {
-    FileBasedView::getCommandInfo (commandID, result);
+    Viewer::getCommandInfo (commandID, result);
 }
 
 bool JetInCloudView::perform (const InvocationInfo& info)
@@ -621,7 +621,7 @@ void JetInCloudView::saveSnapshot (bool toTempDirectory)
 
 
 //=============================================================================
-FileBasedView* JetInCloud::create()
+Viewer* JetInCloud::create()
 {
     return new JetInCloudView;
 }

@@ -1,11 +1,11 @@
-#include "FileBasedView.hpp"
+#include "Viewer.hpp"
 #include "../Components/VariantView.hpp"
 
 
 
 
 //=============================================================================
-void FileBasedView::registerCommands (ApplicationCommandManager& manager)
+void Viewer::registerCommands (ApplicationCommandManager& manager)
 {
     Array<CommandID> commands;
     getAllCommands (commands);
@@ -18,7 +18,7 @@ void FileBasedView::registerCommands (ApplicationCommandManager& manager)
     }
 }
 
-void FileBasedView::getAllCommands (Array<CommandID>& commands)
+void Viewer::getAllCommands (Array<CommandID>& commands)
 {
     const CommandID ids[] = {
         Commands::makeSnapshotAndOpen,
@@ -30,7 +30,7 @@ void FileBasedView::getAllCommands (Array<CommandID>& commands)
     commands.addArray (ids, numElementsInArray (ids));
 }
 
-void FileBasedView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
+void Viewer::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
 {
     switch (commandID)
     {

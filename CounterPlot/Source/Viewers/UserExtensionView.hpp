@@ -1,5 +1,5 @@
 #pragma once
-#include "FileBasedView.hpp"
+#include "Viewer.hpp"
 #include "../Plotting/FigureView.hpp"
 
 
@@ -7,7 +7,7 @@
 
 //=============================================================================
 class UserExtensionView
-: public FileBasedView
+: public Viewer
 , public FigureView::Listener
 {
 public:
