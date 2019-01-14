@@ -105,7 +105,7 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
     viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
-    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Views"));
+    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
 
     for (auto view : viewers.getAllComponents())
     {
@@ -175,14 +175,6 @@ void MainComponent::resized()
 
 bool MainComponent::keyPressed (const KeyPress& key)
 {
-//    if (key == KeyPress::returnKey)
-//    {
-//        auto view = dynamic_cast<UserExtensionView*>(views.getLast());
-//        view->configure (File ("/Users/jzrake/Work/CounterPlot/view.yaml"));
-//        view->setVisible (true);
-//        statusBar.setCurrentViewerName (view->getViewerName());
-//        return true;
-//    }
     return false;
 }
 
