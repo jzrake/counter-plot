@@ -132,6 +132,7 @@ struct FigureModel
     double                  xmax             = 1.0;
     double                  ymin             = 0.0;
     double                  ymax             = 1.0;
+    String                  id               = "";
     String                  title            = "Figure";
     String                  xlabel           = "X Axis";
     String                  ylabel           = "Y Axis";

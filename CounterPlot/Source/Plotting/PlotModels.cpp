@@ -1,5 +1,6 @@
 #include "PlotModels.hpp"
 #include "../Core/DataHelpers.hpp"
+#include "../Core/Runtime.hpp"
 
 
 
@@ -382,14 +383,16 @@ static void convert (const var& source, Colour& value)
 {
     value = DataHelpers::colourFromVar (source);
 }
-static var borderSizeToVar (BorderSize<int> border)
+static void convert (const var& source, std::vector<std::shared_ptr<PlotArtist>>& value)
 {
-    auto obj = std::make_unique<DynamicObject>();
-    obj->setProperty ("top", border.getTop());
-    obj->setProperty ("bottom", border.getBottom());
-    obj->setProperty ("left", border.getLeft());
-    obj->setProperty ("right", border.getRight());
-    return obj.release();
+    if (auto content = source.getArray())
+    {
+        for (auto element : *content)
+        {
+            auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (element);
+            value.push_back (artist);
+        }
+    }
 }
 
 
@@ -413,6 +416,7 @@ FigureModel FigureModel::fromVar (const var& value)
             else if (item.name == Identifier ("xmax")) convert (item.value, model.xmax);
             else if (item.name == Identifier ("ymin")) convert (item.value, model.ymin);
             else if (item.name == Identifier ("ymax")) convert (item.value, model.ymax);
+            else if (item.name == Identifier ("id")) convert (item.value, model.id);
             else if (item.name == Identifier ("title")) convert (item.value, model.title);
             else if (item.name == Identifier ("xlabel")) convert (item.value, model.xlabel);
             else if (item.name == Identifier ("ylabel")) convert (item.value, model.ylabel);
@@ -440,6 +444,7 @@ FigureModel FigureModel::fromVar (const var& value)
             else if (item.name == Identifier ("background-color")) convert (item.value, model.backgroundColour);
             else if (item.name == Identifier ("gridlines-color")) convert (item.value, model.gridlinesColour);
             else if (item.name == Identifier ("grid-area")) convert (item.value, model.gridArea);
+            else if (item.name == Identifier ("content")) convert (item.value, model.content);
             else DBG("unknown figure property: " << item.name.toString());
         }
     }
@@ -454,6 +459,7 @@ var FigureModel::toVar() const
     if (xmax != ref.xmax) obj->setProperty ("xmax", xmax);
     if (ymin != ref.ymin) obj->setProperty ("ymin", ymin);
     if (ymax != ref.ymax) obj->setProperty ("ymax", ymax);
+    if (title != ref.id) obj->setProperty ("id", id);
     if (title != ref.title) obj->setProperty ("title", title);
     if (xlabel != ref.xlabel) obj->setProperty ("xlabel", xlabel);
     if (ylabel != ref.ylabel) obj->setProperty ("ylabel", ylabel);
@@ -465,7 +471,7 @@ var FigureModel::toVar() const
     if (canEditXlabel != ref.canEditXlabel) obj->setProperty ("can-edit-xlabel", canEditXlabel);
     if (canEditYlabel != ref.canEditYlabel) obj->setProperty ("can-edit-ylabel", canEditYlabel);
     if (canDeformDomain != ref.canDeformDomain) obj->setProperty ("can-deform-domain", canDeformDomain);
-    if (margin != ref.margin) obj->setProperty ("margin", borderSizeToVar (margin));
+    if (margin != ref.margin) obj->setProperty ("margin", DataHelpers::varFromBorderSize (margin));
     if (borderWidth != ref.borderWidth) obj->setProperty ("border-width", borderWidth);
     if (axesWidth != ref.axesWidth) obj->setProperty ("axes-width", axesWidth);
     if (gridlinesWidth != ref.gridlinesWidth) obj->setProperty ("gridlines-width", gridlinesWidth);

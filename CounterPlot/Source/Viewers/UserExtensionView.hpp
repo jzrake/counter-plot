@@ -35,8 +35,11 @@ public:
     void figureViewSetTitle (FigureView*, const String&) override;
 
 private:
+    void resolveKernel();
+
     String viewerName;
     Array<FigureModel> models;
+    Array<crt::expression> figureExpressions;
     OwnedArray<FigureView> figures;
     Grid layout;
     Runtime::Kernel kernel;

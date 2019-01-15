@@ -5,7 +5,7 @@
 
 
 //=============================================================================
-YAML::Node DataHelpers::nodeFromVar (const var& value)
+YAML::Node DataHelpers::yamlNodeFromVar (const var& value)
 {
     if (value.isVoid()) return YAML::Node();
     if (value.isString()) return YAML::Node (value.toString().toStdString());
@@ -18,7 +18,7 @@ YAML::Node DataHelpers::nodeFromVar (const var& value)
 
         for (const auto& element : *value.getArray())
         {
-            node.push_back (nodeFromVar (element));
+            node.push_back (yamlNodeFromVar (element));
         }
         return node;
     }
@@ -28,7 +28,7 @@ YAML::Node DataHelpers::nodeFromVar (const var& value)
 
         for (const auto& item : obj->getProperties())
         {
-            node[item.name.toString().toStdString()] = nodeFromVar (item.value);
+            node[item.name.toString().toStdString()] = yamlNodeFromVar (item.value);
         }
         return node;
     }
@@ -51,8 +51,8 @@ var DataHelpers::varFromYamlNode (const YAML::Node& node)
     switch (node.Type())
     {
         case YAML::NodeType::value::Null: return var();
-        case YAML::NodeType::value::Scalar: return varFromYamlScalar (node);
         case YAML::NodeType::value::Undefined: return var::undefined();
+        case YAML::NodeType::value::Scalar: return varFromYamlScalar (node);
         case YAML::NodeType::value::Sequence:
         {
             var res;
@@ -71,6 +71,49 @@ var DataHelpers::varFromYamlNode (const YAML::Node& node)
         }
     }
     return var();
+}
+
+crt::expression DataHelpers::expressionFromVar (const var& value)
+{
+    if (value.isVoid()) return {};
+    if (value.isBool()) return int (value);
+    if (value.isInt()) return int (value);
+    if (value.isDouble()) return double (value);
+    if (value.isString())
+    {
+        auto str = value.toString();
+
+        if (str.startsWithChar ('(') && str.endsWithChar (')'))
+            return crt::parser::parse (str.getCharPointer());
+        return str.toStdString();
+    }
+    if (value.isArray())
+    {
+        std::vector<crt::expression> expr = { crt::expression::symbol ("list") };
+
+        for (const auto& element : *value.getArray())
+            expr.push_back (expressionFromVar (element));
+        return expr;
+    }
+    if (auto obj = value.getDynamicObject())
+    {
+        std::vector<crt::expression> expr = { crt::expression::symbol ("dict") };
+
+        for (const auto& item : obj->getProperties())
+            expr.push_back (expressionFromVar (item.value).keyed (item.name.toString().toStdString()));
+        return expr;
+    }
+    return {};
+}
+
+var DataHelpers::varFromBorderSize (const BorderSize<int>& border)
+{
+    auto obj = std::make_unique<DynamicObject>();
+    obj->setProperty ("top", border.getTop());
+    obj->setProperty ("bottom", border.getBottom());
+    obj->setProperty ("left", border.getLeft());
+    obj->setProperty ("right", border.getRight());
+    return obj.release();
 }
 
 Array<Grid::TrackInfo> DataHelpers::gridTrackInfoArrayFromVar (const var& value)
@@ -111,4 +154,3 @@ Colour DataHelpers::colourFromVar (const var& value)
     }
     return Colours::black;
 }
-

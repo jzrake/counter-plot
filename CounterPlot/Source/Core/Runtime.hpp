@@ -17,7 +17,7 @@ public:
     template<typename Mapping>
     static ObjectType call(const Mapping& scope, const crt::expression& expr)
     {
-        auto self = std::unique_ptr<DynamicObject>();
+        auto self = var (new DynamicObject); //std::make_unique<DynamicObject>();
         auto head = var();
         auto args = Array<var>();
 
@@ -33,11 +33,12 @@ public:
             }
             else
             {
-                self->setProperty (String (expr.key()), part.resolve<ObjectType, VarCallAdapter> (scope));
+                self.getDynamicObject()->setProperty (String (expr.key()), part.resolve<ObjectType, VarCallAdapter> (scope));
             }
         }
         auto f = head.getNativeFunction();
-        auto a = var::NativeFunctionArgs (self.release(), args.begin(), args.size());
+        // auto a = var::NativeFunctionArgs (self.release(), args.begin(), args.size());
+        auto a = var::NativeFunctionArgs (self, args.begin(), args.size());
         return f(a);
     }
 
