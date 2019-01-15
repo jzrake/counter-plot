@@ -24,19 +24,16 @@ public:
 
         for (const auto& part : expr)
         {
+            auto val = part.resolve<ObjectType, VarCallAdapter> (scope);
+
             if (first)
-            {
-                head = part.resolve<ObjectType, VarCallAdapter> (scope);
-                first = false;
-            }
+                head = val;
             else if (part.key().empty())
-            {
-                args.add (part.resolve<ObjectType, VarCallAdapter> (scope));
-            }
+                args.add (val);
             else
-            {
-                self.getDynamicObject()->setProperty (String (part.key()), part.resolve<ObjectType, VarCallAdapter> (scope));
-            }
+                self.getDynamicObject()->setProperty (Identifier (part.key()), val);
+
+            first = false;
         }
         auto f = head.getNativeFunction();
         auto a = var::NativeFunctionArgs (self, args.begin(), args.size());

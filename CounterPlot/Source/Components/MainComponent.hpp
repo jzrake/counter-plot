@@ -4,124 +4,8 @@
 #include "../Plotting/FigureView.hpp"
 #include "../Viewers/Viewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
-
-
-
-
-//=============================================================================
-class ViewerCollection : public Timer
-{
-public:
-
-    //=========================================================================
-    class Listener
-    {
-    public:
-        virtual ~Listener() {}
-        virtual void extensionViewerReconfigured (UserExtensionView*) = 0;
-    };
-
-    //=========================================================================
-    ViewerCollection()
-    {
-        startTimer (330);
-    }
-
-    void addListener (Listener* listener)
-    {
-        listeners.add (listener);
-    }
-
-    void removeListener (Listener* listener)
-    {
-        listeners.remove (listener);
-    }
-
-    void add (std::unique_ptr<Viewer> viewerToAdd)
-    {
-        items.add ({ false, File(), Time(), std::move (viewerToAdd) });
-    }
-
-    void clear()
-    {
-        items.clear();
-    }
-
-    void loadAllInDirectory (File directory)
-    {
-        for (auto child : directory.findChildFiles (File::findFiles, false))
-        {
-            if (child.hasFileExtension (".yaml"))
-            {
-                auto viewer = std::make_unique<UserExtensionView>();
-                viewer->configure (child);
-                listeners.call (&Listener::extensionViewerReconfigured, viewer.get());
-                items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });
-            }
-        }
-    }
-
-    Viewer* findViewerForFile (File file) const
-    {
-        for (const auto& item : items)
-            if (item.viewer->isInterestedInFile (file))
-                return item.viewer.get();
-        return nullptr;
-    }
-
-    Array<Viewer*> getAllComponents() const
-    {
-        Array<Viewer*> result;
-
-        for (const auto& item : items)
-            result.add (item.viewer.get());
-        return result;
-    }
-
-    void setBounds (const Rectangle<int>& bounds) const
-    {
-        for (const auto& item : items)
-            item.viewer->setBounds (bounds);
-    }
-
-    void showOnly (Viewer* componentThatShouldBeVisible) const
-    {
-        for (const auto& item : items)
-            item.viewer->setVisible (item.viewer.get() == componentThatShouldBeVisible);
-    }
-
-private:
-
-    //=========================================================================
-    void timerCallback() override
-    {
-        for (auto& item : items)
-        {
-            if (item.isExtension && item.lastLoaded < item.source.getLastModificationTime())
-            {
-                DBG("reloading viewer " << item.source.getFileName());
-
-                auto& viewer = dynamic_cast<UserExtensionView&> (*item.viewer);
-                viewer.configure (item.source);
-                item.lastLoaded = Time::getCurrentTime();
-
-                listeners.call (&Listener::extensionViewerReconfigured, &viewer);
-            }
-        }
-    }
-
-
-    //=========================================================================
-    struct Item
-    {
-        bool isExtension = false;
-        File source;
-        Time lastLoaded;
-        std::unique_ptr<Viewer> viewer;
-    };
-    Array<Item> items;
-    ListenerList<Listener> listeners;
-};
+#include "../Core/ViewerCollection.hpp"
+#include "../Core/Runtime.hpp"
 
 
 
@@ -147,6 +31,42 @@ private:
     String currentViewerName;
     String currentErrorMessage;
     int numberOfAsyncTasks = 0;
+};
+
+
+
+
+//=============================================================================
+class EnvironmentView : public Component, public ListBoxModel
+{
+public:
+
+    //=========================================================================
+    EnvironmentView();
+    void setKernel (const Runtime::Kernel* kernelToView);
+
+    //=========================================================================
+    void resized() override;
+
+    //=========================================================================
+    int getNumRows() override;
+    void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
+    Component *refreshComponentForRow (int rowNumber, bool isRowSelected, Component *existingComponentToUpdate) override { return nullptr; }
+    void listBoxItemClicked (int row, const MouseEvent &) override {}
+    void listBoxItemDoubleClicked (int row, const MouseEvent &) override {}
+    void backgroundClicked (const MouseEvent&) override {}
+    void selectedRowsChanged (int lastRowSelected) override {}
+    void deleteKeyPressed (int lastRowSelected) override {}
+    void returnKeyPressed (int lastRowSelected) override {}
+    void listWasScrolled () override {}
+    var getDragSourceDescription (const SparseSet< int > &rowsToDescribe) override { return var(); }
+    String getTooltipForRow (int row) override { return String(); }
+    MouseCursor getMouseCursorForRow (int row) override { return MouseCursor::NormalCursor; }
+
+private:
+    ListBox list;
+    const Runtime::Kernel* kernel = nullptr;
+    Array<String> keys;
 };
 
 
@@ -204,6 +124,6 @@ private:
     //=========================================================================
     StatusBar statusBar;
     DirectoryTree directoryTree;
-    // OwnedArray<Viewer> views;
     ViewerCollection viewers;
+    EnvironmentView environmentView;
 };

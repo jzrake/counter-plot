@@ -166,6 +166,11 @@ String UserExtensionView::getViewerName() const
 	return viewerName;
 }
 
+const Runtime::Kernel* UserExtensionView::getKernel() const
+{
+    return &kernel;
+}
+
 
 
 
@@ -262,42 +267,3 @@ int UserExtensionView::resolveKernel()
     }
     return errors;
 }
-
-
-
-
-
-
-//            auto model = FigureModel::fromVar (f);
-//
-//            if (auto content = f["content"].getArray())
-//            {
-//                for (const auto& element : *content)
-//                {
-//                    try {
-//                        auto artistExpression = crt::parser::parse (element.toString().toStdString().data());
-//                        auto artistAsVar = artistExpression.resolve<var, VarCallAdapter> (kernel);
-//                        auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (artistAsVar);
-//                        model.content.push_back (artist);
-//                    }
-//                    catch (const crt::parser_error& e)
-//                    {
-//                        sendErrorMessage ("bad expression in figure content block: " + std::string (e.what()));
-//                        ++errors;
-//                    }
-//                    catch (const std::out_of_range& e)
-//                    {
-//                        sendErrorMessage (e.what());
-//                        ++errors;
-//                    }
-//                    catch (const std::exception& e)
-//                    {
-//                        sendErrorMessage (e.what());
-//                        ++errors;
-//                    }
-//                }
-//            }
-//            models.add (model);
-//        }
-//    }
-

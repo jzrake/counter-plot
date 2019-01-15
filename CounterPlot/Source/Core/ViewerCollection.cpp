@@ -1,0 +1,95 @@
+#include "ViewerCollection.hpp"
+#include "../Viewers/UserExtensionView.hpp"
+
+
+
+
+//=============================================================================
+ViewerCollection::ViewerCollection()
+{
+    startTimer (330);
+}
+
+void ViewerCollection::addListener (Listener* listener)
+{
+    listeners.add (listener);
+}
+
+void ViewerCollection::removeListener (Listener* listener)
+{
+    listeners.remove (listener);
+}
+
+void ViewerCollection::add (std::unique_ptr<Viewer> viewerToAdd)
+{
+    items.add ({ false, File(), Time(), std::move (viewerToAdd) });
+}
+
+void ViewerCollection::clear()
+{
+    items.clear();
+}
+
+void ViewerCollection::loadAllInDirectory (File directory)
+{
+    for (auto child : directory.findChildFiles (File::findFiles, false))
+    {
+        if (child.hasFileExtension (".yaml"))
+        {
+            auto viewer = std::make_unique<UserExtensionView>();
+            viewer->configure (child);
+            listeners.call (&Listener::extensionViewerReconfigured, viewer.get());
+            items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });
+        }
+    }
+}
+
+Viewer* ViewerCollection::findViewerForFile (File file) const
+{
+    for (const auto& item : items)
+        if (item.viewer->isInterestedInFile (file))
+            return item.viewer.get();
+    return nullptr;
+}
+
+Array<Viewer*> ViewerCollection::getAllComponents() const
+{
+    Array<Viewer*> result;
+
+    for (const auto& item : items)
+        result.add (item.viewer.get());
+    return result;
+}
+
+void ViewerCollection::setBounds (const Rectangle<int>& bounds) const
+{
+    for (const auto& item : items)
+        item.viewer->setBounds (bounds);
+}
+
+void ViewerCollection::showOnly (Viewer* componentThatShouldBeVisible) const
+{
+    for (const auto& item : items)
+        item.viewer->setVisible (item.viewer.get() == componentThatShouldBeVisible);
+}
+
+
+
+
+//=========================================================================
+void ViewerCollection::timerCallback()
+{
+    for (auto& item : items)
+    {
+        if (item.isExtension && item.lastLoaded < item.source.getLastModificationTime())
+        {
+            DBG("reloading viewer " << item.source.getFileName());
+
+            auto& viewer = dynamic_cast<UserExtensionView&> (*item.viewer);
+            viewer.configure (item.source);
+            item.lastLoaded = Time::getCurrentTime();
+
+            listeners.call (&Listener::extensionViewerReconfigured, &viewer);
+        }
+    }
+}

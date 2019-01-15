@@ -97,7 +97,62 @@ void StatusBar::resized()
 }
 
 
-#include "../Core/Runtime.hpp"
+
+
+//=============================================================================
+EnvironmentView::EnvironmentView()
+{
+    list.setModel (this);
+    addAndMakeVisible (list);
+}
+
+void EnvironmentView::setKernel (const Runtime::Kernel* kernelToView)
+{
+    kernel = kernelToView;
+    keys.clear();
+
+    if (kernel)
+        for (const auto& item : *kernel)
+            keys.add (item.first);
+
+    list.updateContent();
+
+    repaint(); // needed?
+}
+
+
+
+
+//=============================================================================
+void EnvironmentView::resized()
+{
+    list.setBounds (getLocalBounds());
+}
+
+
+
+
+//=============================================================================
+int EnvironmentView::getNumRows()
+{
+    return keys.size();
+}
+
+void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
+{
+    g.fillAll (rowIsSelected ? findColour (ListBox::backgroundColourId).darker() : Colours::transparentBlack);
+
+    auto repr = kernel->at (keys[rowNumber].toStdString()).toString();
+
+    g.setFont (Font().withHeight (11));
+    g.setColour (findColour (ListBox::textColourId));
+    g.drawText (keys[rowNumber], 8, 0, width - 16, height, Justification::centredLeft);
+
+    g.setColour (findColour (ListBox::textColourId).darker());
+    g.drawText (repr, 8, 0, width - 16, height, Justification::centredRight);
+}
+
+
 
 
 //=============================================================================
@@ -107,6 +162,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (statusBar);
     addAndMakeVisible (directoryTree);
+    addAndMakeVisible (environmentView);
 
     viewers.addListener (this);
     viewers.add (std::make_unique<JsonFileViewer>());
@@ -240,6 +296,7 @@ void MainComponent::extensionViewerReconfigured (UserExtensionView* viewer)
     {
         statusBar.setCurrentViewerName (viewer->getViewerName());
     }
+    environmentView.setKernel (viewer->getKernel());
 }
 
 
@@ -257,12 +314,13 @@ void MainComponent::layout (bool animated)
     };
 
     auto area = getLocalBounds();
-    setBounds (statusBar, area.removeFromBottom (22));
+    auto statusBarArea = area.removeFromBottom (22);
+    auto directoryTreeArea = directoryTreeShowing ? area.removeFromLeft (300) : area.withWidth (300).translated (-300, 0);
+    auto environmentViewArea = directoryTreeArea.removeFromBottom (300);
 
-    if (directoryTreeShowing)
-        setBounds (directoryTree, area.removeFromLeft (300));
-    else
-        setBounds (directoryTree, area.withWidth (300).translated (-300, 0));
+    setBounds (statusBar, statusBarArea);
+    setBounds (directoryTree, directoryTreeArea);
+    setBounds (environmentView, environmentViewArea);
 
     for (auto view : viewers.getAllComponents())
         setBounds (*view, area);

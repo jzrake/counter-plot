@@ -1,6 +1,7 @@
 #pragma once
 #include "JuceHeader.h"
 #include "../Components/VariantView.hpp"
+#include "../Core/Runtime.hpp"
 
 
 
@@ -84,6 +85,13 @@ public:
      * viewers.
      */
     virtual String getViewerName() const = 0;
+
+    /**
+     * If this viewer uses a crt::kernel for state management, it should return it
+     * in this method. The kernel might be queried by parent component to create
+     * a view of its contents.
+     */
+    virtual const Runtime::Kernel* getKernel() const { return nullptr; }
 };
 
 

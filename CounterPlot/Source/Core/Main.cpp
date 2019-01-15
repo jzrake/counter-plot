@@ -262,7 +262,6 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (TextEditor::highlightedTextColourId, Colours::black);
     laf.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
     laf.setColour (TextEditor::focusedOutlineColourId, Colours::lightblue);
-    laf.setColour (ListBox::backgroundColourId, Colours::white);
 
     laf.setColour (Label::ColourIds::textColourId, Colours::lightgrey);
     laf.setColour (Label::ColourIds::textWhenEditingColourId, Colours::lightgrey);

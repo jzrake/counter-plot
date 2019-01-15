@@ -25,6 +25,7 @@ public:
     bool isInterestedInFile (File file) const override;
     void loadFile (File fileToDisplay) override;
     String getViewerName() const override;
+    const Runtime::Kernel* getKernel() const override;
 
     //=========================================================================
     void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) override;
@@ -35,11 +36,13 @@ public:
     void figureViewSetTitle (FigureView*, const String&) override;
 
 private:
+
+    //=========================================================================
     int resolveKernel();
 
+    //=========================================================================
     String viewerName;
-    // Array<FigureModel> models;
-    OwnedArray<FigureView> figures;
     Grid layout;
     Runtime::Kernel kernel;
+    OwnedArray<FigureView> figures;
 };
