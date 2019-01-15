@@ -147,6 +147,7 @@ public:
 
     //=========================================================================
     FigureView();
+    FigureView (const FigureModel& model);
     void setRenderingSurface (std::unique_ptr<RenderingSurface> surfaceToRenderInto);
     void setModel (const FigureModel&);
     void addListener (Listener* listener);

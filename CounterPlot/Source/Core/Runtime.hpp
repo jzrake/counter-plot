@@ -17,27 +17,28 @@ public:
     template<typename Mapping>
     static ObjectType call(const Mapping& scope, const crt::expression& expr)
     {
-        auto self = var (new DynamicObject); //std::make_unique<DynamicObject>();
         auto head = var();
+        auto self = var (new DynamicObject);
         auto args = Array<var>();
+        auto first = true;
 
         for (const auto& part : expr)
         {
-            if (part == expr.front())
+            if (first)
             {
                 head = part.resolve<ObjectType, VarCallAdapter> (scope);
+                first = false;
             }
-            else if (expr.key().empty())
+            else if (part.key().empty())
             {
                 args.add (part.resolve<ObjectType, VarCallAdapter> (scope));
             }
             else
             {
-                self.getDynamicObject()->setProperty (String (expr.key()), part.resolve<ObjectType, VarCallAdapter> (scope));
+                self.getDynamicObject()->setProperty (String (part.key()), part.resolve<ObjectType, VarCallAdapter> (scope));
             }
         }
         auto f = head.getNativeFunction();
-        // auto a = var::NativeFunctionArgs (self.release(), args.begin(), args.size());
         auto a = var::NativeFunctionArgs (self, args.begin(), args.size());
         return f(a);
     }
@@ -79,8 +80,8 @@ public:
     class GenericData : public ReferenceCountedObject
     {
     public:
-        virtual String getTypeName() = 0;
-        virtual String getSummary() = 0;
+        virtual std::string name() = 0;
+        virtual std::string summary() = 0;
     };
 
     //=========================================================================
@@ -90,12 +91,9 @@ public:
     public:
         Data() {}
         Data (const T& value) : value (value) {}
-
-        String getTypeName() override { return info.getTypeName(); }
-        String getSummary() override { return info.getSummary (value); }
-
+        std::string name() override { return  DataTypeInfo<T>::name(); }
+        std::string summary() override { return  DataTypeInfo<T>::summary (value); }
         T value;
-        DataTypeInfo<T> info;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Data)
     };
 
@@ -105,6 +103,15 @@ public:
         return new Data<T> (value);
     }
 
+    static std::string type_name (const var& value)
+    {
+        if (auto data = dynamic_cast<GenericData*> (value.getObject()))
+        {
+            return data->name();
+        }
+        return value.toString().toStdString();
+    }
+
     template<typename T>
     static T& check_data (const var& value)
     {
@@ -112,7 +119,10 @@ public:
         {
             return result->value;
         }
-        throw std::runtime_error ("check_data failed with wrong data type");
+        throw std::runtime_error ("wrong data type: expected "
+                                  + DataTypeInfo<T>::name()
+                                  + ", got "
+                                  + type_name (value));
     }
 };
 
@@ -124,14 +134,14 @@ template<>
 class Runtime::DataTypeInfo<nd::ndarray<double, 1>>
 {
 public:
-    String getTypeName() const { return "nd::array<double, 1>"; }
-    String getSummary (const nd::ndarray<double, 1>& A) const { return "Array[" + std::to_string (A.shape()[0]) + "]"; }
+    static std::string name() { return "nd::array<double, 1>"; }
+    static std::string summary (const nd::ndarray<double, 1>& A) { return "Array[" + std::to_string (A.shape()[0]) + "]"; }
 };
 
 template<>
 class Runtime::DataTypeInfo<std::shared_ptr<PlotArtist>>
 {
 public:
-    String getTypeName() const { return "PlotArtist"; }
-    String getSummary (const std::shared_ptr<PlotArtist>& A) const { return "Artist"; }
+    static std::string name() { return "PlotArtist"; }
+    static std::string summary (const std::shared_ptr<PlotArtist>& A) { return "Artist"; }
 };

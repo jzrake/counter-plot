@@ -20,7 +20,6 @@ void UserExtensionView::configure (const var& config)
     int errors = 0;
 
     kernel.clear();
-    models.clear();
     figures.clear();
     layout.items.clear();
 
@@ -62,6 +61,9 @@ void UserExtensionView::configure (const var& config)
         }
     }
 
+
+    // Resolve environment variable definitions
+    // -----------------------------------------------------------------------
     for (const auto& item : kernel)
     {
         if (kernel.dirty (item.first))
@@ -75,70 +77,29 @@ void UserExtensionView::configure (const var& config)
     }
 
 
-    // Add figures
+    // Load figure definitions into the kernel
     // -----------------------------------------------------------------------
-    if (auto figureItems = config["figures"].getArray())
+    if (auto items = config["figures"].getArray())
     {
-        for (auto f : *figureItems)
+        for (auto item : *items)
         {
-            // ---------------------------------------------------------------
-            crt::expression figureExpression;
+            auto id = "figure" + std::to_string (figures.size());
 
             try {
-                figureExpression = DataHelpers::expressionFromVar (f);
+                kernel.insert (id, DataHelpers::expressionFromVar (item));
             }
             catch (const std::exception& e)
             {
                 sendErrorMessage (e.what());
                 ++errors;
             }
-            figureExpressions.add (figureExpression);
 
-            try {
-                auto figureVar = figureExpression.resolve<var, VarCallAdapter> (kernel);
-                models.add (FigureModel::fromVar (figureVar));
-            }
-            catch (...)
-            {
-                DBG("could not resolve the figure yet");
-                models.add (FigureModel()); // adding a dummy for now
-            }
-
-
-
-
-//            auto model = FigureModel::fromVar (f);
-//
-//            if (auto content = f["content"].getArray())
-//            {
-//                for (const auto& element : *content)
-//                {
-//                    try {
-//                        auto artistExpression = crt::parser::parse (element.toString().toStdString().data());
-//                        auto artistAsVar = artistExpression.resolve<var, VarCallAdapter> (kernel);
-//                        auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (artistAsVar);
-//                        model.content.push_back (artist);
-//                    }
-//                    catch (const crt::parser_error& e)
-//                    {
-//                        sendErrorMessage ("bad expression in figure content block: " + std::string (e.what()));
-//                        ++errors;
-//                    }
-//                    catch (const std::out_of_range& e)
-//                    {
-//                        sendErrorMessage (e.what());
-//                        ++errors;
-//                    }
-//                    catch (const std::exception& e)
-//                    {
-//                        sendErrorMessage (e.what());
-//                        ++errors;
-//                    }
-//                }
-//            }
-//            models.add (model);
+            auto model = FigureModel();
+            model.id = id;
+            figures.add (new FigureView (model));
         }
     }
+    errors += resolveKernel();
 
 
     // Load layout specification
@@ -147,14 +108,11 @@ void UserExtensionView::configure (const var& config)
     layout.templateRows    = DataHelpers::gridTrackInfoArrayFromVar (config["rows"]);
 
 
-	for (const auto& model : models)
+	for (auto figure : figures)
 	{
-        auto figure = std::make_unique<FigureView>();
-        figure->setModel (model);
         figure->addListener (this);
         addAndMakeVisible (*figure);
 		layout.items.add (figure->getGridItem());
-        figures.add (figure.release());
     }
 
     layout.performLayout (getLocalBounds());
@@ -200,6 +158,7 @@ bool UserExtensionView::isInterestedInFile (File file) const
 
 void UserExtensionView::loadFile (File fileToDisplay)
 {
+    kernel.insert ("file", fileToDisplay.getFullPathName());
 }
 
 String UserExtensionView::getViewerName() const
@@ -213,8 +172,7 @@ String UserExtensionView::getViewerName() const
 //=========================================================================
 void UserExtensionView::figureViewSetDomainAndMargin (FigureView* figure, const Rectangle<double>& domain, const BorderSize<int>& margin)
 {
-    auto index = figures.indexOf (figure);
-    auto& model = models.getReference (index);
+    auto model = figure->getModel();
     model.xmin = domain.getX();
     model.ymin = domain.getY();
     model.xmax = domain.getRight();
@@ -225,51 +183,46 @@ void UserExtensionView::figureViewSetDomainAndMargin (FigureView* figure, const 
 
 void UserExtensionView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
 {
-    auto index = figures.indexOf (figure);
-    auto& model = models.getReference (index);
+    auto model = figure->getModel();
     model.margin = margin;
     figure->setModel (model);
 }
 
 void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
 {
-    auto index = figures.indexOf (figure);
-    auto& model = models.getReference (index);
+    auto model = figure->getModel();
     model.xmin = domain.getX();
     model.ymin = domain.getY();
     model.xmax = domain.getRight();
     model.ymax = domain.getBottom();
 
-    if (model.id.isNotEmpty())
-    {
-        kernel.insert (model.id.toStdString() + ".xmin", var (model.xmin));
-        kernel.insert (model.id.toStdString() + ".xmax", var (model.xmax));
-        kernel.insert (model.id.toStdString() + ".ymin", var (model.ymin));
-        kernel.insert (model.id.toStdString() + ".ymax", var (model.ymax));
-    }
+//    if (model.id.isNotEmpty())
+//    {
+//        kernel.insert (model.id.toStdString() + ".xmin", var (model.xmin));
+//        kernel.insert (model.id.toStdString() + ".xmax", var (model.xmax));
+//        kernel.insert (model.id.toStdString() + ".ymin", var (model.ymin));
+//        kernel.insert (model.id.toStdString() + ".ymax", var (model.ymax));
+//    }
     figure->setModel (model);
 }
 
 void UserExtensionView::figureViewSetXlabel (FigureView* figure, const String& xlabel)
 {
-    auto index = figures.indexOf (figure);
-    auto& model = models.getReference (index);
+    auto model = figure->getModel();
     model.xlabel = xlabel;
     figure->setModel (model);
 }
 
 void UserExtensionView::figureViewSetYlabel (FigureView* figure, const String& ylabel)
 {
-    auto index = figures.indexOf (figure);
-    auto& model = models.getReference (index);
+    auto model = figure->getModel();
     model.ylabel = ylabel;
     figure->setModel (model);
 }
 
 void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& title)
 {
-    auto index = figures.indexOf (figure);
-    auto& model = models.getReference (index);
+    auto model = figure->getModel();
     model.title = title;
     figure->setModel (model);
 }
@@ -278,7 +231,73 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 
 
 //=========================================================================
-void UserExtensionView::resolveKernel()
+int UserExtensionView::resolveKernel()
 {
+    int errors = 0;
 
+    for (auto figure : figures)
+    {
+        auto key = figure->getModel().id.toStdString();
+
+        if (kernel.dirty (key))
+        {
+            if (kernel.update (key))
+            {
+                try {
+                    figure->setModel (FigureModel::fromVar (kernel.at (key)));
+                }
+                catch (const std::exception& e)
+                {
+                    DBG("caught... " << e.what());
+                    sendErrorMessage (e.what());
+                    ++errors;
+                }
+            }
+            else
+            {
+                sendErrorMessage ("unable to update " + key);
+                ++errors;
+            }
+        }
+    }
+    return errors;
 }
+
+
+
+
+
+
+//            auto model = FigureModel::fromVar (f);
+//
+//            if (auto content = f["content"].getArray())
+//            {
+//                for (const auto& element : *content)
+//                {
+//                    try {
+//                        auto artistExpression = crt::parser::parse (element.toString().toStdString().data());
+//                        auto artistAsVar = artistExpression.resolve<var, VarCallAdapter> (kernel);
+//                        auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (artistAsVar);
+//                        model.content.push_back (artist);
+//                    }
+//                    catch (const crt::parser_error& e)
+//                    {
+//                        sendErrorMessage ("bad expression in figure content block: " + std::string (e.what()));
+//                        ++errors;
+//                    }
+//                    catch (const std::out_of_range& e)
+//                    {
+//                        sendErrorMessage (e.what());
+//                        ++errors;
+//                    }
+//                    catch (const std::exception& e)
+//                    {
+//                        sendErrorMessage (e.what());
+//                        ++errors;
+//                    }
+//                }
+//            }
+//            models.add (model);
+//        }
+//    }
+

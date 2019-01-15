@@ -451,7 +451,8 @@ void FigureView::setComponentColours (Component& t, const FigureModel& m)
 
 
 //=============================================================================
-FigureView::FigureView() : plotArea (*this)
+FigureView::FigureView() : FigureView (FigureModel()) {}
+FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*this)
 {
     xlabel.setJustificationType (Justification::centred);
     ylabel.setJustificationType (Justification::centred);

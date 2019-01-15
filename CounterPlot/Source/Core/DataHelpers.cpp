@@ -87,11 +87,11 @@ crt::expression DataHelpers::expressionFromVar (const var& value)
             return crt::parser::parse (str.getCharPointer());
         return str.toStdString();
     }
-    if (value.isArray())
+    if (auto elements = value.getArray())
     {
         std::vector<crt::expression> expr = { crt::expression::symbol ("list") };
 
-        for (const auto& element : *value.getArray())
+        for (const auto& element : *elements)
             expr.push_back (expressionFromVar (element));
         return expr;
     }

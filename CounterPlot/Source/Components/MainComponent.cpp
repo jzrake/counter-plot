@@ -85,7 +85,7 @@ void StatusBar::paint (Graphics& g)
     g.setColour (fontColour);
     g.setFont (Font ("Monaco", 11, 0));
 
-    g.drawText (mousePositionInFigure.isOrigin() ? mousePositionInFigure.toString() : "", mousePositionArea, Justification::centredLeft);
+    g.drawText (mousePositionInFigure.isOrigin() ? "" : mousePositionInFigure.toString(), mousePositionArea, Justification::centredLeft);
     g.drawText (currentViewerName, viewerNameArea, Justification::centredRight);
 
     g.setColour (errorColour);
@@ -97,6 +97,7 @@ void StatusBar::resized()
 }
 
 
+#include "../Core/Runtime.hpp"
 
 
 //=============================================================================
