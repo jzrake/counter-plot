@@ -154,6 +154,7 @@ void EnvironmentView::setKernel (const Runtime::Kernel* kernelToView)
 
     keys.sort();
     list.updateContent();
+    repaint();
 }
 
 
@@ -199,6 +200,8 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
 {
     g.fillAll (rowIsSelected ? findColour (ListBox::backgroundColourId).darker() : Colours::transparentBlack);
 
+    auto key = keys[rowNumber];
+    auto err = kernel->error_at (key.toStdString());
     auto repr = kernel->at (keys[rowNumber].toStdString()).toString();
     auto text1 = findColour (LookAndFeelHelpers::environmentViewText1);
     auto text2 = findColour (LookAndFeelHelpers::environmentViewText2);
@@ -207,8 +210,16 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
     g.setColour (text1);
     g.drawText (keys[rowNumber], 8, 0, width - 16, height, Justification::centredLeft);
 
-    g.setColour (text2);
-    g.drawText (repr, 8, 0, width - 16, height, Justification::centredRight);
+    if (err.empty())
+    {
+        g.setColour (text2);
+        g.drawText (repr, 8, 0, width - 16, height, Justification::centredRight);
+    }
+    else
+    {
+        g.setColour (Colours::orange);
+        g.drawText (err, 8, 0, width - 16, height, Justification::centredRight);
+    }
 }
 
 

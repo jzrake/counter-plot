@@ -50,28 +50,14 @@ void UserExtensionView::configure (const var& config)
                 }
                 catch (const std::exception& e)
                 {
-                    sendErrorMessage ("bad expression in environment block: " + std::string (e.what()));
+                    kernel.insert (key, var());
+                    kernel.set_error (key, e.what());
                     ++errors;
                 }
             }
             else
             {
                 kernel.insert (key, item.value);
-            }
-        }
-    }
-
-
-    // Resolve environment variable definitions
-    // -----------------------------------------------------------------------
-    for (const auto& item : kernel)
-    {
-        if (kernel.dirty (item.first))
-        {
-            if (! kernel.update (item.first))
-            {
-                sendErrorMessage ("could not resolve kernel symbol: " + item.first);
-                ++errors;
             }
         }
     }
@@ -90,7 +76,9 @@ void UserExtensionView::configure (const var& config)
             }
             catch (const std::exception& e)
             {
-                sendErrorMessage (e.what());
+                kernel.insert (id, FigureModel().toVar());
+                kernel.set_error (id, e.what());
+                // sendErrorMessage (e.what());
                 ++errors;
             }
 
@@ -240,27 +228,22 @@ int UserExtensionView::resolveKernel()
 {
     int errors = 0;
 
+    auto initiallyDirtyRules = kernel.dirty_rules();
+    kernel.update_all (initiallyDirtyRules);
+
     for (auto figure : figures)
     {
-        auto key = figure->getModel().id.toStdString();
+        auto id = figure->getModel().id.toStdString();
 
-        if (kernel.dirty (key))
+        if (initiallyDirtyRules.count (id))
         {
-            if (kernel.update (key))
-            {
-                try {
-                    figure->setModel (FigureModel::fromVar (kernel.at (key)));
-                }
-                catch (const std::exception& e)
-                {
-                    DBG("caught... " << e.what());
-                    sendErrorMessage (e.what());
-                    ++errors;
-                }
+            try {
+                figure->setModel (FigureModel::fromVar (kernel.at (id)));
             }
-            else
+            catch (const std::exception& e)
             {
-                sendErrorMessage ("unable to update " + key);
+                kernel.set_error (id, e.what());
+                // sendErrorMessage (e.what());
                 ++errors;
             }
         }

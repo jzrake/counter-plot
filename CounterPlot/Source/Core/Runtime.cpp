@@ -66,6 +66,13 @@ namespace builtin
         LinePlotModel model;
         model.x.become (checkArgData<nd::array<double, 1>> ("plot", args, 0));
         model.y.become (checkArgData<nd::array<double, 1>> ("plot", args, 1));
+
+        if (model.x.size() != model.y.size())
+        {
+            throw std::runtime_error ("x and y have different sizes: "
+                                      + std::to_string (model.x.size()) + " and "
+                                      + std::to_string (model.y.size()));
+        }
         return Runtime::make_data (std::shared_ptr<PlotArtist> (new LinePlotArtist (model)));
     }
 }

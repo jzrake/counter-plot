@@ -15,8 +15,8 @@ hdf5-groups:
 
 
 environment:
-  x: (linspace 0.3 0.5 128)
-  z: (linspace 0.4 0.8 128)
+  x: (linspace 0.3 0.5 256)
+  z: (linspace 0.4 0.8 256)
   no-expression: [1, 2, 3]
 
 figures:
@@ -39,4 +39,3 @@ figures:
   margin: {top: 0, bottom: 30, left: 80, right: *right-margin}
   content:
     - (plot x z)
-

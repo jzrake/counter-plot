@@ -57,7 +57,7 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundSch
             laf.setColour (statusBarBackground, Colours::darkgrey.darker (0.44f));
             laf.setColour (statusBarText, Colours::darkgrey.brighter (0.44f));
             laf.setColour (statusBarErrorText, Colours::darkorange);
-            laf.setColour (environmentViewBackground, Colour (widgetBackground));
+            laf.setColour (environmentViewBackground, Colour (widgetBackground).withAlpha (0.95f));
             laf.setColour (environmentViewSelectedItem, Colour (widgetBackground).darker());
             laf.setColour (environmentViewText1, Colour (defaultText));
             laf.setColour (environmentViewText2, Colour (defaultText).darker());

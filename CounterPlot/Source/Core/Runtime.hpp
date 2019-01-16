@@ -48,7 +48,7 @@ public:
         }
         catch (const std::exception&)
         {
-            throw std::runtime_error ("unresolved symbol in scope: " + key);
+            throw std::runtime_error ("unresolved symbol: " + key);
         }
     }
 
