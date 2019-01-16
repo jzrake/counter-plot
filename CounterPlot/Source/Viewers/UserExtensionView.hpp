@@ -45,4 +45,5 @@ private:
     Grid layout;
     Runtime::Kernel kernel;
     OwnedArray<FigureView> figures;
+    File currentFile;
 };

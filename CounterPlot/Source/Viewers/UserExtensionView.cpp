@@ -36,6 +36,8 @@ void UserExtensionView::configure (const var& config)
     // -----------------------------------------------------------------------
     Runtime::load_builtins (kernel);
 
+    kernel.insert ("file", currentFile.getFullPathName());
+
     if (auto environment = config["environment"].getDynamicObject())
     {
         for (const auto& item : environment->getProperties())
@@ -82,9 +84,8 @@ void UserExtensionView::configure (const var& config)
                 ++errors;
             }
 
-            auto model = FigureModel();
-            model.id = id;
-            figures.add (new FigureView (model));
+            figures.add (new FigureView);
+            figures.getLast()->setComponentID (id);
         }
     }
     errors += resolveKernel();
@@ -146,7 +147,9 @@ bool UserExtensionView::isInterestedInFile (File file) const
 
 void UserExtensionView::loadFile (File fileToDisplay)
 {
+    currentFile = fileToDisplay;
     kernel.insert ("file", fileToDisplay.getFullPathName());
+    resolveKernel();
 }
 
 String UserExtensionView::getViewerName() const
@@ -227,13 +230,12 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 int UserExtensionView::resolveKernel()
 {
     int errors = 0;
-
     auto initiallyDirtyRules = kernel.dirty_rules();
     kernel.update_all (initiallyDirtyRules);
 
     for (auto figure : figures)
     {
-        auto id = figure->getModel().id.toStdString();
+        auto id = figure->getComponentID().toStdString();
 
         if (initiallyDirtyRules.count (id))
         {
@@ -243,10 +245,10 @@ int UserExtensionView::resolveKernel()
             catch (const std::exception& e)
             {
                 kernel.set_error (id, e.what());
-                // sendErrorMessage (e.what());
                 ++errors;
             }
         }
     }
+    sendEnvironmentChanged();
     return errors;
 }

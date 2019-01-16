@@ -5,6 +5,63 @@
 
 
 //=============================================================================
+var DataHelpers::varFromExpression (const crt::expression& expr)
+{
+    // This method is not tested yet... I think that turning an expression back into
+    // a var might need input from the kernel... in particular in determining whether
+    // a rule is concrete or abstract - if abstract (that is, the kernel has an
+    // expression for it) then it should be decompiled and stored as a string. In other
+    // words this function probably needs to be written over the whole kernel.
+    jassertfalse;
+
+    switch (expr.dtype())
+    {
+        case crt::data_type::composite:
+        {
+            var obj = new DynamicObject;
+
+            for (const auto& part : expr)
+            {
+                // There's no way to turn an expression with
+                // unnamed parts into a var...
+                jassert (! part.key().empty());
+                obj.getDynamicObject()->setProperty (Identifier (part.key()), varFromExpression (part));
+            }
+            return obj;
+        }
+        case crt::data_type::f64: return expr.get_f64();
+        case crt::data_type::i32: return expr.get_i32();
+        case crt::data_type::none: return var();
+        case crt::data_type::str: return String (expr.repr());
+        case crt::data_type::symbol: return "$" + String (expr.repr());
+    }
+}
+
+var DataHelpers::varFromBorderSize (const BorderSize<int>& border)
+{
+    auto obj = std::make_unique<DynamicObject>();
+    obj->setProperty ("top", border.getTop());
+    obj->setProperty ("bottom", border.getBottom());
+    obj->setProperty ("left", border.getLeft());
+    obj->setProperty ("right", border.getRight());
+    return obj.release();
+}
+
+var DataHelpers::varFromYamlScalar (const YAML::Node& scalar)
+{
+    assert (scalar.IsScalar());
+    auto value = String (scalar.Scalar());
+
+    if (! JSON::fromString (value).isVoid())
+        return JSON::fromString (value);
+
+    return value;
+}
+
+
+
+
+//=============================================================================
 YAML::Node DataHelpers::yamlNodeFromVar (const var& value)
 {
     if (value.isVoid()) return YAML::Node();
@@ -35,15 +92,41 @@ YAML::Node DataHelpers::yamlNodeFromVar (const var& value)
     return YAML::Node();
 }
 
-var DataHelpers::varFromYamlScalar (const YAML::Node& scalar)
+crt::expression DataHelpers::expressionFromVar (const var& value)
 {
-    assert (scalar.IsScalar());
-    auto value = String (scalar.Scalar());
+    if (value.isVoid()) return {};
+    if (value.isBool()) return int (value);
+    if (value.isInt()) return int (value);
+    if (value.isDouble()) return double (value);
+    if (value.isString())
+    {
+        auto str = value.toString();
 
-    if (! JSON::fromString (value).isVoid())
-        return JSON::fromString (value);
+        if (str.startsWithChar ('(') && str.endsWithChar (')'))
+            return crt::parser::parse (str.getCharPointer());
 
-    return value;
+        else if (str.startsWithChar ('$'))
+            return crt::expression::symbol (str.substring (1).toStdString());
+
+        return str.toStdString();
+    }
+    if (auto elements = value.getArray())
+    {
+        std::vector<crt::expression> expr = { crt::expression::symbol ("list") };
+
+        for (const auto& element : *elements)
+            expr.push_back (expressionFromVar (element));
+        return expr;
+    }
+    if (auto obj = value.getDynamicObject())
+    {
+        std::vector<crt::expression> expr = { crt::expression::symbol ("dict") };
+
+        for (const auto& item : obj->getProperties())
+            expr.push_back (expressionFromVar (item.value).keyed (item.name.toString().toStdString()));
+        return expr;
+    }
+    return {};
 }
 
 var DataHelpers::varFromYamlNode (const YAML::Node& node)
@@ -71,49 +154,6 @@ var DataHelpers::varFromYamlNode (const YAML::Node& node)
         }
     }
     return var();
-}
-
-crt::expression DataHelpers::expressionFromVar (const var& value)
-{
-    if (value.isVoid()) return {};
-    if (value.isBool()) return int (value);
-    if (value.isInt()) return int (value);
-    if (value.isDouble()) return double (value);
-    if (value.isString())
-    {
-        auto str = value.toString();
-
-        if (str.startsWithChar ('(') && str.endsWithChar (')'))
-            return crt::parser::parse (str.getCharPointer());
-        return str.toStdString();
-    }
-    if (auto elements = value.getArray())
-    {
-        std::vector<crt::expression> expr = { crt::expression::symbol ("list") };
-
-        for (const auto& element : *elements)
-            expr.push_back (expressionFromVar (element));
-        return expr;
-    }
-    if (auto obj = value.getDynamicObject())
-    {
-        std::vector<crt::expression> expr = { crt::expression::symbol ("dict") };
-
-        for (const auto& item : obj->getProperties())
-            expr.push_back (expressionFromVar (item.value).keyed (item.name.toString().toStdString()));
-        return expr;
-    }
-    return {};
-}
-
-var DataHelpers::varFromBorderSize (const BorderSize<int>& border)
-{
-    auto obj = std::make_unique<DynamicObject>();
-    obj->setProperty ("top", border.getTop());
-    obj->setProperty ("bottom", border.getBottom());
-    obj->setProperty ("left", border.getLeft());
-    obj->setProperty ("right", border.getRight());
-    return obj.release();
 }
 
 Array<Grid::TrackInfo> DataHelpers::gridTrackInfoArrayFromVar (const var& value)

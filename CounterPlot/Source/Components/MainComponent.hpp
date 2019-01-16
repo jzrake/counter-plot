@@ -58,6 +58,7 @@ public:
     //=========================================================================
     EnvironmentView();
     void setKernel (const Runtime::Kernel* kernelToView);
+    void refresh();
 
     //=========================================================================
     void resized() override;
@@ -120,6 +121,7 @@ public:
     void viewerAsyncTaskFinished() override;
     void viewerLogErrorMessage (const String&) override;
     void viewerIndicateSuccess() override;
+    void viewerEnvironmentChanged() override;
 
     //=========================================================================
     void extensionViewerReconfigured (UserExtensionView*) override;

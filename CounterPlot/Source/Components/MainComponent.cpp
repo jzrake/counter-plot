@@ -145,6 +145,11 @@ EnvironmentView::EnvironmentView()
 void EnvironmentView::setKernel (const Runtime::Kernel* kernelToView)
 {
     kernel = kernelToView;
+    refresh();
+}
+
+void EnvironmentView::refresh()
+{
     keys.clear();
 
     if (kernel)
@@ -233,7 +238,7 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
-    viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
+    // viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
     viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
     viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
 
@@ -364,6 +369,11 @@ void MainComponent::viewerLogErrorMessage (const String& what)
 void MainComponent::viewerIndicateSuccess()
 {
     statusBar.setCurrentErrorMessage (String());
+}
+
+void MainComponent::viewerEnvironmentChanged()
+{
+    environmentView.refresh();
 }
 
 

@@ -4,9 +4,12 @@
 
 
 
-// ============================================================================
+//=============================================================================
 namespace builtin
 {
+
+
+    //=========================================================================
     template<typename T>
     T checkArg (const std::string& caller, var::NativeFunctionArgs args, int index)
     {
@@ -15,6 +18,16 @@ namespace builtin
             throw std::runtime_error (caller + ": required argument at index " + std::to_string (index) + " not found");
         }
         return args.arguments[index];
+    }
+
+    template<>
+    std::string checkArg<std::string> (const std::string& caller, var::NativeFunctionArgs args, int index)
+    {
+        if (index >= args.numArguments)
+        {
+            throw std::runtime_error (caller + ": required argument at index " + std::to_string (index) + " not found");
+        }
+        return args.arguments[index].toString().toStdString();
     }
 
     template<typename T>
@@ -33,6 +46,8 @@ namespace builtin
         }
     }
 
+
+    //=========================================================================
     var list (var::NativeFunctionArgs args)
     {
         return Array<var> (args.arguments, args.numArguments);
@@ -53,6 +68,8 @@ namespace builtin
         return checkArg<var>("attr", args, 0)[Identifier (checkArg<String>("attr", args, 1))];
     }
 
+
+    //=========================================================================
     var linspace (var::NativeFunctionArgs args)
     {
         auto x0  = checkArg<double> ("linspace", args, 0);
@@ -61,6 +78,8 @@ namespace builtin
         return Runtime::make_data (nd::linspace<double> (x0, x1, num));
     }
 
+
+    //=========================================================================
     var plot (var::NativeFunctionArgs args)
     {
         LinePlotModel model;
@@ -75,6 +94,18 @@ namespace builtin
         }
         return Runtime::make_data (std::shared_ptr<PlotArtist> (new LinePlotArtist (model)));
     }
+
+
+    //=========================================================================
+    var load_hdf5 (var::NativeFunctionArgs args)
+    {
+        auto fname = checkArg<std::string> ("load-hdf5", args, 0);
+        auto dname = checkArg<std::string> ("load-hdf5", args, 1);
+
+        auto h5f = h5::File(fname);
+        auto arr = h5f.read<nd::array<double, 1>> (dname);
+        return Runtime::make_data (arr);
+    }
 }
 
 
@@ -88,4 +119,5 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("item", var::NativeFunction (builtin::item), Flags::builtin);
     kernel.insert ("plot", var::NativeFunction (builtin::plot), Flags::builtin);
     kernel.insert ("linspace", var::NativeFunction (builtin::linspace), Flags::builtin);
+    kernel.insert ("load-hdf5", var::NativeFunction (builtin::load_hdf5), Flags::builtin);
 }

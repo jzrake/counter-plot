@@ -73,6 +73,13 @@ void Viewer::sendIndicateSuccess() const
     }
 }
 
+void Viewer::sendEnvironmentChanged() const
+{
+    if (auto sink = findParentComponentOfClass<MessageSink>())
+    {
+        sink->viewerEnvironmentChanged();
+    }
+}
 
 
 

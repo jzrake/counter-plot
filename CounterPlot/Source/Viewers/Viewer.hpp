@@ -20,6 +20,7 @@ public:
         virtual void viewerAsyncTaskFinished() = 0;
         virtual void viewerLogErrorMessage (const String& what) = 0;
         virtual void viewerIndicateSuccess() = 0;
+        virtual void viewerEnvironmentChanged() = 0;
     };
 
     /**
@@ -57,6 +58,7 @@ public:
      */
     void sendErrorMessage (const String& what) const;
     void sendIndicateSuccess() const;
+    void sendEnvironmentChanged() const;
 
     /**
      * Destructor.
