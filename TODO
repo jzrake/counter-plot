@@ -3,7 +3,7 @@
 + Project git host
 + Read metal texture as image
 + Save figures images
-- Time series for binary torques
+/ Time series for binary torques
 + Colormap view
 + Create FileView base with isInterestedInFile, displayFile methods
 + Factor main component to use a collection of FileView instances
@@ -13,11 +13,17 @@
 - Multiple tabs and/or split view
 + Show/hide the directory tree
 + Draw mouse position in status bar
-- Sort/filter directory tree items
-- Option to preserve figure aspect ratio
-- Move commands from binary torques to file based view
+/ Sort/filter directory tree items
++ Option to preserve figure aspect ratio
++ Move commands from binary torques to file based view
 - LaTeX via node mathjax or system TeX
-- Work out robust logic for multi-figure pages
++ Work out robust logic for multi-figure pages
 / Write proper quadmesh artist and factories
-- Display viewer name in status bar
++ Display viewer name in status bar
+
+
 - Multiple viewers per file, allow to select from status bar
+- Add file patterns to extension view
+- Zoom-to-content-extent command in figures
+- Preserve environment between extension view reconfigs
+- Handle async kernel resolves

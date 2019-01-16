@@ -46,6 +46,12 @@ namespace builtin
         }
     }
 
+    template<typename T>
+    T optKeywordArg (const std::string& caller, var::NativeFunctionArgs args, String key, T defaultValue)
+    {
+        return args.thisObject.getProperty (key, defaultValue);
+    }
+
 
     //=========================================================================
     var list (var::NativeFunctionArgs args)
@@ -99,12 +105,14 @@ namespace builtin
     //=========================================================================
     var load_hdf5 (var::NativeFunctionArgs args)
     {
+        auto _ = nd::axis::all();
         auto fname = checkArg<std::string> ("load-hdf5", args, 0);
         auto dname = checkArg<std::string> ("load-hdf5", args, 1);
+        auto skips = optKeywordArg ("load-hdf5", args, "skip", 1);
 
         auto h5f = h5::File(fname);
         auto arr = h5f.read<nd::array<double, 1>> (dname);
-        return Runtime::make_data (arr);
+        return Runtime::make_data (arr.select (_|0|int(arr.size())|skips));
     }
 }
 

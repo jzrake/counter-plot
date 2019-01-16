@@ -1,10 +1,10 @@
 # =============================================================================
-# A basic viewer exmaple
+# A basic viewer example
 # =============================================================================
 
 
 name: A Basic Viewer Example
-rows: [6, 5]
+rows: [1]
 cols: [1]
 
 
@@ -17,20 +17,20 @@ hdf5-groups:
 environment:
   x: (linspace 0.3 0.5 256)
   z: (linspace 0.4 0.8 256)
-  t: (load-hdf5 file 'time_series/time')
-  y: (load-hdf5 file 'time_series/gravitational_torque_on_bh1')
+  t: (load-hdf5 file 'time_series/time' skip=1000)
+  y: (load-hdf5 file 'time_series/gravitational_torque_on_bh1' skip=1000)
   no-expression: [1, 2, 3]
 
 figures:
 
-- title: |
-         Figure title
-         Second line
-  xlabel:
-  ylabel: Y axis 1
-  xmin: -10
-  xmax:  10
-  margin: {top: 60, bottom: 30, left: 80, right: &right-margin 40}
+# - title: |
+#          Figure title
+#          Second line
+#   xlabel:
+#   ylabel: Y axis 1
+#   xmin: -10
+#   xmax:  10
+#   margin: {top: 60, bottom: 30, left: 80, right: &right-margin 40}
 
 - title: $file
   title-showing: true
@@ -40,6 +40,6 @@ figures:
   can-deform-domain: false
   background-color: [66, 66, 66]
   gridlines-color: [55, 55, 55]
-  margin: {top: 80, bottom: 30, left: 80, right: *right-margin}
+  margin: {top: 80, bottom: 30, left: 80, right: 40}
   content:
     - (plot t y)
