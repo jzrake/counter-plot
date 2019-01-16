@@ -83,7 +83,7 @@ void UserExtensionView::configure (const var& config)
     {
         for (auto item : *items)
         {
-            auto id = "figure" + std::to_string (figures.size());
+            auto id = "figures:" + std::to_string (figures.size());
 
             try {
                 kernel.insert (id, DataHelpers::expressionFromVar (item));

@@ -33,6 +33,20 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, TextColourSch
 
 void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundScheme scheme)
 {
+
+    // These are the LookAndFeel_v4 DarkColourScheme colours:
+    // ------------------------------------------------------
+    // const static auto windowBackground  = 0xff323e44;
+       const static auto widgetBackground  = 0xff263238;
+    // const static auto menuBackground    = 0xff323e44;
+    // const static auto outline           = 0xff8e989b;
+       const static auto defaultText       = 0xffffffff;
+    // const static auto defaultFill       = 0xff42a2c8;
+    // const static auto highlightedText   = 0xffffffff;
+    // const static auto highlightedFill   = 0xff181f22;
+    // const static auto menuText          = 0xffffffff;
+    // ------------------------------------------------------
+
     switch (scheme)
     {
         case BackgroundScheme::dark:
@@ -43,6 +57,10 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundSch
             laf.setColour (statusBarBackground, Colours::darkgrey.darker (0.44f));
             laf.setColour (statusBarText, Colours::darkgrey.brighter (0.44f));
             laf.setColour (statusBarErrorText, Colours::darkorange);
+            laf.setColour (environmentViewBackground, Colour (widgetBackground));
+            laf.setColour (environmentViewSelectedItem, Colour (widgetBackground).darker());
+            laf.setColour (environmentViewText1, Colour (defaultText));
+            laf.setColour (environmentViewText2, Colour (defaultText).darker());
             break;
     }
 }

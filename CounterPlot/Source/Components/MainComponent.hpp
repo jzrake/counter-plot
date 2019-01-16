@@ -16,6 +16,19 @@ class StatusBar : public Component
 public:
 
     //=========================================================================
+    class EnvironmentViewToggleButton : public Button
+    {
+    public:
+        EnvironmentViewToggleButton();
+        void paintButton (Graphics& g,
+                          bool shouldDrawButtonAsHighlighted,
+                          bool shouldDrawButtonAsDown) override;
+    };
+
+    //=========================================================================
+    StatusBar();
+
+    //=========================================================================
     void incrementAsyncTaskCount();
     void decrementAsyncTaskCount();
     void setMousePositionInFigure (Point<double> position);
@@ -27,6 +40,7 @@ public:
     void resized() override;
 
 private:
+    EnvironmentViewToggleButton environmentViewToggleButton;
     Point<double> mousePositionInFigure;
     String currentViewerName;
     String currentErrorMessage;
@@ -47,23 +61,18 @@ public:
 
     //=========================================================================
     void resized() override;
+    void colourChanged() override;
+    void lookAndFeelChanged() override;
 
     //=========================================================================
     int getNumRows() override;
     void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
-    Component *refreshComponentForRow (int rowNumber, bool isRowSelected, Component *existingComponentToUpdate) override { return nullptr; }
-    void listBoxItemClicked (int row, const MouseEvent &) override {}
-    void listBoxItemDoubleClicked (int row, const MouseEvent &) override {}
-    void backgroundClicked (const MouseEvent&) override {}
-    void selectedRowsChanged (int lastRowSelected) override {}
-    void deleteKeyPressed (int lastRowSelected) override {}
-    void returnKeyPressed (int lastRowSelected) override {}
-    void listWasScrolled () override {}
-    var getDragSourceDescription (const SparseSet< int > &rowsToDescribe) override { return var(); }
-    String getTooltipForRow (int row) override { return String(); }
-    MouseCursor getMouseCursorForRow (int row) override { return MouseCursor::NormalCursor; }
 
 private:
+    //=========================================================================
+    void setColours();
+
+    //=========================================================================
     ListBox list;
     const Runtime::Kernel* kernel = nullptr;
     Array<String> keys;
@@ -89,7 +98,9 @@ public:
     void reloadCurrentFile();
     void reloadDirectoryTree();
     void toggleDirectoryTreeShown();
+    void toggleEnvironmentViewShown();
     bool isDirectoryTreeShowing() const;
+    bool isEnvironmentViewShowing() const;
     File getCurrentDirectory() const;
 
     //=========================================================================
@@ -120,6 +131,7 @@ private:
     //=========================================================================
     File currentFile;
     bool directoryTreeShowing = true;
+    bool environmentViewShowing = false;
 
     //=========================================================================
     StatusBar statusBar;

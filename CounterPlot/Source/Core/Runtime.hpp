@@ -66,6 +66,10 @@ class Runtime
 {
 public:
 
+    enum Flags {
+        builtin = 2,
+    };
+
     //=========================================================================
     using Kernel = crt::kernel<var, VarCallAdapter>;
     static void load_builtins (Kernel& kernel);

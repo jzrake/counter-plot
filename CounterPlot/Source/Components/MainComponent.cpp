@@ -1,5 +1,6 @@
 #include "MainComponent.hpp"
 #include "../Core/LookAndFeel.hpp"
+#include "../Core/Main.hpp"
 #include "../Viewers/JetInCloudView.hpp"
 #include "../Viewers/BinaryTorquesView.hpp"
 #include "../Viewers/Viewer.hpp"
@@ -30,6 +31,39 @@ public:
 
 
 //=============================================================================
+StatusBar::EnvironmentViewToggleButton::EnvironmentViewToggleButton() : Button ("")
+{
+}
+
+void StatusBar::EnvironmentViewToggleButton::paintButton (Graphics& g,
+                                                          bool shouldDrawButtonAsHighlighted,
+                                                          bool /*shouldDrawButtonAsDown*/)
+{
+    if (auto main = findParentComponentOfClass<MainComponent>())
+    {
+        g.setFont (Font().withHeight (11));
+        g.setColour (findColour (LookAndFeelHelpers::statusBarText)
+                     .brighter (shouldDrawButtonAsHighlighted ? 0.2f : 0.0f));
+        g.drawText (String (main->isEnvironmentViewShowing() ? "Hide" : "Show") +
+                    " Viewer Environment",
+                    getLocalBounds().withTrimmedLeft(8),
+                    Justification::centredLeft);
+    }
+}
+
+
+
+
+//=============================================================================
+StatusBar::StatusBar()
+{
+    environmentViewToggleButton.setButtonText ("^");
+    environmentViewToggleButton.setCommandToTrigger (&PatchViewApplication::getApp().getCommandManager(),
+                                                     PatchViewApplication::Commands::toggleEnvironmentView,
+                                                     true);
+    addAndMakeVisible (environmentViewToggleButton);
+}
+
 void StatusBar::incrementAsyncTaskCount()
 {
     ++numberOfAsyncTasks;
@@ -68,9 +102,9 @@ void StatusBar::paint (Graphics& g)
 {
     auto area = getLocalBounds();
     auto indicatorArea       = area.removeFromRight (getHeight());
-    auto viewerNameArea      = area.removeFromRight (200);
-    auto mousePositionArea   = area.removeFromRight (200);
-    auto errorMessageArea    = area.withTrimmedLeft (12);
+    auto viewerNameArea      = area.removeFromRight (150);
+    auto mousePositionArea   = area.removeFromRight (80);
+    auto errorMessageArea    = area.withTrimmedLeft (150);
     auto backgroundColour    = findColour (LookAndFeelHelpers::statusBarBackground);
     auto fontColour          = findColour (LookAndFeelHelpers::statusBarText);
     auto errorColour         = findColour (LookAndFeelHelpers::statusBarErrorText);
@@ -83,7 +117,7 @@ void StatusBar::paint (Graphics& g)
     g.fillEllipse (indicatorArea.reduced (5).toFloat());
 
     g.setColour (fontColour);
-    g.setFont (Font ("Monaco", 11, 0));
+    g.setFont (Font().withHeight (11));
 
     g.drawText (mousePositionInFigure.isOrigin() ? "" : mousePositionInFigure.toString(), mousePositionArea, Justification::centredLeft);
     g.drawText (currentViewerName, viewerNameArea, Justification::centredRight);
@@ -94,6 +128,7 @@ void StatusBar::paint (Graphics& g)
 
 void StatusBar::resized()
 {
+    environmentViewToggleButton.setBounds (getLocalBounds().removeFromLeft (150));
 }
 
 
@@ -103,6 +138,7 @@ void StatusBar::resized()
 EnvironmentView::EnvironmentView()
 {
     list.setModel (this);
+    setColours();
     addAndMakeVisible (list);
 }
 
@@ -113,11 +149,11 @@ void EnvironmentView::setKernel (const Runtime::Kernel* kernelToView)
 
     if (kernel)
         for (const auto& item : *kernel)
-            keys.add (item.first);
+            if ((item.second.flags & Runtime::builtin) == 0)
+                keys.add (item.first);
 
+    keys.sort();
     list.updateContent();
-
-    repaint(); // needed?
 }
 
 
@@ -127,6 +163,27 @@ void EnvironmentView::setKernel (const Runtime::Kernel* kernelToView)
 void EnvironmentView::resized()
 {
     list.setBounds (getLocalBounds());
+}
+
+void EnvironmentView::colourChanged()
+{
+    setColours();
+    repaint();
+}
+
+void EnvironmentView::lookAndFeelChanged()
+{
+    setColours();
+    repaint();
+}
+
+
+
+
+//=============================================================================
+void EnvironmentView::setColours()
+{
+    list.setColour (ListBox::backgroundColourId, findColour (LookAndFeelHelpers::environmentViewBackground));
 }
 
 
@@ -143,12 +200,14 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
     g.fillAll (rowIsSelected ? findColour (ListBox::backgroundColourId).darker() : Colours::transparentBlack);
 
     auto repr = kernel->at (keys[rowNumber].toStdString()).toString();
+    auto text1 = findColour (LookAndFeelHelpers::environmentViewText1);
+    auto text2 = findColour (LookAndFeelHelpers::environmentViewText2);
 
     g.setFont (Font().withHeight (11));
-    g.setColour (findColour (ListBox::textColourId));
+    g.setColour (text1);
     g.drawText (keys[rowNumber], 8, 0, width - 16, height, Justification::centredLeft);
 
-    g.setColour (findColour (ListBox::textColourId).darker());
+    g.setColour (text2);
     g.drawText (repr, 8, 0, width - 16, height, Justification::centredRight);
 }
 
@@ -159,11 +218,6 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
 MainComponent::MainComponent()
 {
     directoryTree.addListener (this);
-
-    addAndMakeVisible (statusBar);
-    addAndMakeVisible (directoryTree);
-    addAndMakeVisible (environmentView);
-
     viewers.addListener (this);
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
@@ -172,10 +226,13 @@ MainComponent::MainComponent()
     viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
     viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
 
+    addAndMakeVisible (directoryTree);
+
     for (auto view : viewers.getAllComponents())
-    {
         addChildComponent (view);
-    }
+
+    addAndMakeVisible (environmentView);
+    addAndMakeVisible (statusBar);
 
     setSize (1024, 768 - 64);
     reloadCurrentFile();
@@ -196,6 +253,7 @@ void MainComponent::reloadCurrentFile()
     {
         component->loadFile (currentFile);
         statusBar.setCurrentViewerName (component->getViewerName());
+        environmentView.setKernel (component->getKernel());
         viewers.showOnly (component);
     }
 }
@@ -211,9 +269,20 @@ void MainComponent::toggleDirectoryTreeShown()
     layout (true);
 }
 
+void MainComponent::toggleEnvironmentViewShown()
+{
+    environmentViewShowing = ! environmentViewShowing;
+    layout (true);
+}
+
 bool MainComponent::isDirectoryTreeShowing() const
 {
     return directoryTreeShowing;
+}
+
+bool MainComponent::isEnvironmentViewShowing() const
+{
+    return environmentViewShowing;
 }
 
 File MainComponent::getCurrentDirectory() const
@@ -316,7 +385,9 @@ void MainComponent::layout (bool animated)
     auto area = getLocalBounds();
     auto statusBarArea = area.removeFromBottom (22);
     auto directoryTreeArea = directoryTreeShowing ? area.removeFromLeft (300) : area.withWidth (300).translated (-300, 0);
-    auto environmentViewArea = directoryTreeArea.removeFromBottom (300);
+    auto environmentViewArea = Rectangle<int> (0, 0, 300, 330)
+    .withBottomY (statusBarArea.getY())
+    .translated (0, environmentViewShowing ? 0 : 330);
 
     setBounds (statusBar, statusBarArea);
     setBounds (directoryTree, directoryTreeArea);

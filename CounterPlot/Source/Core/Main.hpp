@@ -20,10 +20,11 @@ public:
     //=========================================================================
     enum Commands
     {
-        openDirectory       = 101,
-        reloadCurrentFile   = 102,
-        toggleDirectoryView = 103,
-        reloadDirectoryView = 104,
+        openDirectory         = 101,
+        reloadCurrentFile     = 102,
+        toggleDirectoryView   = 103,
+        reloadDirectoryView   = 104,
+        toggleEnvironmentView = 105,
     };
 
 
@@ -86,6 +87,7 @@ private:
     std::unique_ptr<ApplicationCommandManager> commandManager;
     std::unique_ptr<MainMenu> menu;
     std::unique_ptr<MainWindow> mainWindow;
+    // TooltipWindow tooltipWindow;
     ApplicationProperties applicationProperties;
     Time settingsLastPolled;
 };
