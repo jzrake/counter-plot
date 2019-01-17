@@ -23,7 +23,7 @@
 
 
 + Multiple viewers per file, allow to select from status bar
-- Add file patterns to extension view
++ Add file patterns to extension view
 - Zoom-to-content-extent command in figures
 / Preserve environment between extension view reconfigs
 - Handle async kernel resolves

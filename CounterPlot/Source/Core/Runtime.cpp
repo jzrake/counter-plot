@@ -11,43 +11,53 @@ namespace builtin
 
     //=========================================================================
     template<typename T>
-    T checkArg (const std::string& caller, var::NativeFunctionArgs args, int index)
+    T checkArg (const char* caller, var::NativeFunctionArgs args, int index)
     {
         if (index >= args.numArguments)
         {
-            throw std::runtime_error (caller + ": required argument at index " + std::to_string (index) + " not found");
+            throw std::runtime_error (std::string (caller)
+                                      + ": required argument at index "
+                                      + std::to_string (index) + " not found");
         }
         return args.arguments[index];
     }
 
     template<>
-    std::string checkArg<std::string> (const std::string& caller, var::NativeFunctionArgs args, int index)
+    std::string checkArg<std::string> (const char* caller, var::NativeFunctionArgs args, int index)
     {
         if (index >= args.numArguments)
         {
-            throw std::runtime_error (caller + ": required argument at index " + std::to_string (index) + " not found");
+            throw std::runtime_error (std::string (caller)
+                                      + ": required argument at index "
+                                      + std::to_string (index)
+                                      + " not found");
         }
         return args.arguments[index].toString().toStdString();
     }
 
     template<typename T>
-    const T& checkArgData (const std::string& caller, var::NativeFunctionArgs args, int index)
+    const T& checkArgData (const char* caller, var::NativeFunctionArgs args, int index)
     {
         if (index >= args.numArguments)
         {
-            throw std::runtime_error (caller + ": required argument at index " + std::to_string (index) + " not found");
+            throw std::runtime_error (std::string (caller)
+                                      + ": required argument at index "
+                                      + std::to_string (index)
+                                      + " not found");
         }
         try {
             return Runtime::check_data<T> (args.arguments[index]);
         }
         catch (const std::exception& e)
         {
-            throw std::runtime_error (caller + ": wrong type for argument at index " + std::to_string (index));
+            throw std::runtime_error (std::string (caller)
+                                      + ": wrong type for argument at index "
+                                      + std::to_string (index));
         }
     }
 
     template<typename T>
-    T optKeywordArg (const std::string& caller, var::NativeFunctionArgs args, String key, T defaultValue)
+    T optKeywordArg (const char* caller, var::NativeFunctionArgs args, String key, T defaultValue)
     {
         return args.thisObject.getProperty (key, defaultValue);
     }
@@ -110,7 +120,7 @@ namespace builtin
         auto dname = checkArg<std::string> ("load-hdf5", args, 1);
         auto skips = optKeywordArg ("load-hdf5", args, "skip", 1);
 
-        auto h5f = h5::File(fname);
+        auto h5f = h5::File(fname, "r");
         auto arr = h5f.read<nd::array<double, 1>> (dname);
         return Runtime::make_data (arr.select (_|0|int(arr.size())|skips));
     }

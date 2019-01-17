@@ -16,7 +16,7 @@ struct BinaryTorques::TriangleVertexData
 BinaryTorques::TriangleVertexData BinaryTorques::loadTriangleDataFromFile (File file, std::function<bool()> bailout)
 {
     try {
-        auto h5f  = h5::File (file.getFullPathName().toStdString());
+        auto h5f  = h5::File (file.getFullPathName().toStdString(), "r");
         auto h5d  = h5f.open_dataset ("primitive/sigma");
         auto data = h5d.read<nd::array<double, 2>>();
         auto scaled = MeshHelpers::scaleByLog10 (data, bailout);
