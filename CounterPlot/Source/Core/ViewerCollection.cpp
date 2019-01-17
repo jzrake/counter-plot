@@ -69,13 +69,24 @@ Array<Viewer*> ViewerCollection::getAllComponents() const
     return result;
 }
 
-void ViewerCollection::setBounds (const Rectangle<int>& newBounds)
+void ViewerCollection::setBounds (const Rectangle<int>& newBounds, bool animated)
 {
     bounds = newBounds;
 
     for (const auto& item : items)
+    {
         if (item.viewer->isVisible())
-            item.viewer->setBounds (bounds);
+        {
+            if (animated)
+            {
+                Desktop::getInstance().getAnimator().animateComponent (item.viewer.get(), bounds, 1.f, 200, false, 1.f, 1.f);
+            }
+            else
+            {
+                item.viewer->setBounds (bounds);
+            }
+        }
+    }
 }
 
 void ViewerCollection::showOnly (Viewer* componentThatShouldBeVisible) const

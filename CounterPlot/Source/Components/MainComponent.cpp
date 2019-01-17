@@ -520,5 +520,5 @@ void MainComponent::layout (bool animated)
     setBounds (statusBar, statusBarArea);
     setBounds (directoryTree, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
-    viewers.setBounds (area);
+    viewers.setBounds (area, animated);
 }

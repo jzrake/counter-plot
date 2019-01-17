@@ -75,7 +75,7 @@ public:
      * caches the bounds rectangle, and will apply it to the next viewer given
      * to the showOnly method.
      */
-    void setBounds (const Rectangle<int>& newBounds);
+    void setBounds (const Rectangle<int>& newBounds, bool animated=false);
 
 
     /**
