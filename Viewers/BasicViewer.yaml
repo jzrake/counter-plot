@@ -7,7 +7,7 @@ name: Basic Example
 rows: [1]
 cols: [1]
 
-file-patterns: []
+file-patterns: ['*.md']
 
 environment:
   x: (linspace 0 1 4)
@@ -18,10 +18,12 @@ figures:
 
 - title: $file
   ylabel: Y
-  xlabel: X
+  xlabel: (attr figure:0 xmin)
   can-edit-title: false
   can-deform-domain: true
   margin: {top: 80, bottom: 60, left: 80, right: 40}
   content:
-    - (plot x u lw=1 ls='dash' lc='magenta' mew=3 ms='circle' mw=10 mfc='orange')
-    - (plot x v lw=3 ls='solid' lc='orange'  mew=3 ms='circle' mw=10 mfc='green')
+  - (plot x u lw=1 ls='dash'  lc='magenta' mew=3 ms='circle'  mw=20 mfc='orange' mec='black')
+  - (plot x v lw=3 ls='solid' lc='orange'  mew=3 ms='diamond' mw=25 mfc='brown'  mec='red')
+  capture:
+  - xmin: fig1-xmin

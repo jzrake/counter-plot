@@ -203,11 +203,45 @@ void LinePlotArtist::paint (Graphics& g, const PlotTransformer& trans)
             const float Y = trans.fromDomainY (model.y(n));
             const auto glyphArea = Rectangle<float> (X - 0.5f * ms, Y - 0.5f * ms, ms, ms);
 
-            g.setColour (model.markerFillColour);
-            g.fillEllipse (glyphArea);
-
-            g.setColour (model.markerEdgeColour);
-            g.drawEllipse (glyphArea, model.markerEdgeWidth);
+            switch (model.markerStyle)
+            {
+                case MarkerStyle::none: break;
+                case MarkerStyle::circle:
+                    g.setColour (model.markerFillColour);
+                    g.fillEllipse (glyphArea);
+                    g.setColour (model.markerEdgeColour);
+                    g.drawEllipse (glyphArea, model.markerEdgeWidth);
+                    break;
+                case MarkerStyle::square:
+                    g.setColour (model.markerFillColour);
+                    g.fillRect (glyphArea);
+                    g.setColour (model.markerEdgeColour);
+                    g.drawRect (glyphArea, model.markerEdgeWidth);
+                    break;
+                case MarkerStyle::plus:
+                    g.setColour (model.markerEdgeColour);
+                    g.fillRect (glyphArea.reduced (0.f, 0.5f * (ms - model.markerEdgeWidth)));
+                    g.fillRect (glyphArea.reduced (0.5f * (ms - model.markerEdgeWidth), 0.f));
+                    break;
+                case MarkerStyle::cross:
+                    g.setColour (model.markerEdgeColour);
+                    g.drawLine (Line<float>(glyphArea.getTopLeft(), glyphArea.getBottomRight()), model.markerEdgeWidth);
+                    g.drawLine (Line<float>(glyphArea.getTopRight(), glyphArea.getBottomLeft()), model.markerEdgeWidth);
+                    break;
+                case MarkerStyle::diamond:
+                {
+                    Path p;
+                    p.addQuadrilateral (glyphArea.getCentreX(), glyphArea.getY(),
+                                        glyphArea.getRight(), glyphArea.getCentreY(),
+                                        glyphArea.getCentreX(), glyphArea.getBottom(),
+                                        glyphArea.getX(), glyphArea.getCentreY());
+                    g.setColour (model.markerEdgeColour);
+                    g.strokePath (p, PathStrokeType (model.markerEdgeWidth));
+                    g.setColour (model.markerFillColour);
+                    g.fillPath (p);
+                    break;
+                }
+            }
         }
     }
 }

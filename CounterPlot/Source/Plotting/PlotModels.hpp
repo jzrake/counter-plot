@@ -161,7 +161,7 @@ struct FigureModel
     Colour                  borderColour     = Colours::transparentWhite;
     Colour                  backgroundColour = Colours::transparentWhite;
     Colour                  gridlinesColour  = Colours::transparentWhite;
-    String                  gridArea;
+    StringPairArray         capturedProperties;
 
 
     //=========================================================================

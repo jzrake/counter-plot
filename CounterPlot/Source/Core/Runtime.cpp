@@ -185,6 +185,7 @@ void Runtime::load_builtins (Kernel& kernel)
 {
     kernel.insert ("list", var::NativeFunction (builtin::list), Flags::builtin);
     kernel.insert ("dict", var::NativeFunction (builtin::dict), Flags::builtin);
+    kernel.insert ("attr", var::NativeFunction (builtin::attr), Flags::builtin);
     kernel.insert ("item", var::NativeFunction (builtin::item), Flags::builtin);
     kernel.insert ("plot", var::NativeFunction (builtin::plot), Flags::builtin);
     kernel.insert ("linspace", var::NativeFunction (builtin::linspace), Flags::builtin);
