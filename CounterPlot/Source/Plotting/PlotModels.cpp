@@ -399,9 +399,9 @@ static void convert (const var& source, std::vector<std::shared_ptr<PlotArtist>>
 
 
 //=============================================================================
-FigureModel FigureModel::fromVar (const var& value)
+FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultModel)
 {
-    auto model = FigureModel();
+    FigureModel model = defaultModel;
 
     if (value.isString())
     {

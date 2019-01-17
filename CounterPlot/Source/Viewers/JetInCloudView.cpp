@@ -294,10 +294,13 @@ public:
 
     void dispatch (Action::SetFile action)
     {
-        state.file = action.file;
-        state.mainModel.title = action.file.getFileName();
-        dispatch ([action] (auto bailout) { return Action::SetTriangleData { JetInCloud::loadTriangleDataFromFile (action.file, bailout)}; });
-        subscriber.update (state);
+        if (state.file != action.file)
+        {
+            state.file = action.file;
+            state.mainModel.title = action.file.getFileName();
+            dispatch ([action] (auto bailout) { return Action::SetTriangleData { JetInCloud::loadTriangleDataFromFile (action.file, bailout)}; });
+            subscriber.update (state);
+        }
     }
 
     void dispatch (Action::SetTriangleData action)

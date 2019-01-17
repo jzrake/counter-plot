@@ -1,21 +1,24 @@
-name: Binary torques time series
+name: Binary Torques Time Series
 rows: [1]
 cols: [1]
 
 
 environment:
-  t: (load-hdf5 file 'time_series/time' skip=1000)
-  L: (load-hdf5 file 'time_series/gravitational_torque_on_bh1' skip=1000)
+  t: (load-hdf5 file 'time_series/time' skip=250)
+  L: (load-hdf5 file 'time_series/gravitational_torque_on_bh1' skip=250)
 
 
 figures:
 
 - title: $file
-  title-showing: true
   xlabel: Time (not orbits)
-  ylabel: Y axis 2
+  ylabel: L-dot
   can-edit-title: false
   can-deform-domain: false
-  margin: {top: 80, bottom: 30, left: 80, right: 40}
+  xmin: 1640
+  xmax: 1760
+  ymin: -0.5
+  ymax:  0.5
+  margin: {top: 80, bottom: 80, left: 80, right: 40}
   content:
     - (plot t L)

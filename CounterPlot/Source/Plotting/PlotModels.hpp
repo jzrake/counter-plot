@@ -161,10 +161,31 @@ struct FigureModel
     Colour                  gridlinesColour  = Colours::transparentWhite;
     String                  gridArea;
 
+
     //=========================================================================
-    static FigureModel fromVar (const var&);
+    /**
+     * Create a figure model from a DynamicObject variant. Properties not found in the
+     * given variant are taken from the model given in the optional second argument.
+     */
+    static FigureModel fromVar (const var&, const FigureModel& defaultModel);
+
+
+    /**
+     * Store the model as a DynamicObject variant. Properties not different from the
+     * default model values are not written.
+     */
     var toVar() const;
+
+
+    /**
+     * Retrieve the domain extent values [xmin, xmax, ymin, ymax] as a rectangle.
+     */
     Rectangle<double> getDomain() const;
+
+
+    /**
+     * Set the domain extent values [xmin, xmax, ymin, ymax] from a rectangle.
+     */
     void setDomain (const Rectangle<double>& domain);
 };
 

@@ -243,7 +243,9 @@ int UserExtensionView::resolveKernel()
         if (initiallyDirtyRules.count (id))
         {
             try {
-                figure->setModel (FigureModel::fromVar (kernel.at (id)));
+                auto existingModel = figure->getModel();
+                existingModel.content.clear();
+                figure->setModel (FigureModel::fromVar (kernel.at (id), existingModel));
             }
             catch (const std::exception& e)
             {
