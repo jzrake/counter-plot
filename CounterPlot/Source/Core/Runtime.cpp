@@ -81,7 +81,7 @@ namespace builtin
     }
 
     template<typename T>
-    T optKeywordArg (const char* caller, var::NativeFunctionArgs args, String key, T defaultValue)
+    T optKeywordArg (var::NativeFunctionArgs args, String key, T defaultValue)
     {
         return args.thisObject.getProperty (key, defaultValue);
     }
@@ -125,14 +125,33 @@ namespace builtin
         LinePlotModel model;
         model.x.become (checkArg<nd::array<double, 1>> ("plot", args, 0));
         model.y.become (checkArg<nd::array<double, 1>> ("plot", args, 1));
-        model.lineWidth = optKeywordArg ("plot", args, "lw", 2.f);
-        model.lineColour = DataHelpers::colourFromVar (optKeywordArg ("plot", args, "lc", Colours::black.toString()));
+        model.lineWidth        = optKeywordArg (args, "lw", 2.f);
+        model.lineColour       = DataHelpers::colourFromVar (optKeywordArg (args, "lc", model.lineColour.toString()));
+        model.markerSize       = optKeywordArg (args, "mw", model.markerSize);
+        model.markerEdgeWidth  = optKeywordArg (args, "mew", model.markerEdgeWidth);
+        model.markerEdgeColour = DataHelpers::colourFromVar (optKeywordArg<var> (args, "mec", model.markerEdgeColour.toString()));
+        model.markerFillColour = DataHelpers::colourFromVar (optKeywordArg<var> (args, "mfc", model.markerFillColour.toString()));
 
-        auto lineStyleString = optKeywordArg ("plot", args, "ls", String ("solid"));
-        if (lineStyleString == "solid")   model.lineStyle = LineStyle::solid;
-        if (lineStyleString == "dash")    model.lineStyle = LineStyle::dash;
-        if (lineStyleString == "dashdot") model.lineStyle = LineStyle::dashdot;
-        if (lineStyleString == "none")    model.lineStyle = LineStyle::none;
+        auto lineStyleString = optKeywordArg (args, "ls", String ("solid"));
+        auto markStyleString = optKeywordArg (args, "ms", String ("none"));
+
+        if (lineStyleString.isNotEmpty())
+        {
+            if (lineStyleString == "none")    model.lineStyle = LineStyle::none;
+            if (lineStyleString == "solid")   model.lineStyle = LineStyle::solid;
+            if (lineStyleString == "dash")    model.lineStyle = LineStyle::dash;
+            if (lineStyleString == "dashdot") model.lineStyle = LineStyle::dashdot;
+        }
+
+        if (markStyleString.isNotEmpty())
+        {
+            if (markStyleString == "none")    model.markerStyle = MarkerStyle::none;
+            if (markStyleString == "circle")  model.markerStyle = MarkerStyle::circle;
+            if (markStyleString == "cross")   model.markerStyle = MarkerStyle::cross;
+            if (markStyleString == "diamond") model.markerStyle = MarkerStyle::diamond;
+            if (markStyleString == "plus")    model.markerStyle = MarkerStyle::plus;
+            if (markStyleString == "square")  model.markerStyle = MarkerStyle::square;
+        }
 
         if (model.x.size() != model.y.size())
         {
@@ -150,11 +169,11 @@ namespace builtin
         auto _ = nd::axis::all();
         auto fname = checkArg<std::string> ("load-hdf5", args, 0);
         auto dname = checkArg<std::string> ("load-hdf5", args, 1);
-        auto skips = optKeywordArg ("load-hdf5", args, "skip", 1);
+        auto skip = optKeywordArg (args, "skip", 1);
 
         auto h5f = h5::File(fname, "r");
         auto arr = h5f.read<nd::array<double, 1>> (dname);
-        return Runtime::make_data (arr.select (_|0|int(arr.size())|skips));
+        return Runtime::make_data (arr.select (_|0|int(arr.size())|skip));
     }
 }
 

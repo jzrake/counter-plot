@@ -23,12 +23,14 @@ struct LinePlotModel
 {
     nd::array<double, 1> x;
     nd::array<double, 1> y;
-    float         lineWidth    = 1.f;
-    float         markerSize   = 1.f;
-    Colour        lineColour   = Colours::black;
-    Colour        markerColour = Colours::black;
-    LineStyle     lineStyle    = LineStyle::solid;
-    MarkerStyle   markerStyle  = MarkerStyle::none;
+    LineStyle     lineStyle        = LineStyle::solid;
+    float         lineWidth        = 1.f;
+    Colour        lineColour       = Colours::black;
+    MarkerStyle   markerStyle      = MarkerStyle::none;
+    float         markerSize       = 1.f;
+    float         markerEdgeWidth  = 1.f;
+    Colour        markerFillColour = Colours::transparentBlack;
+    Colour        markerEdgeColour = Colours::black;
 };
 
 

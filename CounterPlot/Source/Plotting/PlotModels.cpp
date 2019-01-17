@@ -403,8 +403,6 @@ FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultMo
 {
     FigureModel model = defaultModel;
 
-    DBG("starting from domain: " << model.getDomain().toString());
-
     if (auto obj = value.getDynamicObject())
     {
         for (const auto& item : obj->getProperties())
@@ -446,9 +444,6 @@ FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultMo
             else DBG("unknown figure property: " << item.name.toString());
         }
     }
-
-    DBG("finishing with domain: " << model.getDomain().toString());
-
     return model;
 }
 

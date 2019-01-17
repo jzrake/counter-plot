@@ -216,14 +216,6 @@ void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle
     model.ymin = domain.getY();
     model.xmax = domain.getRight();
     model.ymax = domain.getBottom();
-
-//    if (model.id.isNotEmpty())
-//    {
-//        kernel.insert (model.id.toStdString() + ".xmin", var (model.xmin));
-//        kernel.insert (model.id.toStdString() + ".xmax", var (model.xmax));
-//        kernel.insert (model.id.toStdString() + ".ymin", var (model.ymin));
-//        kernel.insert (model.id.toStdString() + ".ymax", var (model.ymax));
-//    }
     figure->setModel (model);
 }
 

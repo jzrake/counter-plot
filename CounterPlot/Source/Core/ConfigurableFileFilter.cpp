@@ -16,6 +16,10 @@ void ConfigurableFileFilter::clear()
 
 void ConfigurableFileFilter::setFilePatterns (StringArray patterns)
 {
+    if (patterns.isEmpty())
+    {
+        patterns = {"*"};
+    }
     wildcardFilter = WildcardFileFilter (patterns.joinIntoString (";"),
                                          patterns.joinIntoString (";"), "");
 }

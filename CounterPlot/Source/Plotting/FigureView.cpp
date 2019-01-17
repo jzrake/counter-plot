@@ -154,40 +154,60 @@ void LinePlotArtist::paint (Graphics& g, const PlotTransformer& trans)
         return;
     }
 
-    Path p;
-    p.startNewSubPath (trans.fromDomainX (model.x (0)),
-                       trans.fromDomainY (model.y (0)));
-
-    for (int n = 1; n < model.x.size(); ++n)
+    if (model.lineStyle != LineStyle::none)
     {
-        p.lineTo (trans.fromDomainX (model.x (n)),
-                  trans.fromDomainY (model.y (n)));
+        Path p;
+        p.startNewSubPath (trans.fromDomainX (model.x (0)),
+                           trans.fromDomainY (model.y (0)));
+
+        for (int n = 1; n < model.x.size(); ++n)
+        {
+            p.lineTo (trans.fromDomainX (model.x(n)),
+                      trans.fromDomainY (model.y(n)));
+        }
+
+        auto stroke = PathStrokeType (model.lineWidth);
+        g.setColour (model.lineColour);
+
+        switch (model.lineStyle)
+        {
+            case LineStyle::none: break;
+            case LineStyle::solid:
+            {
+                g.strokePath (p, stroke);
+                break;
+            }
+            case LineStyle::dash:
+            {
+                static const float dashLengths[] = {8.f, 8.f};
+                stroke.createDashedStroke (p, p, dashLengths, 2);
+                g.strokePath (p, stroke);
+                break;
+            }
+            case LineStyle::dashdot:
+            {
+                static const float dashLengths[] = {8.f, 8.f, 2.f, 8.f};
+                stroke.createDashedStroke (p, p, dashLengths, 4);
+                g.strokePath (p, stroke);
+                break;
+            }
+        }
     }
-
-    auto stroke = PathStrokeType (model.lineWidth);
-    g.setColour (model.lineColour);
-
-    switch (model.lineStyle)
+    if (model.markerStyle != MarkerStyle::none)
     {
-        case LineStyle::none: break;
-        case LineStyle::solid:
+        const auto ms = model.markerSize;
+
+        for (int n = 0; n < model.x.size(); ++n)
         {
-            g.strokePath (p, stroke);
-            break;
-        }
-        case LineStyle::dash:
-        {
-            static const float dashLengths[] = {8.f, 8.f};
-            stroke.createDashedStroke (p, p, dashLengths, 2);
-            g.strokePath (p, stroke);
-            break;
-        }
-        case LineStyle::dashdot:
-        {
-            static const float dashLengths[] = {8.f, 8.f, 2.f, 8.f};
-            stroke.createDashedStroke (p, p, dashLengths, 4);
-            g.strokePath (p, stroke);
-            break;
+            const float X = trans.fromDomainX (model.x(n));
+            const float Y = trans.fromDomainY (model.y(n));
+            const auto glyphArea = Rectangle<float> (X - 0.5f * ms, Y - 0.5f * ms, ms, ms);
+
+            g.setColour (model.markerFillColour);
+            g.fillEllipse (glyphArea);
+
+            g.setColour (model.markerEdgeColour);
+            g.drawEllipse (glyphArea, model.markerEdgeWidth);
         }
     }
 }
