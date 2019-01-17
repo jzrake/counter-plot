@@ -383,7 +383,6 @@ void MainComponent::setCurrentViewer (const String& viewerName)
     if (auto viewer = viewers.findViewerWithName (viewerName))
     {
         makeViewerCurrent (viewer);
-        viewer->loadFile (currentFile);
     }
 }
 
@@ -393,6 +392,7 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
     {
         if (viewer)
         {
+            viewer->loadFile (currentFile);
             statusBar.setCurrentViewerName (viewer->getViewerName());
             environmentView.setKernel (viewer->getKernel());
             viewers.showOnly (viewer);
@@ -431,7 +431,6 @@ void MainComponent::selectedFileChanged (DirectoryTree*, File file)
     else if (auto viewer = viewers.findViewerForFile (file))
     {
         makeViewerCurrent (viewer);
-        currentViewer->loadFile (currentFile);
     }
 }
 
@@ -481,8 +480,19 @@ void MainComponent::extensionViewerReconfigured (UserExtensionView* viewer)
 {
     if (viewer == currentViewer)
     {
-        statusBar.setCurrentViewerName (viewer->getViewerName());
-        environmentView.setKernel (viewer->getKernel());
+        if (viewer->isInterestedInFile (currentFile))
+        {
+            statusBar.setCurrentViewerName (viewer->getViewerName());
+            environmentView.setKernel (viewer->getKernel());
+        }
+        else // the viewer is no longer interested in the current file...
+        {
+            makeViewerCurrent (viewers.findViewerForFile (currentFile));
+        }
+    }
+    else if (currentViewer == nullptr && viewer->isInterestedInFile (currentFile))
+    {
+        makeViewerCurrent (viewer);
     }
 }
 
@@ -510,9 +520,5 @@ void MainComponent::layout (bool animated)
     setBounds (statusBar, statusBarArea);
     setBounds (directoryTree, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
-
-    for (auto view : viewers.getAllComponents())
-    {
-        setBounds (*view, area);
-    }
+    viewers.setBounds (area);
 }

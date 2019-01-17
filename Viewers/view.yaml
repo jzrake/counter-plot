@@ -2,10 +2,12 @@
 # A basic viewer example
 # =============================================================================
 
+
 name: Basic Example
 rows: [1]
 cols: [1]
 
+file-patterns: ['*.conf']
 
 environment:
   x: (linspace 0.3 0.5 256)

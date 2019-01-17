@@ -2,6 +2,7 @@
 #include "Viewer.hpp"
 #include "../Plotting/FigureView.hpp"
 #include "../Core/Runtime.hpp"
+#include "../Core/ConfigurableFileFilter.hpp"
 
 
 
@@ -43,6 +44,7 @@ private:
     //=========================================================================
     String viewerName;
     Grid layout;
+    ConfigurableFileFilter fileFilter;
     Runtime::Kernel kernel;
     OwnedArray<FigureView> figures;
     File currentFile;

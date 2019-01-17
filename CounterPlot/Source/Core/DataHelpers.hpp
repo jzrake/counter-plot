@@ -18,4 +18,5 @@ public:
     static YAML::Node yamlNodeFromVar (const var& value);
     static Array<Grid::TrackInfo> gridTrackInfoArrayFromVar (const var& value);
     static Colour colourFromVar (const var&);
+    static StringArray stringArrayFromVar (const var&);
 };

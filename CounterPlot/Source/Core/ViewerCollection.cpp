@@ -69,16 +69,22 @@ Array<Viewer*> ViewerCollection::getAllComponents() const
     return result;
 }
 
-void ViewerCollection::setBounds (const Rectangle<int>& bounds) const
+void ViewerCollection::setBounds (const Rectangle<int>& newBounds)
 {
+    bounds = newBounds;
+
     for (const auto& item : items)
-        item.viewer->setBounds (bounds);
+        if (item.viewer->isVisible())
+            item.viewer->setBounds (bounds);
 }
 
 void ViewerCollection::showOnly (Viewer* componentThatShouldBeVisible) const
 {
     for (const auto& item : items)
+    {
         item.viewer->setVisible (item.viewer.get() == componentThatShouldBeVisible);
+        item.viewer->setBounds (bounds);
+    }
 }
 
 

@@ -71,9 +71,11 @@ public:
 
 
     /**
-     * Set the bounds of all viewers to the given rectangle.
+     * Set the bounds of any visible viewers to the given rectangle. This also
+     * caches the bounds rectangle, and will apply it to the next viewer given
+     * to the showOnly method.
      */
-    void setBounds (const Rectangle<int>& bounds) const;
+    void setBounds (const Rectangle<int>& newBounds);
 
 
     /**
@@ -97,5 +99,6 @@ private:
         std::unique_ptr<Viewer> viewer;
     };
     Array<Item> items;
+    Rectangle<int> bounds;
     ListenerList<Listener> listeners;
 };

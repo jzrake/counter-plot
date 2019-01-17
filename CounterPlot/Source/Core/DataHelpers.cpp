@@ -194,3 +194,17 @@ Colour DataHelpers::colourFromVar (const var& value)
     }
     return Colours::black;
 }
+
+StringArray DataHelpers::stringArrayFromVar (const var& value)
+{
+    StringArray result;
+
+    if (auto arr = value.getArray())
+    {
+        for (auto item : *arr)
+        {
+            result.add (item.toString());
+        }
+    }
+    return result;
+}

@@ -29,6 +29,11 @@ void UserExtensionView::configure (const var& config)
     }
 
 
+    // Configure the file filter
+    // -----------------------------------------------------------------------
+    fileFilter.setFilePatterns (DataHelpers::stringArrayFromVar (config["file-patterns"]));
+
+
     // Load the viewer environment into the kernel
     // -----------------------------------------------------------------------
     Runtime::load_builtins (kernel);
@@ -139,7 +144,11 @@ void UserExtensionView::resized()
 //=============================================================================
 bool UserExtensionView::isInterestedInFile (File file) const
 {
-    return true;
+    if (file.existsAsFile())
+        return fileFilter.isFileSuitable (file);
+    if (file.isDirectory())
+        return fileFilter.isDirectorySuitable (file);
+    return false;
 }
 
 void UserExtensionView::loadFile (File fileToDisplay)
