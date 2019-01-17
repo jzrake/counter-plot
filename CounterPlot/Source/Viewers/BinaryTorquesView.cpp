@@ -112,7 +112,7 @@ struct State
 
         gradient = std::make_shared<GradientArtist>();
         quadmesh = std::make_shared<QuadmeshArtist>();
-        gradient->setMapping (mapping);
+        gradient->setStops (mapping.stops);
         quadmesh->setMapping (mapping);
 
         mainModel.titleShowing = true;
@@ -266,7 +266,7 @@ public:
     void dispatch (Action::SetColourMap action)
     {
         state.mapping.stops = action.stops;
-        state.gradient->setMapping (state.mapping);
+        state.gradient->setStops (state.mapping.stops);
         state.quadmesh->setMapping (state.mapping);
         subscriber.update (state);
     }
@@ -277,7 +277,7 @@ public:
         state.mapping.vmax = action.vmax;
         state.cmapModel.ymin = action.vmin;
         state.cmapModel.ymax = action.vmax;
-        state.gradient->setMapping (state.mapping);
+        state.gradient->setStops (state.mapping.stops);
         state.quadmesh->setMapping (state.mapping);
         subscriber.update (state);
     }

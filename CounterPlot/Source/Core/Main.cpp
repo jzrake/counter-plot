@@ -21,7 +21,7 @@ static herr_t h5_error_handler(hid_t estack, void*)
 
 
 //=============================================================================
-PatchViewApplication::MainWindow::MainWindow (String name) : DocumentWindow (name, Colours::black, DocumentWindow::allButtons)
+PatchViewApplication::MainWindow::MainWindow (String name) : DocumentWindow (name, Colours::darkgrey, DocumentWindow::allButtons)
 {
     addKeyListener (getApp().commandManager->getKeyMappings());
     Desktop::getInstance().addFocusChangeListener (this);
@@ -158,9 +158,6 @@ void PatchViewApplication::initialise (const String& commandLine)
     commandManager->registerAllCommandsForTarget (this);
     Viewer::registerCommands (*commandManager);
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
-
-    startTimer (500);
-    settingsLastPolled = Time::getCurrentTime();
 }
 
 void PatchViewApplication::shutdown()
@@ -240,41 +237,6 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
     }
 }
 
-void PatchViewApplication::timerCallback()
-{
-    // This is some experimental code to support user colour schemes
-    // -------------------------------------------------------------
-    auto settingsFile = File::getSpecialLocation (File::userHomeDirectory).getChildFile ("patch_view_settings.json");
-
-    if (settingsLastPolled > settingsFile.getLastModificationTime())
-    {
-        return;
-    }
-
-    settingsLastPolled = Time::getCurrentTime();
-    var settings = JSON::parse (settingsFile);
-    auto& laf = Desktop::getInstance().getDefaultLookAndFeel();
-
-    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::BackgroundScheme::dark);
-    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels2);
-    FigureView        ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
-
-    if (auto obj = settings.getDynamicObject())
-    {
-        for (auto item : obj->getProperties())
-        {
-            auto id = LookAndFeelHelpers::colourIdFromString (item.name.toString());
-            auto colour = DataHelpers::colourFromVar (item.value);
-
-            if (colour != Colours::transparentWhite)
-            {
-                laf.setColour (id, colour);
-            }
-        }
-    }
-    mainWindow->sendLookAndFeelChange();
-}
-
 
 
 
@@ -294,7 +256,7 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (Label::ColourIds::backgroundWhenEditingColourId, Colours::white);
 
     LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::BackgroundScheme::dark);
-    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels2);
+    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels1);
     FigureView        ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
 }
 

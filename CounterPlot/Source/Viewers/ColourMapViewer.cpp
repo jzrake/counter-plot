@@ -89,7 +89,7 @@ void ColourMapViewer::updateFigures()
         lineG.y.become (smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'g')));
         lineB.y.become (smooth (ColourMapHelpers::extractChannelAsDouble (mapping.stops, 'b')));
 
-        auto artist = std::make_shared<ColourGradientArtist> (mapping);
+        auto artist = std::make_shared<ColourGradientArtist> (mapping.stops);
         artist->setOrientation (ColourGradientArtist::Orientation::horizontal);
         artist->setGradientFollowsTransform (true);
 

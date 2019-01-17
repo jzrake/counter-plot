@@ -254,13 +254,13 @@ ColourGradientArtist::ColourGradientArtist()
 {
 }
 
-ColourGradientArtist::ColourGradientArtist (ScalarMapping mapping) : mapping (mapping)
+ColourGradientArtist::ColourGradientArtist (const Array<Colour>& stops) : stops (stops)
 {
 }
 
-void ColourGradientArtist::setMapping(ScalarMapping newMappingToShow)
+void ColourGradientArtist::setStops (const Array<Colour>& newStopsToUse)
 {
-    mapping = newMappingToShow;
+    stops = newStopsToUse;
 }
 
 void ColourGradientArtist::setOrientation (Orientation orientationToUse)
@@ -281,9 +281,9 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
 {
     auto gradient = ColourGradient();
     auto n = 0;
-    auto ds = 1.0 / (mapping.stops.size() - 1);
+    auto ds = 1.0 / (stops.size() - 1);
 
-    for (auto c : mapping.stops)
+    for (auto c : stops)
     {
         gradient.addColour (n++ * ds, c);
     }

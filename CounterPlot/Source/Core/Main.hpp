@@ -12,7 +12,7 @@ class MainComponent;
 
 
 //=============================================================================
-class PatchViewApplication : public JUCEApplication, public Timer
+class PatchViewApplication : public JUCEApplication
 {
 public:
 
@@ -52,10 +52,6 @@ public:
 
 
     //=========================================================================
-    void timerCallback() override;
-
-
-    //=========================================================================
     class MainWindow : public DocumentWindow, public FocusChangeListener
     {
     public:
@@ -91,5 +87,4 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
     // TooltipWindow tooltipWindow;
     ApplicationProperties applicationProperties;
-    Time settingsLastPolled;
 };

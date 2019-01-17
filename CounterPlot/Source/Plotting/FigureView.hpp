@@ -20,13 +20,13 @@ public:
     /** Default constructor. */
     ColourGradientArtist();
 
-    /** Construct with a mapping */
-    ColourGradientArtist (ScalarMapping mapping);
+    /** Construct with color stops. */
+    ColourGradientArtist (const Array<Colour>& stops);
 
     /**
-     * Replace the mapping drawn by this artist.
+     * Replace the color stops defining the gradient drawn by this artist.
      */
-    void setMapping (ScalarMapping newMappingToShow);
+    void setStops (const Array<Colour>& stops);
 
     /**
      * Set the orientation of the gradient: left-to-right or top-to-bottom.
@@ -45,7 +45,7 @@ public:
 
 private:
     //=========================================================================
-    ScalarMapping mapping;
+    Array<Colour> stops;
     Orientation orientation = Orientation::vertical;
     bool transformGradient = false;
 };

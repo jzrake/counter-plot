@@ -50,6 +50,8 @@ public:
         return true;
     }
 
+    int getItemHeight() const override { return 24; }
+
     void itemSelectionChanged (bool isNowSelected) override
     {
         if (isNowSelected)
