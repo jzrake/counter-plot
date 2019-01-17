@@ -29,6 +29,10 @@
     <GROUP id="{B598C4C2-9FA1-7CA8-758B-F1B244C19DD5}" name="Core">
       <FILE id="tIUuZ3" name="DataHelpers.cpp" compile="1" resource="0" file="Source/Core/DataHelpers.cpp"/>
       <FILE id="Kx9e4b" name="DataHelpers.hpp" compile="0" resource="0" file="Source/Core/DataHelpers.hpp"/>
+      <FILE id="VajpLx" name="ConfigurableFileFilter.cpp" compile="1" resource="0"
+            file="Source/Core/ConfigurableFileFilter.cpp"/>
+      <FILE id="wfyAVr" name="ConfigurableFileFilter.hpp" compile="0" resource="0"
+            file="Source/Core/ConfigurableFileFilter.hpp"/>
       <FILE id="vAyfG9" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/Core/LookAndFeel.cpp"/>
       <FILE id="fAMC19" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Core/LookAndFeel.hpp"/>
       <FILE id="r0cb3N" name="Main.cpp" compile="1" resource="0" file="Source/Core/Main.cpp"/>

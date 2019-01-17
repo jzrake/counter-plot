@@ -155,7 +155,6 @@ void PatchViewApplication::initialise (const String& commandLine)
     menu           = std::make_unique<MainMenu>();
     mainWindow     = std::make_unique<MainWindow> (getApplicationName());
     mainWindow->content->setCurrentDirectory (cwd);
-
     commandManager->registerAllCommandsForTarget (this);
     Viewer::registerCommands (*commandManager);
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);

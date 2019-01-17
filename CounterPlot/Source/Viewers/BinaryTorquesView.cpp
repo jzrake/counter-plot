@@ -394,7 +394,7 @@ BinaryTorquesView::BinaryTorquesView() : store (*this)
     layout.items.add (mainFigure.getGridItem());
     layout.items.add (cmapFigure.getGridItem());
 
-    mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+    // mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
     mainFigure.addListener (this);
     cmapFigure.addListener (this);
 
@@ -409,6 +409,9 @@ BinaryTorquesView::~BinaryTorquesView()
 
 void BinaryTorquesView::update (const State &newState)
 {
+    if (mainFigure.getRenderingSurface() == nullptr && state.file.exists()) // this is delayed to speed app initialization
+        mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+
     state = newState;
     mainFigure.setModel (state.mainModel);
     cmapFigure.setModel (state.cmapModel);

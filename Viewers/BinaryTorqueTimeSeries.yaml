@@ -2,6 +2,10 @@ name: Binary Torques Time Series
 rows: [1]
 cols: [1]
 
+file-patterns: [*.h5]
+hdf5-require-datasets:
+- name: primitive/sigma
+  rank: 2
 
 environment:
   t: (load-hdf5 file 'time_series/time' skip=250)
