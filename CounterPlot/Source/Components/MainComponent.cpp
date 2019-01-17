@@ -269,7 +269,7 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
     auto text1 = findColour (LookAndFeelHelpers::environmentViewText1);
     auto text2 = findColour (LookAndFeelHelpers::environmentViewText2);
 
-    g.setFont (Font().withHeight (11));
+    g.setFont (Font ("Monaco", 11, 0));
     g.setColour (text1);
     g.drawText (keys[rowNumber], 8, 0, width - 16, height, Justification::centredLeft);
 
@@ -515,7 +515,7 @@ void MainComponent::layout (bool animated)
     auto directoryTreeArea = directoryTreeShowing ? area.removeFromLeft (300) : area.withWidth (300).translated (-300, 0);
     auto environmentViewArea = Rectangle<int> (0, 0, 300, 330)
     .withBottomY (statusBarArea.getY())
-    .translated (0, environmentViewShowing ? 0 : 330);
+    .translated (0, environmentViewShowing ? 0 : 330 + 22); // the 22 is to ensure it's offscreen, so not painted
 
     setBounds (statusBar, statusBarArea);
     setBounds (directoryTree, directoryTreeArea);

@@ -106,7 +106,6 @@ void UserExtensionView::configure (const var& config)
             figures.getLast()->setComponentID (id);
         }
     }
-    errors += resolveKernel();
 
 
     // Load layout specification
@@ -121,6 +120,15 @@ void UserExtensionView::configure (const var& config)
         addAndMakeVisible (*figure);
         layout.items.add (figure->getGridItem());
     }
+
+    errors += resolveKernel();
+
+    for (auto figure : figures)
+    {
+        captureInKernel (figure);
+    }
+
+    errors += resolveKernel();
 
     layout.performLayout (getLocalBounds());
 
@@ -217,6 +225,8 @@ void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle
     model.xmax = domain.getRight();
     model.ymax = domain.getBottom();
     figure->setModel (model);
+    captureInKernel (figure);
+    resolveKernel();
 }
 
 void UserExtensionView::figureViewSetXlabel (FigureView* figure, const String& xlabel)
@@ -244,6 +254,21 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 
 
 //=========================================================================
+void UserExtensionView::captureInKernel (const FigureView* figure)
+{
+    const auto& model = figure->getModel();
+    const auto& keys = model.capture.getAllKeys();
+    const auto& vals = model.capture.getAllValues();
+
+    for (int n = 0; n < keys.size(); ++n)
+    {
+        if (keys[n] == "xmin") kernel.insert (vals[n].toStdString(), var (model.xmin));
+        if (keys[n] == "xmax") kernel.insert (vals[n].toStdString(), var (model.xmax));
+        if (keys[n] == "ymin") kernel.insert (vals[n].toStdString(), var (model.ymin));
+        if (keys[n] == "ymax") kernel.insert (vals[n].toStdString(), var (model.ymax));
+    }
+}
+
 int UserExtensionView::resolveKernel()
 {
     int errors = 0;

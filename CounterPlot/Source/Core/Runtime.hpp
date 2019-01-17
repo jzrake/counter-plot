@@ -43,12 +43,14 @@ public:
     template<typename Mapping>
     static const ObjectType& at (const Mapping& scope, const std::string& key)
     {
+        static var empty;
+
         try {
             return scope.at (key);
         }
         catch (const std::exception&)
         {
-            throw std::runtime_error ("unresolved symbol: " + key);
+            return empty;
         }
     }
 

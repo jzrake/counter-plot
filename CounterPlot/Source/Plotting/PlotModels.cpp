@@ -394,6 +394,10 @@ static void convert (const var& source, std::vector<std::shared_ptr<PlotArtist>>
         }
     }
 }
+static void convert (const var& source, StringPairArray& value)
+{
+    value = DataHelpers::stringPairArrayFromVar (source);
+}
 
 
 
@@ -440,6 +444,7 @@ FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultMo
             else if (item.name == Identifier ("background-color")) convert (item.value, model.backgroundColour);
             else if (item.name == Identifier ("gridlines-color")) convert (item.value, model.gridlinesColour);
             else if (item.name == Identifier ("content")) convert (item.value, model.content);
+            else if (item.name == Identifier ("capture")) convert (item.value, model.capture);
             else DBG("unknown figure property: " << item.name.toString());
         }
     }
@@ -481,5 +486,6 @@ var FigureModel::toVar() const
     if (borderColour != ref.borderColour) obj->setProperty ("border-colour", borderColour.toString());
     if (backgroundColour != ref.backgroundColour) obj->setProperty ("background-colour", backgroundColour.toString());
     if (gridlinesColour != ref.gridlinesColour) obj->setProperty ("gridlines-colour", gridlinesColour.toString());
+    if (capture != ref.capture) obj->setProperty ("capture", DataHelpers::varFromStringPairArray (capture));
     return obj.release();
 }

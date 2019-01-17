@@ -58,6 +58,17 @@ var DataHelpers::varFromYamlScalar (const YAML::Node& scalar)
     return value;
 }
 
+var DataHelpers::varFromStringPairArray (const StringPairArray &value)
+{
+    auto obj = std::make_unique<DynamicObject>();
+
+    for (const auto& key : value.getAllKeys())
+    {
+        obj->setProperty (key, value.getValue (key, ""));
+    }
+    return obj.release();
+}
+
 
 
 
@@ -209,6 +220,20 @@ StringArray DataHelpers::stringArrayFromVar (const var& value)
         for (auto item : *arr)
         {
             result.add (item.toString());
+        }
+    }
+    return result;
+}
+
+StringPairArray DataHelpers::stringPairArrayFromVar (const var& value)
+{
+    StringPairArray result;
+
+    if (auto obj = value.getDynamicObject())
+    {
+        for (auto item : obj->getProperties())
+        {
+            result.set (item.name.toString(), item.value.toString());
         }
     }
     return result;
