@@ -52,6 +52,14 @@ Viewer* ViewerCollection::findViewerForFile (File file) const
     return nullptr;
 }
 
+Viewer* ViewerCollection::findViewerWithName (const String& viewerName) const
+{
+    for (const auto& item : items)
+        if (item.viewer->getViewerName() == viewerName)
+            return item.viewer.get();
+    return nullptr;
+}
+
 Array<Viewer*> ViewerCollection::getAllComponents() const
 {
     Array<Viewer*> result;

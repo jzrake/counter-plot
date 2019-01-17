@@ -26,6 +26,28 @@ public:
     };
 
     //=========================================================================
+    class ViewerNamePopupButton : public Button
+    {
+    public:
+        ViewerNamePopupButton();
+        void paintButton (Graphics& g,
+                          bool shouldDrawButtonAsHighlighted,
+                          bool shouldDrawButtonAsDown) override;
+        void clicked() override;
+        String currentViewerName;
+    };
+
+    //=========================================================================
+    struct Geometry
+    {
+        Rectangle<int> environmentViewToggleArea;
+        Rectangle<int> errorMessageArea;
+        Rectangle<int> mousePositionArea;
+        Rectangle<int> viewerNamePopupArea;
+        Rectangle<int> busyIndicatorArea;
+    };
+
+    //=========================================================================
     StatusBar();
 
     //=========================================================================
@@ -40,9 +62,14 @@ public:
     void resized() override;
 
 private:
+
+    //=========================================================================
+    Geometry computeGeometry() const;
+
+    //=========================================================================
     EnvironmentViewToggleButton environmentViewToggleButton;
+    ViewerNamePopupButton viewerNamePopupButton;
     Point<double> mousePositionInFigure;
-    String currentViewerName;
     String currentErrorMessage;
     int numberOfAsyncTasks = 0;
 };
@@ -103,12 +130,14 @@ public:
     bool isDirectoryTreeShowing() const;
     bool isEnvironmentViewShowing() const;
     File getCurrentDirectory() const;
+    File getCurrentFile() const;
+    const Viewer* getCurrentViewer() const;
+    const ViewerCollection& getViewerCollection() const;
+    void setCurrentViewer (const String& viewerName);
+    void makeViewerCurrent (Viewer* viewer);
 
     //=========================================================================
-    void paint (Graphics&) override;
-    void paintOverChildren (Graphics& g) override;
     void resized() override;
-    bool keyPressed (const KeyPress& key) override;
 
     //=========================================================================
     void selectedFileChanged (DirectoryTree*, File) override;
@@ -139,5 +168,6 @@ private:
     StatusBar statusBar;
     DirectoryTree directoryTree;
     ViewerCollection viewers;
+    Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
 };

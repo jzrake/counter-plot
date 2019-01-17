@@ -97,11 +97,11 @@ void UserExtensionView::configure (const var& config)
     layout.templateRows    = DataHelpers::gridTrackInfoArrayFromVar (config["rows"]);
 
 
-	for (auto figure : figures)
-	{
+    for (auto figure : figures)
+    {
         figure->addListener (this);
         addAndMakeVisible (*figure);
-		layout.items.add (figure->getGridItem());
+        layout.items.add (figure->getGridItem());
     }
 
     layout.performLayout (getLocalBounds());
@@ -133,7 +133,7 @@ void UserExtensionView::configure (File file)
 //=============================================================================
 void UserExtensionView::resized()
 {
-	layout.performLayout (getLocalBounds());
+    layout.performLayout (getLocalBounds());
 }
 
 
@@ -142,19 +142,22 @@ void UserExtensionView::resized()
 //=============================================================================
 bool UserExtensionView::isInterestedInFile (File file) const
 {
-	return true;
+    return true;
 }
 
 void UserExtensionView::loadFile (File fileToDisplay)
 {
-    currentFile = fileToDisplay;
-    kernel.insert ("file", fileToDisplay.getFullPathName());
-    resolveKernel();
+    if (currentFile != fileToDisplay)
+    {
+        currentFile = fileToDisplay;
+        kernel.insert ("file", fileToDisplay.getFullPathName());
+        resolveKernel();
+    }
 }
 
 String UserExtensionView::getViewerName() const
 {
-	return viewerName;
+    return viewerName;
 }
 
 const Runtime::Kernel* UserExtensionView::getKernel() const

@@ -36,18 +36,57 @@ StatusBar::EnvironmentViewToggleButton::EnvironmentViewToggleButton() : Button (
 }
 
 void StatusBar::EnvironmentViewToggleButton::paintButton (Graphics& g,
-                                                          bool shouldDrawButtonAsHighlighted,
-                                                          bool /*shouldDrawButtonAsDown*/)
+                                                          bool highlighted,
+                                                          bool /*down*/)
 {
     if (auto main = findParentComponentOfClass<MainComponent>())
     {
+        auto text = String (main->isEnvironmentViewShowing() ? "Hide" : "Show") + " Viewer Environment";
         g.setFont (Font().withHeight (11));
-        g.setColour (findColour (LookAndFeelHelpers::statusBarText)
-                     .brighter (shouldDrawButtonAsHighlighted ? 0.2f : 0.0f));
-        g.drawText (String (main->isEnvironmentViewShowing() ? "Hide" : "Show") +
-                    " Viewer Environment",
-                    getLocalBounds().withTrimmedLeft(8),
-                    Justification::centredLeft);
+        g.setColour (findColour (LookAndFeelHelpers::statusBarText).brighter (highlighted ? 0.2f : 0.0f));
+        g.drawText (text, getLocalBounds().withTrimmedLeft(8), Justification::centredLeft);
+    }
+}
+
+
+
+
+//=============================================================================
+StatusBar::ViewerNamePopupButton::ViewerNamePopupButton() : Button ("")
+{
+}
+
+void StatusBar::ViewerNamePopupButton::paintButton (Graphics& g,
+                                                    bool highlighted,
+                                                    bool /*down*/)
+{
+    g.setFont (Font().withHeight (11));
+    g.setColour (findColour (LookAndFeelHelpers::statusBarText).brighter (highlighted ? 0.2f : 0.0f));
+    g.drawText (currentViewerName, getLocalBounds().withTrimmedRight(8), Justification::centredRight);
+}
+
+void StatusBar::ViewerNamePopupButton::clicked()
+{
+    if (auto main = findParentComponentOfClass<MainComponent>())
+    {
+        PopupMenu menu;
+        StringArray names;
+        File currentFile = main->getCurrentFile();
+        const Viewer* currentViewer = main->getCurrentViewer();
+
+        for (auto viewer : main->getViewerCollection().getAllComponents())
+        {
+            auto name = viewer->getViewerName();
+            names.add (name);
+            menu.addItem (names.size(), name, viewer->isInterestedInFile (currentFile), viewer == currentViewer);
+        }
+
+        int result = menu.show();
+
+        if (result != 0)
+        {
+            main->setCurrentViewer (names[result - 1]);
+        }
     }
 }
 
@@ -57,11 +96,11 @@ void StatusBar::EnvironmentViewToggleButton::paintButton (Graphics& g,
 //=============================================================================
 StatusBar::StatusBar()
 {
-    environmentViewToggleButton.setButtonText ("^");
     environmentViewToggleButton.setCommandToTrigger (&PatchViewApplication::getApp().getCommandManager(),
                                                      PatchViewApplication::Commands::toggleEnvironmentView,
                                                      true);
     addAndMakeVisible (environmentViewToggleButton);
+    addAndMakeVisible (viewerNamePopupButton);
 }
 
 void StatusBar::incrementAsyncTaskCount()
@@ -84,8 +123,8 @@ void StatusBar::setMousePositionInFigure (Point<double> position)
 
 void StatusBar::setCurrentViewerName (const String& viewerName)
 {
-    currentViewerName = viewerName;
-    repaint();
+    viewerNamePopupButton.currentViewerName = viewerName;
+    viewerNamePopupButton.repaint();
 }
 
 void StatusBar::setCurrentErrorMessage (const String& what)
@@ -100,11 +139,7 @@ void StatusBar::setCurrentErrorMessage (const String& what)
 //=============================================================================
 void StatusBar::paint (Graphics& g)
 {
-    auto area = getLocalBounds();
-    auto indicatorArea       = area.removeFromRight (getHeight());
-    auto viewerNameArea      = area.removeFromRight (150);
-    auto mousePositionArea   = area.removeFromRight (80);
-    auto errorMessageArea    = area.withTrimmedLeft (150);
+    auto geom = computeGeometry();
     auto backgroundColour    = findColour (LookAndFeelHelpers::statusBarBackground);
     auto fontColour          = findColour (LookAndFeelHelpers::statusBarText);
     auto errorColour         = findColour (LookAndFeelHelpers::statusBarErrorText);
@@ -114,21 +149,40 @@ void StatusBar::paint (Graphics& g)
     g.fillAll();
 
     g.setColour (busyIndicatorColour);
-    g.fillEllipse (indicatorArea.reduced (5).toFloat());
+    g.fillEllipse (geom.busyIndicatorArea.reduced (5).toFloat());
 
     g.setColour (fontColour);
     g.setFont (Font().withHeight (11));
 
-    g.drawText (mousePositionInFigure.isOrigin() ? "" : mousePositionInFigure.toString(), mousePositionArea, Justification::centredLeft);
-    g.drawText (currentViewerName, viewerNameArea, Justification::centredRight);
+    g.drawText (mousePositionInFigure.isOrigin() ? "" : mousePositionInFigure.toString(), geom.mousePositionArea, Justification::centredLeft);
+
+    // g.drawText (currentViewerName, geom.viewerNamePopupArea, Justification::centredRight);
 
     g.setColour (errorColour);
-    g.drawText (currentErrorMessage, errorMessageArea, Justification::centredLeft);
+    g.drawText (currentErrorMessage, geom.errorMessageArea, Justification::centredLeft);
 }
 
 void StatusBar::resized()
 {
-    environmentViewToggleButton.setBounds (getLocalBounds().removeFromLeft (150));
+    auto geom = computeGeometry();
+    environmentViewToggleButton.setBounds (geom.environmentViewToggleArea);
+    viewerNamePopupButton.setBounds (geom.viewerNamePopupArea);
+}
+
+
+
+
+//=============================================================================
+StatusBar::Geometry StatusBar::computeGeometry() const
+{
+    auto geom = Geometry();
+    auto area = getLocalBounds();
+    geom.busyIndicatorArea         = area.removeFromRight (getHeight());
+    geom.viewerNamePopupArea       = area.removeFromRight (200);
+    geom.mousePositionArea         = area.removeFromRight (120);
+    geom.environmentViewToggleArea = area.removeFromLeft  (150);
+    geom.errorMessageArea          = area;
+    return geom;
 }
 
 
@@ -238,7 +292,7 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
-    // viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
+    viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
     viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
     viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
 
@@ -251,7 +305,6 @@ MainComponent::MainComponent()
     addAndMakeVisible (statusBar);
 
     setSize (1024, 768 - 64);
-    reloadCurrentFile();
 }
 
 MainComponent::~MainComponent()
@@ -265,13 +318,8 @@ void MainComponent::setCurrentDirectory (File newCurrentDirectory)
 
 void MainComponent::reloadCurrentFile()
 {
-    if (auto component = viewers.findViewerForFile (currentFile))
-    {
-        component->loadFile (currentFile);
-        statusBar.setCurrentViewerName (component->getViewerName());
-        environmentView.setKernel (component->getKernel());
-        viewers.showOnly (component);
-    }
+    if (currentViewer)
+        currentViewer->loadFile (currentFile);
 }
 
 void MainComponent::reloadDirectoryTree()
@@ -306,26 +354,57 @@ File MainComponent::getCurrentDirectory() const
     return directoryTree.getCurrentDirectory();
 }
 
+File MainComponent::getCurrentFile() const
+{
+    return currentFile;
+}
+
+const Viewer* MainComponent::getCurrentViewer() const
+{
+    return currentViewer;
+}
+
+const ViewerCollection& MainComponent::getViewerCollection() const
+{
+    return viewers;
+}
+
+void MainComponent::setCurrentViewer (const String& viewerName)
+{
+    if (auto viewer = viewers.findViewerWithName (viewerName))
+    {
+        makeViewerCurrent (viewer);
+        viewer->loadFile (currentFile);
+    }
+}
+
+void MainComponent::makeViewerCurrent (Viewer* viewer)
+{
+    if (viewer != currentViewer)
+    {
+        if (viewer)
+        {
+            statusBar.setCurrentViewerName (viewer->getViewerName());
+            environmentView.setKernel (viewer->getKernel());
+            viewers.showOnly (viewer);
+        }
+        else
+        {
+            statusBar.setCurrentViewerName (String());
+            environmentView.setKernel (nullptr);
+            viewers.showOnly (nullptr);
+        }
+        currentViewer = viewer;
+    }
+}
+
 
 
 
 //=============================================================================
-void MainComponent::paint (Graphics& g)
-{
-}
-
-void MainComponent::paintOverChildren (Graphics& g)
-{
-}
-
 void MainComponent::resized()
 {
     layout (false);
-}
-
-bool MainComponent::keyPressed (const KeyPress& key)
-{
-    return false;
 }
 
 
@@ -335,7 +414,16 @@ bool MainComponent::keyPressed (const KeyPress& key)
 void MainComponent::selectedFileChanged (DirectoryTree*, File file)
 {
     currentFile = file;
-    reloadCurrentFile();
+
+    if (currentViewer && currentViewer->isInterestedInFile (currentFile))
+    {
+        currentViewer->loadFile (currentFile);
+    }
+    else if (auto viewer = viewers.findViewerForFile (file))
+    {
+        makeViewerCurrent (viewer);
+        currentViewer->loadFile (currentFile);
+    }
 }
 
 
@@ -382,11 +470,11 @@ void MainComponent::viewerEnvironmentChanged()
 //=============================================================================
 void MainComponent::extensionViewerReconfigured (UserExtensionView* viewer)
 {
-    if (viewer->isVisible())
+    if (viewer == currentViewer)
     {
         statusBar.setCurrentViewerName (viewer->getViewerName());
+        environmentView.setKernel (viewer->getKernel());
     }
-    environmentView.setKernel (viewer->getKernel());
 }
 
 
