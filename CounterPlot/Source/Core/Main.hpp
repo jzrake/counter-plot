@@ -56,12 +56,14 @@ public:
 
 
     //=========================================================================
-    class MainWindow : public DocumentWindow
+    class MainWindow : public DocumentWindow, public FocusChangeListener
     {
     public:
         MainWindow (String name);
         ~MainWindow();
         void closeButtonPressed() override;
+        void paintOverChildren (Graphics& g) override;
+        void globalFocusChanged (Component* focusedComponent) override;
         std::unique_ptr<MainComponent> content;
     };
 

@@ -49,6 +49,7 @@ public:
 
     //=========================================================================
     StatusBar();
+    ~StatusBar();
 
     //=========================================================================
     void incrementAsyncTaskCount();
@@ -86,6 +87,7 @@ public:
     EnvironmentView();
     void setKernel (const Runtime::Kernel* kernelToView);
     void refresh();
+    ListBox& getListBox() { return list; }
 
     //=========================================================================
     void resized() override;

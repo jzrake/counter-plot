@@ -9,10 +9,7 @@
 //=============================================================================
 UserExtensionView::UserExtensionView()
 {
-
-    auto data = Runtime::make_data (nd::linspace<double> (0.0, 1.0, 10));
-    auto res = Runtime::check_data<nd::array<double, 1>>(data);
-
+    setWantsKeyboardFocus (true);
 }
 
 void UserExtensionView::configure (const var& config)

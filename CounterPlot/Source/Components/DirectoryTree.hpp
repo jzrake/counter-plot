@@ -23,6 +23,7 @@ public:
     void setDirectoryToShow (File directoryToShow);
     void reloadAll();
     File getCurrentDirectory() const;
+    TreeView& getTreeView() { return tree; }
 
     //=========================================================================
     void resized() override;

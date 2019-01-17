@@ -33,6 +33,7 @@ public:
 //=============================================================================
 StatusBar::EnvironmentViewToggleButton::EnvironmentViewToggleButton() : Button ("")
 {
+    setWantsKeyboardFocus (false);
 }
 
 void StatusBar::EnvironmentViewToggleButton::paintButton (Graphics& g,
@@ -54,6 +55,7 @@ void StatusBar::EnvironmentViewToggleButton::paintButton (Graphics& g,
 //=============================================================================
 StatusBar::ViewerNamePopupButton::ViewerNamePopupButton() : Button ("")
 {
+    setWantsKeyboardFocus (false);
 }
 
 void StatusBar::ViewerNamePopupButton::paintButton (Graphics& g,
@@ -80,7 +82,6 @@ void StatusBar::ViewerNamePopupButton::clicked()
             names.add (name);
             menu.addItem (names.size(), name, viewer->isInterestedInFile (currentFile), viewer == currentViewer);
         }
-
         int result = menu.show();
 
         if (result != 0)
@@ -101,6 +102,10 @@ StatusBar::StatusBar()
                                                      true);
     addAndMakeVisible (environmentViewToggleButton);
     addAndMakeVisible (viewerNamePopupButton);
+}
+
+StatusBar::~StatusBar()
+{
 }
 
 void StatusBar::incrementAsyncTaskCount()
@@ -156,8 +161,6 @@ void StatusBar::paint (Graphics& g)
 
     g.drawText (mousePositionInFigure.isOrigin() ? "" : mousePositionInFigure.toString(), geom.mousePositionArea, Justification::centredLeft);
 
-    // g.drawText (currentViewerName, geom.viewerNamePopupArea, Justification::centredRight);
-
     g.setColour (errorColour);
     g.drawText (currentErrorMessage, geom.errorMessageArea, Justification::centredLeft);
 }
@@ -192,6 +195,7 @@ StatusBar::Geometry StatusBar::computeGeometry() const
 EnvironmentView::EnvironmentView()
 {
     list.setModel (this);
+    list.getViewport()->setWantsKeyboardFocus (false);
     setColours();
     addAndMakeVisible (list);
 }
@@ -296,6 +300,9 @@ MainComponent::MainComponent()
     viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
     viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
 
+    directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
+    environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
+
     addAndMakeVisible (directoryTree);
 
     for (auto view : viewers.getAllComponents())
@@ -330,12 +337,14 @@ void MainComponent::reloadDirectoryTree()
 void MainComponent::toggleDirectoryTreeShown()
 {
     directoryTreeShowing = ! directoryTreeShowing;
+    directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
     layout (true);
 }
 
 void MainComponent::toggleEnvironmentViewShown()
 {
     environmentViewShowing = ! environmentViewShowing;
+    environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
     layout (true);
 }
 
@@ -503,5 +512,7 @@ void MainComponent::layout (bool animated)
     setBounds (environmentView, environmentViewArea);
 
     for (auto view : viewers.getAllComponents())
+    {
         setBounds (*view, area);
+    }
 }

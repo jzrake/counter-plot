@@ -467,7 +467,6 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
     xlabel.setFont (Font().withHeight (12));
     ylabel.setFont (Font().withHeight (12));
     title .setFont (Font().withHeight (16));
-
     xlabel.addMouseListener (this, false);
     ylabel.addMouseListener (this, false);
     title .addMouseListener (this, false);
@@ -712,6 +711,9 @@ void FigureView::refreshModes (bool alsoRepaint)
     xlabel.setEditable (model.canEditXlabel);
     ylabel.setEditable (model.canEditYlabel);
     title .setEditable (model.canEditTitle);
+    xlabel.setWantsKeyboardFocus (false);
+    ylabel.setWantsKeyboardFocus (false);
+    title .setWantsKeyboardFocus (false);
 
     if (alsoRepaint)
         repaint();

@@ -23,9 +23,11 @@ static herr_t h5_error_handler(hid_t estack, void*)
 //=============================================================================
 PatchViewApplication::MainWindow::MainWindow (String name) : DocumentWindow (name, Colours::black, DocumentWindow::allButtons)
 {
+    addKeyListener (getApp().commandManager->getKeyMappings());
+    Desktop::getInstance().addFocusChangeListener (this);
+
     content = std::make_unique<MainComponent>();
 
-    addKeyListener (getApp().commandManager->getKeyMappings());
     setUsingNativeTitleBar (true);
     setContentNonOwned (content.get(), true);
     setResizable (true, true);
@@ -35,11 +37,27 @@ PatchViewApplication::MainWindow::MainWindow (String name) : DocumentWindow (nam
 
 PatchViewApplication::MainWindow::~MainWindow()
 {
+    Desktop::getInstance().removeFocusChangeListener (this);
 }
 
 void PatchViewApplication::MainWindow::closeButtonPressed()
 {
     JUCEApplication::getInstance()->systemRequestedQuit();
+}
+
+void PatchViewApplication::MainWindow::paintOverChildren (Graphics& g)
+{
+    if (auto focusedComponent = Component::getCurrentlyFocusedComponent())
+    {
+        auto bounds = focusedComponent->getScreenBounds().translated (-getX(), -getY());
+        g.setColour (Colours::orange);
+        g.drawLine (bounds.getX(), bounds.getBottom(), bounds.getRight(), bounds.getBottom());
+    }
+}
+
+void PatchViewApplication::MainWindow::globalFocusChanged (Component*)
+{
+    repaint();
 }
 
 

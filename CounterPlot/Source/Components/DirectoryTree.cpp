@@ -103,6 +103,7 @@ DirectoryTree::DirectoryTree()
     tree.setIndentSize (12);
     tree.setRootItemVisible (true);
     tree.addMouseListener (this, true);
+    tree.getViewport()->setWantsKeyboardFocus (false);
     setColours();
     addAndMakeVisible (tree);
 }
