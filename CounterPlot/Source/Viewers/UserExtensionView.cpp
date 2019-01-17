@@ -99,7 +99,6 @@ void UserExtensionView::configure (const var& config)
             {
                 kernel.insert (id, FigureModel().toVar());
                 kernel.set_error (id, e.what());
-                // sendErrorMessage (e.what());
                 ++errors;
             }
 

@@ -1,4 +1,5 @@
 #include "Runtime.hpp"
+#include "DataHelpers.hpp"
 #include "../Plotting/FigureView.hpp"
 
 
@@ -33,6 +34,29 @@ namespace builtin
                                       + " not found");
         }
         return args.arguments[index].toString().toStdString();
+    }
+
+    template<>
+    nd::array<double, 1> checkArg<nd::array<double, 1>> (const char* caller, var::NativeFunctionArgs args, int index)
+    {
+        if (index >= args.numArguments)
+        {
+            throw std::runtime_error (std::string (caller)
+                                      + ": required argument at index "
+                                      + std::to_string (index)
+                                      + " not found");
+
+        }
+
+        if (auto arr = args.arguments[index].getArray())
+        {
+            nd::array<double, 1> result (arr->size());
+
+            for (int n = 0; n < result.size(); ++n)
+                result(n) = arr->getUnchecked(n);
+            return result;
+        }
+        return Runtime::check_data<nd::array<double, 1>> (args.arguments[index]);
     }
 
     template<typename T>
@@ -99,8 +123,16 @@ namespace builtin
     var plot (var::NativeFunctionArgs args)
     {
         LinePlotModel model;
-        model.x.become (checkArgData<nd::array<double, 1>> ("plot", args, 0));
-        model.y.become (checkArgData<nd::array<double, 1>> ("plot", args, 1));
+        model.x.become (checkArg<nd::array<double, 1>> ("plot", args, 0));
+        model.y.become (checkArg<nd::array<double, 1>> ("plot", args, 1));
+        model.lineWidth = optKeywordArg ("plot", args, "lw", 2.f);
+        model.lineColour = DataHelpers::colourFromVar (optKeywordArg ("plot", args, "lc", Colours::black.toString()));
+
+        auto lineStyleString = optKeywordArg ("plot", args, "ls", String ("solid"));
+        if (lineStyleString == "solid")   model.lineStyle = LineStyle::solid;
+        if (lineStyleString == "dash")    model.lineStyle = LineStyle::dash;
+        if (lineStyleString == "dashdot") model.lineStyle = LineStyle::dashdot;
+        if (lineStyleString == "none")    model.lineStyle = LineStyle::none;
 
         if (model.x.size() != model.y.size())
         {

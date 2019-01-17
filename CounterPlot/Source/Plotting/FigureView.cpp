@@ -163,8 +163,33 @@ void LinePlotArtist::paint (Graphics& g, const PlotTransformer& trans)
         p.lineTo (trans.fromDomainX (model.x (n)),
                   trans.fromDomainY (model.y (n)));
     }
+
+    auto stroke = PathStrokeType (model.lineWidth);
     g.setColour (model.lineColour);
-    g.strokePath (p, PathStrokeType (model.lineWidth));
+
+    switch (model.lineStyle)
+    {
+        case LineStyle::none: break;
+        case LineStyle::solid:
+        {
+            g.strokePath (p, stroke);
+            break;
+        }
+        case LineStyle::dash:
+        {
+            static const float dashLengths[] = {8.f, 8.f};
+            stroke.createDashedStroke (p, p, dashLengths, 2);
+            g.strokePath (p, stroke);
+            break;
+        }
+        case LineStyle::dashdot:
+        {
+            static const float dashLengths[] = {8.f, 8.f, 2.f, 8.f};
+            stroke.createDashedStroke (p, p, dashLengths, 4);
+            g.strokePath (p, stroke);
+            break;
+        }
+    }
 }
 
 

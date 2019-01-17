@@ -182,7 +182,12 @@ Colour DataHelpers::colourFromVar (const var& value)
     }
     if (value.isString())
     {
-        return Colour::fromString (value.toString());
+        auto str = value.toString();
+
+        if (str.startsWithChar ('#'))
+            return Colour::fromString (value.toString());
+
+        return Colours::findColourForName (str, Colours::black);
     }
     if (value.size() == 3)
     {

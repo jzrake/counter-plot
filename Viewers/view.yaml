@@ -10,20 +10,10 @@ cols: [1]
 file-patterns: ['*.conf']
 
 environment:
-  x: (linspace 0.3 0.5 256)
-  z: (linspace 0.4 0.8 256)
-  no-expression: [1, 2, 3]
+  x: (linspace 0 1 4)
+  z: [0, 0.5, 0.74, 0.5]
 
 figures:
-
-# - title: |
-#          Figure title
-#          Second line
-#   xlabel:
-#   ylabel: Y axis 1
-#   xmin: -10
-#   xmax:  10
-#   margin: {top: 60, bottom: 30, left: 80, right: &right-margin 40}
 
 - title: $file
   title-showing: true
@@ -35,4 +25,4 @@ figures:
   gridlines-color: [55, 55, 55]
   margin: {top: 80, bottom: 30, left: 80, right: 40}
   content:
-    - (plot x z)
+    - (plot x z lw=2 ls='dashdot' lc='magenta')
