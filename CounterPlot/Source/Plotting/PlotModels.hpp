@@ -213,9 +213,12 @@ public:
     void setCurrent (const String& name);
     Array<Colour> next();
     Array<Colour> prev();
+    Array<Colour> getStops (int index) const;
     Array<Colour> getCurrentStops() const;
     int getCurrentIndex() const;
+    int size() const;
     String getCurrentName() const;
+    String getName (int index) const;
 
 private:
     //=========================================================================

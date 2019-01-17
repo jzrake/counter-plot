@@ -127,6 +127,23 @@ public:
                                   + ", got "
                                   + type_name (value));
     }
+
+    static String represent (const var& value)
+    {
+        if (auto result = dynamic_cast<GenericData*> (value.getObject()))
+        {
+            return result->summary();
+        }
+        else if (value.isArray())
+        {
+            return "list[ ]";
+        }
+        else if (value.getDynamicObject())
+        {
+            return "dict{ }";
+        }
+        return value.toString();
+    }
 };
 
 
@@ -138,13 +155,21 @@ class Runtime::DataTypeInfo<nd::ndarray<double, 1>>
 {
 public:
     static std::string name() { return "nd::array<double, 1>"; }
-    static std::string summary (const nd::ndarray<double, 1>& A) { return "Array[" + std::to_string (A.shape()[0]) + "]"; }
+    static std::string summary (const nd::ndarray<double, 1>& A) { return "double[" + std::to_string (A.shape(0)) + "]"; }
+};
+
+template<>
+class Runtime::DataTypeInfo<Array<Colour>>
+{
+public:
+    static std::string name() { return "Array<Colour>"; }
+    static std::string summary (const Array<Colour>& A) { return "color[" + std::to_string (A.size()) + "]"; }
 };
 
 template<>
 class Runtime::DataTypeInfo<std::shared_ptr<PlotArtist>>
 {
 public:
-    static std::string name() { return "PlotArtist"; }
-    static std::string summary (const std::shared_ptr<PlotArtist>& A) { return "Artist"; }
+    static std::string name() { return "std::shared_ptr<PlotArtist>"; }
+    static std::string summary (const std::shared_ptr<PlotArtist>& A) { return "PlotArtist"; }
 };

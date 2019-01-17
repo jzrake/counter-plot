@@ -45,6 +45,7 @@ private:
     //=========================================================================
     String viewerName;
     Grid layout;
+    ColourMapCollection colourMaps;
     ConfigurableFileFilter fileFilter;
     Runtime::Kernel kernel;
     OwnedArray<FigureView> figures;

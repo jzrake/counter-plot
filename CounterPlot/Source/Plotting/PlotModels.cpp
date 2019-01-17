@@ -143,6 +143,11 @@ Array<Colour> ColourMapCollection::prev()
     return getCurrentStops();
 }
 
+Array<Colour> ColourMapCollection::getStops (int index) const
+{
+    return stops[index];
+}
+
 Array<Colour> ColourMapCollection::getCurrentStops() const
 {
     return stops[currentIndex];
@@ -153,9 +158,19 @@ int ColourMapCollection::getCurrentIndex() const
     return currentIndex;
 }
 
+int ColourMapCollection::size() const
+{
+    return names.size();
+}
+
 String ColourMapCollection::getCurrentName() const
 {
     return names[currentIndex];
+}
+
+String ColourMapCollection::getName (int index) const
+{
+    return names[index];
 }
 
 

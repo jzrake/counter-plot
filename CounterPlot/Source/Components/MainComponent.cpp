@@ -265,7 +265,7 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
 
     auto key = keys[rowNumber];
     auto err = kernel->error_at (key.toStdString());
-    auto repr = kernel->at (keys[rowNumber].toStdString()).toString();
+    auto repr = Runtime::represent (kernel->at (keys[rowNumber].toStdString()));
     auto text1 = findColour (LookAndFeelHelpers::environmentViewText1);
     auto text2 = findColour (LookAndFeelHelpers::environmentViewText2);
 

@@ -126,9 +126,9 @@ namespace builtin
         model.x.become (checkArg<nd::array<double, 1>> ("plot", args, 0));
         model.y.become (checkArg<nd::array<double, 1>> ("plot", args, 1));
         model.lineWidth        = optKeywordArg (args, "lw", 2.f);
-        model.lineColour       = DataHelpers::colourFromVar (optKeywordArg (args, "lc", model.lineColour.toString()));
         model.markerSize       = optKeywordArg (args, "mw", model.markerSize);
         model.markerEdgeWidth  = optKeywordArg (args, "mew", model.markerEdgeWidth);
+        model.lineColour       = DataHelpers::colourFromVar (optKeywordArg<var> (args, "lc",  model.lineColour.toString()));
         model.markerEdgeColour = DataHelpers::colourFromVar (optKeywordArg<var> (args, "mec", model.markerEdgeColour.toString()));
         model.markerFillColour = DataHelpers::colourFromVar (optKeywordArg<var> (args, "mfc", model.markerFillColour.toString()));
 

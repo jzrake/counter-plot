@@ -54,8 +54,8 @@ void UserExtensionView::configure (const var& config)
     // Load the viewer environment into the kernel
     // -----------------------------------------------------------------------
     Runtime::load_builtins (kernel);
-
     kernel.insert ("file", currentFile.getFullPathName());
+    kernel.insert ("cmap", Runtime::make_data (colourMaps.getCurrentStops()));
 
     if (auto environment = config["environment"].getDynamicObject())
     {
