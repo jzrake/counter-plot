@@ -6,6 +6,7 @@
 #include "../Viewers/UserExtensionView.hpp"
 #include "../Core/ViewerCollection.hpp"
 #include "../Core/Runtime.hpp"
+#include "../Core/TaskPool.hpp"
 
 
 
@@ -172,4 +173,5 @@ private:
     ViewerCollection viewers;
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
+    // TaskPoolTestComponent taskPoolComponent;
 };

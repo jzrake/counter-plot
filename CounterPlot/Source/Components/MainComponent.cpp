@@ -310,6 +310,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
+    // addAndMakeVisible (taskPoolComponent); //////
 
     setSize (1024, 768 - 64);
 }
@@ -521,4 +522,7 @@ void MainComponent::layout (bool animated)
     setBounds (directoryTree, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
     viewers.setBounds (area, animated);
+
+    ////////
+    // taskPoolComponent.setBounds (area);
 }

@@ -25,7 +25,12 @@
 + Multiple viewers per file, allow to select from status bar
 + Add file patterns to extension view
 / Preserve environment between extension view reconfigs
-- Handle async kernel resolves
+/ Handle async kernel resolves
+	+ Write TaskPool
+	- Make kernel updates take CallAdapter instance rather than class
+	- Pass bailout checker through runtime methods
+	- Indicate expensive (async updated) symbols in YAML
+	- Defer async updates in kernel resolves; resume on task completion
 - File events trigger reloads, reconfigs, directory tree refresh
 
 
