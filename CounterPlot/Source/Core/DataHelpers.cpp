@@ -175,7 +175,23 @@ Array<Grid::TrackInfo> DataHelpers::gridTrackInfoArrayFromVar (const var& value)
     {
         for (auto item : *arr)
         {
-            info.add (Grid::TrackInfo (Grid::Fr (int (item))));
+            if (item.isString())
+            {
+                auto str = item.toString();
+
+                if (str.endsWithIgnoreCase ("px"))
+                {
+                    info.add (Grid::Px ((long double) str.upToLastOccurrenceOf ("px", false, true).getDoubleValue()));
+                }
+                else if (str.endsWithIgnoreCase ("fr"))
+                {
+                    info.add (Grid::Fr ((unsigned long long) str.upToLastOccurrenceOf ("fr", false, true).getIntValue()));
+                }
+            }
+            else
+            {
+                info.add (Grid::Fr (int (item)));
+            }
         }
     }
     return info;
