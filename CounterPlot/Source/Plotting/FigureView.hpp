@@ -120,7 +120,8 @@ public:
         void mouseDown (const MouseEvent&) override;
         void mouseDrag (const MouseEvent&) override;
         void mouseMagnify (const MouseEvent&, float) override;
-
+        void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override;
+        
         //=====================================================================
         double toDomainX (double x) const override;
         double toDomainY (double y) const override;

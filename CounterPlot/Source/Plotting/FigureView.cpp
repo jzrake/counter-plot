@@ -435,6 +435,26 @@ void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
     sendSetDomain (Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1));
 }
 
+void FigureView::PlotArea::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
+{
+    grabKeyboardFocus();
+    const double xlim[2] = {figure.model.xmin, figure.model.xmax};
+    const double ylim[2] = {figure.model.ymin, figure.model.ymax};
+    const double Dx = getWidth();
+    const double Dy = getHeight();
+    const double dx = xlim[1] - xlim[0];
+    const double dy = ylim[1] - ylim[0];
+    const double newdx = dx / (1.0+wheel.deltaY);
+    const double newdy = dy / (1.0+wheel.deltaY);
+    const double fixedx = toDomainX (e.position.x);
+    const double fixedy = toDomainY (e.position.y);
+    const double newx0 = e.mods.isAltDown()  ? xlim[0] : fixedx - newdx * (0 + e.position.x / Dx);
+    const double newx1 = e.mods.isAltDown()  ? xlim[1] : fixedx + newdx * (1 - e.position.x / Dx);
+    const double newy0 = e.mods.isCtrlDown() ? ylim[0] : fixedy - newdy * (1 - e.position.y / Dy);
+    const double newy1 = e.mods.isCtrlDown() ? ylim[1] : fixedy + newdy * (0 + e.position.y / Dy);
+    sendSetDomain (Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1));
+}
+
 
 
 
