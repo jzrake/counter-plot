@@ -61,10 +61,19 @@ private:
 
 
     //=========================================================================
-    ThreadPoolJob::JobStatus notify (Job* job, var result, bool completed);
+    class Selector : public ThreadPool::JobSelector
+    {
+    public:
+        Selector (const String& name);
+        bool isJobSuitable (ThreadPoolJob*) override;
+        String name;
+    };
+
+
+    //=========================================================================
+    ThreadPoolJob::JobStatus notify (String name, var result, bool completed);
     ThreadPool threadPool;
     ListenerList<Listener> listeners;
-    OwnedArray<Job> jobs;
 };
 
 
@@ -75,15 +84,20 @@ class TaskPoolTestComponent : public Component, public TaskPool::Listener
 {
 public:
 
+
     //=========================================================================
     TaskPoolTestComponent();
     void taskCompleted (const String& taskName, const var& result) override;
     void taskWasCancelled (const String& taskName) override;
 
+
     //=========================================================================
     void resized() override;
 
+
 private:
+
+
     //=========================================================================
     TaskPool pool;
     Grid layout;
@@ -93,4 +107,5 @@ private:
     TextButton addTask1;
     TextButton addTask2;
     TextButton addTask3;
+    CriticalSection criticalSection;
 };

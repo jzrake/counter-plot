@@ -21,4 +21,6 @@ public:
     static Colour colourFromVar (const var&);
     static StringArray stringArrayFromVar (const var&);
     static StringPairArray stringPairArrayFromVar (const var&);
+
+    static CriticalSection& getCriticalSectionForHDF5();
 };

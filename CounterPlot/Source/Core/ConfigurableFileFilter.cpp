@@ -1,4 +1,5 @@
 #include "ConfigurableFileFilter.hpp"
+#include "../Core/DataHelpers.hpp"
 
 
 
@@ -40,6 +41,8 @@ void ConfigurableFileFilter::requireHDF5Dataset (const String& datasetThatMustEx
 //=============================================================================
 bool ConfigurableFileFilter::isFileSuitable (const File& file) const
 {
+    ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
+
     for (auto requirement : hdf5Requirements)
     {
         if (! h5::File::exists (file.getFullPathName().toStdString()))

@@ -166,12 +166,14 @@ namespace builtin
     //=========================================================================
     var load_hdf5 (var::NativeFunctionArgs args)
     {
+        ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
+
         auto _ = nd::axis::all();
         auto fname = checkArg<std::string> ("load-hdf5", args, 0);
         auto dname = checkArg<std::string> ("load-hdf5", args, 1);
         auto skip = optKeywordArg (args, "skip", 1);
 
-        auto h5f = h5::File(fname, "r");
+        auto h5f = h5::File (fname, "r");
         auto arr = h5f.read<nd::array<double, 1>> (dname);
         return Runtime::make_data (arr.select (_|0|int(arr.size())|skip));
     }

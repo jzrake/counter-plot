@@ -13,7 +13,20 @@ TaskPool::Job::Job (TaskPool& taskPool, const String& name, Task task)
 
 ThreadPoolJob::JobStatus TaskPool::Job::runJob()
 {
-    return taskPool.notify (this, task ([this] { return shouldExit(); }), ! shouldExit());
+    return taskPool.notify (getJobName(), task ([this] { return shouldExit(); }), ! shouldExit());
+}
+
+
+
+
+//=========================================================================
+TaskPool::Selector::Selector (const String& name) : name (name)
+{
+}
+
+bool TaskPool::Selector::isJobSuitable (ThreadPoolJob* job)
+{
+    return job->getJobName() == name;
 }
 
 
@@ -39,31 +52,20 @@ void TaskPool::removeListener (Listener* listener)
 
 void TaskPool::enqueue (const String& name, Task task)
 {
-    for (auto job : jobs)
-        if (job->getJobName() == name)
-            threadPool.removeJob (job, true, 0);
-
-    auto job = std::make_unique<Job> (*this, name, task);
-    threadPool.addJob (job.get(), false);
-    jobs.add (job.release());
+    Selector jobsToRemove (name);
+    threadPool.removeAllJobs (true, 0, &jobsToRemove);
+    threadPool.addJob (new Job (*this, name, task), true);
 }
 
-ThreadPoolJob::JobStatus TaskPool::notify (Job* job, var result, bool completed)
+ThreadPoolJob::JobStatus TaskPool::notify (String name, var result, bool completed)
 {
-    // 1.
-
-    MessageManager::callAsync ([this, job, name=job->getJobName(), result, completed]
+    MessageManager::callAsync ([this, name, result, completed]
     {
-        // 3.
-        jobs.removeObject (job);
-
         if (completed)
             listeners.call (&Listener::taskCompleted, name, result);
         else
             listeners.call (&Listener::taskWasCancelled, name);
     });
-
-    // 2.
     return ThreadPoolJob::jobHasFinished;
 }
 
@@ -82,8 +84,8 @@ TaskPoolTestComponent::TaskPoolTestComponent() : pool (4)
     addTask1.onClick = [this]
     {
         resultLabel1.setText ("Task 1 Running", NotificationType::dontSendNotification);
-        pool.enqueue ("Task 1", [] (auto bailout) {
-
+        pool.enqueue ("Task 1", [this] (auto bailout) {
+            //ScopedLock lock (criticalSection);
             int n = 0;
             while (++n < 100000000 && ! bailout()) {}
             return var("Task 1 result");
@@ -92,7 +94,8 @@ TaskPoolTestComponent::TaskPoolTestComponent() : pool (4)
     addTask2.onClick = [this]
     {
         resultLabel2.setText ("Task 2 Running", NotificationType::dontSendNotification);
-        pool.enqueue ("Task 2", [] (auto bailout) {
+        pool.enqueue ("Task 2", [this] (auto bailout) {
+            //ScopedLock lock (criticalSection);
             int n = 0;
             while (++n < 100000000 && ! bailout()) {}
             return var("Task 2 result");
@@ -101,7 +104,8 @@ TaskPoolTestComponent::TaskPoolTestComponent() : pool (4)
     addTask3.onClick = [this]
     {
         resultLabel3.setText ("Task 3 Running", NotificationType::dontSendNotification);
-        pool.enqueue ("Task 3", [] (auto bailout) {
+        pool.enqueue ("Task 3", [this] (auto bailout) {
+            //ScopedLock lock (criticalSection);
             int n = 0;
             while (++n < 100000000 && ! bailout()) {}
             return var("Task 3 result");

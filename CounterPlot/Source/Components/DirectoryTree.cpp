@@ -25,6 +25,7 @@ public:
     Item (DirectoryTree& directory, File file) : directory (directory), file (file)
     {
         setDrawsInLeftMargin (true);
+        glyphs.addLineOfText (Font().withHeight (11), file.getFileName(), 8, 16);
     }
 
     void paintItem (Graphics& g, int width, int height) override
@@ -36,8 +37,7 @@ public:
         if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeSymbolicLink);
 
         g.setColour (isMouseOver() ? textColour.brighter (0.8f) : textColour);
-        g.setFont (isMouseOver() ? Font().withHeight (11).withStyle (Font::underlined) : Font().withHeight (11));
-        g.drawText (file.getFileName(), 8, 0, width, height, Justification::centredLeft);
+        glyphs.draw (g);
     }
 
     bool mightContainSubItems() override
@@ -91,6 +91,7 @@ private:
         return directory.mouseOverItem == this;
     }
 
+    GlyphArrangement glyphs;
     DirectoryTree& directory;
     File file;
     ElementComparator comparator;

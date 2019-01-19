@@ -1,6 +1,7 @@
 #include "BinaryTorquesView.hpp"
 #include "../Plotting/FigureView.hpp"
 #include "../Plotting/MetalSurface.hpp"
+#include "../Core/DataHelpers.hpp"
 
 
 
@@ -16,6 +17,8 @@ struct BinaryTorques::TriangleVertexData
 BinaryTorques::TriangleVertexData BinaryTorques::loadTriangleDataFromFile (File file, std::function<bool()> bailout)
 {
     try {
+        ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
+
         auto h5f  = h5::File (file.getFullPathName().toStdString(), "r");
         auto h5d  = h5f.open_dataset ("primitive/sigma");
         auto data = h5d.read<nd::array<double, 2>>();

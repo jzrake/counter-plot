@@ -254,3 +254,13 @@ StringPairArray DataHelpers::stringPairArrayFromVar (const var& value)
     }
     return result;
 }
+
+
+
+
+//=============================================================================
+CriticalSection& DataHelpers::getCriticalSectionForHDF5()
+{
+    static CriticalSection section;
+    return section;
+}

@@ -14,9 +14,9 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, TextColourSch
             laf.setColour (propertyViewText2, Colour::fromRGB (255, 242, 214));
             laf.setColour (propertyViewText3, Colour::fromRGB (254, 240, 255));
             laf.setColour (propertyViewText4, Colour::fromRGB (255, 255, 255));
-            laf.setColour (directoryTreeFile,         Colours::lightgrey);
-            laf.setColour (directoryTreeDirectory,    Colours::lightgrey);
-            laf.setColour (directoryTreeSymbolicLink, Colours::lightgrey);
+            laf.setColour (directoryTreeFile,         Colours::grey.brighter());
+            laf.setColour (directoryTreeDirectory,    Colours::grey.brighter());
+            laf.setColour (directoryTreeSymbolicLink, Colours::grey.brighter());
             break;
         case TextColourScheme::pastels2:
             laf.setColour (propertyViewText0, Colour::fromRGB (162, 230, 244));
