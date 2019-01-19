@@ -14,13 +14,15 @@ environment:
   u: [0.0, 0.5, 0.7, 0.5]
   v: [0.5, 0.7, 0.5, 0.0]
 
-expensive: [x, u]
+# expensive: [x, u]
 
 figures:
 
 - title: $file
   xlabel: $fig1-xmin
   ylabel: Y
+  xmin: -1
+  xmax:  2
   can-edit-title: false
   can-deform-domain: true
   margin: {top: 80, bottom: 60, left: 80, right: 40}

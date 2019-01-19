@@ -125,6 +125,9 @@ namespace builtin
     //=========================================================================
     var linspace (var::NativeFunctionArgs args)
     {
+        //////////////////
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 2000);
+        //////////////////
         auto x0  = checkArg<double> ("linspace", args, 0);
         auto x1  = checkArg<double> ("linspace", args, 1);
         auto num = checkArg<int>    ("linspace", args, 2);

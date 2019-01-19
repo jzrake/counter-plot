@@ -9,6 +9,8 @@ namespace YAML { class Node; }
 class DataHelpers
 {
 public:
+    static void updateDict (var& dictToUpdate, const var& other);
+
     static var varFromExpression (const crt::expression& expr);
     static var varFromYamlScalar (const YAML::Node& scalar);
     static var varFromYamlNode (const YAML::Node& node);

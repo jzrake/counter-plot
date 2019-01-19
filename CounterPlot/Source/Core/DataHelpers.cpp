@@ -5,6 +5,24 @@
 
 
 //=============================================================================
+void DataHelpers::updateDict (var& dictToUpdate, const var& other)
+{
+    if (auto target = dictToUpdate.getDynamicObject())
+    {
+        if (auto source = other.getDynamicObject())
+        {
+            for (const auto& item : source->getProperties())
+            {
+                target->setProperty (item.name, item.value);
+            }
+        }
+    }
+}
+
+
+
+
+//=============================================================================
 var DataHelpers::varFromExpression (const crt::expression& expr)
 {
     // This method is not tested yet... I think that turning an expression back into
