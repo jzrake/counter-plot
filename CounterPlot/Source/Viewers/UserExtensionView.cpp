@@ -118,7 +118,7 @@ void UserExtensionView::configure (const var& config)
     {
         figure->addListener (this);
         addAndMakeVisible (*figure);
-        layout.items.add (figure->getGridItem());
+        layout.items.add (figure);
     }
 
     errors += resolveKernel();

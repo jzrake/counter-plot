@@ -394,8 +394,8 @@ BinaryTorquesView::BinaryTorquesView() : store (*this)
 {
     layout.templateRows    = { Grid::TrackInfo (1_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr), Grid::TrackInfo (100_px) };
-    layout.items.add (mainFigure.getGridItem());
-    layout.items.add (cmapFigure.getGridItem());
+    layout.items.add (&mainFigure);
+    layout.items.add (&cmapFigure);
 
     // mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
     mainFigure.addListener (this);

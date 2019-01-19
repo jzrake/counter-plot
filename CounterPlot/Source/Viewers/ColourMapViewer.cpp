@@ -8,8 +8,8 @@ ColourMapViewer::ColourMapViewer()
 {
     layout.templateRows    = { Grid::TrackInfo (4_fr), Grid::TrackInfo (3_fr) };
     layout.templateColumns = { Grid::TrackInfo (1_fr) };
-    layout.items.add (lineFigure.getGridItem());
-    layout.items.add (cmapFigure.getGridItem());
+    layout.items.add (&lineFigure);
+    layout.items.add (&cmapFigure);
 
     lineModel.titleShowing = true;
     lineModel.xlabelShowing = false;

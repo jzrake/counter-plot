@@ -107,5 +107,4 @@ private:
     TextButton addTask1;
     TextButton addTask2;
     TextButton addTask3;
-    CriticalSection criticalSection;
 };

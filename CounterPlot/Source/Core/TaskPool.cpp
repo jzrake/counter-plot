@@ -85,7 +85,6 @@ TaskPoolTestComponent::TaskPoolTestComponent() : pool (4)
     {
         resultLabel1.setText ("Task 1 Running", NotificationType::dontSendNotification);
         pool.enqueue ("Task 1", [this] (auto bailout) {
-            //ScopedLock lock (criticalSection);
             int n = 0;
             while (++n < 100000000 && ! bailout()) {}
             return var("Task 1 result");
@@ -95,7 +94,6 @@ TaskPoolTestComponent::TaskPoolTestComponent() : pool (4)
     {
         resultLabel2.setText ("Task 2 Running", NotificationType::dontSendNotification);
         pool.enqueue ("Task 2", [this] (auto bailout) {
-            //ScopedLock lock (criticalSection);
             int n = 0;
             while (++n < 100000000 && ! bailout()) {}
             return var("Task 2 result");
@@ -105,7 +103,6 @@ TaskPoolTestComponent::TaskPoolTestComponent() : pool (4)
     {
         resultLabel3.setText ("Task 3 Running", NotificationType::dontSendNotification);
         pool.enqueue ("Task 3", [this] (auto bailout) {
-            //ScopedLock lock (criticalSection);
             int n = 0;
             while (++n < 100000000 && ! bailout()) {}
             return var("Task 3 result");

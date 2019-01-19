@@ -572,7 +572,6 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
 
     // So that we get popup menu clicks
     plotArea.addMouseListener (this, false);
-    gridItem.associatedComponent = this;
 
     setModel (model);
     addAndMakeVisible (plotArea);
