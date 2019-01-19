@@ -271,9 +271,10 @@ void UserExtensionView::captureInKernel (const FigureView* figure)
 
 int UserExtensionView::resolveKernel()
 {
+    VarCallAdapter adapter;
     int errors = 0;
     auto initiallyDirtyRules = kernel.dirty_rules();
-    kernel.update_all (initiallyDirtyRules);
+    kernel.update_all (initiallyDirtyRules, adapter);
 
     for (auto figure : figures)
     {

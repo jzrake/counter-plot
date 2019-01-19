@@ -15,7 +15,7 @@ public:
     using func_t = std::function<ObjectType(list_t, dict_t)>;
 
     template<typename Mapping>
-    static ObjectType call(const Mapping& scope, const crt::expression& expr)
+    ObjectType call (const Mapping& scope, const crt::expression& expr) const
     {
         auto head = var();
         auto self = var (new DynamicObject);
@@ -24,7 +24,7 @@ public:
 
         for (const auto& part : expr)
         {
-            auto val = part.resolve<ObjectType, VarCallAdapter> (scope);
+            auto val = part.resolve<ObjectType> (scope, *this);
 
             if (first)
                 head = val;
@@ -41,7 +41,7 @@ public:
     }
 
     template<typename Mapping>
-    static const ObjectType& at (const Mapping& scope, const std::string& key)
+    const ObjectType& at (const Mapping& scope, const std::string& key) const
     {
         static var empty;
 
@@ -54,10 +54,10 @@ public:
         }
     }
 
-    static ObjectType convert (const crt::expression::none&) { return var(); }
-    static ObjectType convert (const int& value) { return value; }
-    static ObjectType convert (const double& value) { return value; }
-    static ObjectType convert (const std::string& value) { return String (value); }
+    ObjectType convert (const crt::expression::none&) const { return var(); }
+    ObjectType convert (const int& value) const { return value; }
+    ObjectType convert (const double& value) const { return value; }
+    ObjectType convert (const std::string& value) const { return String (value); }
 };
 
 
