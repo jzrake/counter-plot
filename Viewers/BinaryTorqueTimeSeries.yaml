@@ -8,13 +8,15 @@ hdf5-required-groups: [time_series]
 
 
 environment:
+  time: (load-hdf5 file 'status/simulationTime')
   t: (load-hdf5 file 'time_series/time' skip=250)
   L: (load-hdf5 file 'time_series/gravitational_torque_on_bh1' skip=250)
 
+expensive: [t]
 
 figures:
 
-- title: $file
+- title: (join file time sep=' @ ')
   xlabel: Time (not orbits)
   ylabel: L-dot
   can-edit-title: false

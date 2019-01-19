@@ -3,6 +3,7 @@
 #include "../Plotting/FigureView.hpp"
 #include "../Core/Runtime.hpp"
 #include "../Core/ConfigurableFileFilter.hpp"
+#include "../Core/TaskPool.hpp"
 
 
 
@@ -11,6 +12,7 @@
 class UserExtensionView
 : public Viewer
 , public FigureView::Listener
+, public TaskPool::Listener
 {
 public:
 
@@ -36,11 +38,19 @@ public:
     void figureViewSetYlabel (FigureView*, const String&) override;
     void figureViewSetTitle (FigureView*, const String&) override;
 
+    //=========================================================================
+    void taskStarted (const String& taskName) override;
+    void taskCompleted (const String& taskName, const var& result, const std::string& error) override;
+    void taskWasCancelled (const String& taskName) override;
+
 private:
 
     //=========================================================================
-    void captureInKernel (const FigureView*);
-    int resolveKernel();
+    void resolveKernel();
+    void loadFromKernelIfFigure (const std::string& id);
+    void loadExpressionsFromListIntoKernel (Runtime::Kernel& kernel, const var& list, const std::string& basename) const;
+    void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const;
+    void captureInKernel (Runtime::Kernel& kernel, const FigureView*) const;
 
     //=========================================================================
     String viewerName;
@@ -50,4 +60,6 @@ private:
     Runtime::Kernel kernel;
     OwnedArray<FigureView> figures;
     File currentFile;
+    TaskPool taskPool;
+    StringArray asyncRules;
 };

@@ -106,12 +106,19 @@ namespace builtin
 
     var item (var::NativeFunctionArgs args)
     {
-        return checkArg<var>("item", args, 0)[checkArg<int>("item", args, 1)];
+        return checkArg<var> ("item", args, 0)[checkArg<int> ("item", args, 1)];
     }
 
     var attr (var::NativeFunctionArgs args)
     {
-        return checkArg<var>("attr", args, 0)[Identifier (checkArg<String>("attr", args, 1))];
+        return checkArg<var> ("attr", args, 0)[Identifier (checkArg<String> ("attr", args, 1))];
+    }
+
+    var join (var::NativeFunctionArgs args)
+    {
+        auto argsArray = Array<var> (args.arguments, args.numArguments);
+        auto sep = optKeywordArg<String> (args, "sep", " ");
+        return DataHelpers::stringArrayFromVar (argsArray).joinIntoString (sep);
     }
 
 
@@ -173,20 +180,33 @@ namespace builtin
     var load_hdf5 (var::NativeFunctionArgs args)
     {
         ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
-
-        auto _ = nd::axis::all();
         auto fname = checkArg<std::string> ("load-hdf5", args, 0);
         auto dname = checkArg<std::string> ("load-hdf5", args, 1);
-        auto skip = optKeywordArg (args, "skip", 1);
-
         auto h5f = h5::File (fname, "r");
-        auto arr = h5f.read<nd::array<double, 1>> (dname);
-        return Runtime::make_data (arr.select (_|0|int(arr.size())|skip));
+        auto h5d = h5f.open_dataset(dname);
+
+        if (h5d.get_space().rank() == 0)
+        {
+            if (h5d.get_type() == h5::native_type<int>())
+                return h5d.read<int>();
+            if (h5d.get_type() == h5::native_type<double>())
+                return h5d.read<double>();
+            if (h5d.get_type() == h5::native_type<std::string>())
+                return String (h5d.read<std::string>());
+            throw std::runtime_error ("HDF5 unsupported scalar data type: " + dname);
+        }
+        if (h5d.get_space().rank() == 1)
+        {
+            auto _ = nd::axis::all();
+            auto skip = optKeywordArg (args, "skip", 1);
+            auto arr = h5f.read<nd::array<double, 1>> (dname);
+            return Runtime::make_data (arr.select (_|0|int(arr.size())|skip));
+        }
+        throw std::runtime_error ("HDF5 dataset rank not 0 or 1: " + dname);
     }
 }
 
 
-static Identifier argkey;
 
 
 // ============================================================================
@@ -196,7 +216,8 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("dict", var::NativeFunction (builtin::dict), Flags::builtin);
     kernel.insert ("attr", var::NativeFunction (builtin::attr), Flags::builtin);
     kernel.insert ("item", var::NativeFunction (builtin::item), Flags::builtin);
-    kernel.insert ("plot", var::NativeFunction (builtin::plot), Flags::builtin);
+    kernel.insert ("join", var::NativeFunction (builtin::join), Flags::builtin);
     kernel.insert ("linspace", var::NativeFunction (builtin::linspace), Flags::builtin);
+    kernel.insert ("plot", var::NativeFunction (builtin::plot), Flags::builtin);
     kernel.insert ("load-hdf5", var::NativeFunction (builtin::load_hdf5), Flags::builtin);
 }

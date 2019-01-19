@@ -13,7 +13,14 @@ TaskPool::Job::Job (TaskPool& taskPool, const String& name, Task task)
 
 ThreadPoolJob::JobStatus TaskPool::Job::runJob()
 {
-    return taskPool.notify (getJobName(), task ([this] { return shouldExit(); }), ! shouldExit());
+    try {
+        auto result = task ([this] { return shouldExit(); });
+        return taskPool.notify (getJobName(), result, std::string(), ! shouldExit());
+    }
+    catch (const std::exception& e)
+    {
+        return taskPool.notify (getJobName(), var(), e.what(), ! shouldExit());
+    }
 }
 
 
@@ -55,14 +62,35 @@ void TaskPool::enqueue (const String& name, Task task)
     Selector jobsToRemove (name);
     threadPool.removeAllJobs (true, 0, &jobsToRemove);
     threadPool.addJob (new Job (*this, name, task), true);
+    listeners.call (&Listener::taskStarted, name);
 }
 
-ThreadPoolJob::JobStatus TaskPool::notify (String name, var result, bool completed)
+void TaskPool::cancel (const String& name)
 {
-    MessageManager::callAsync ([this, name, result, completed]
+    Selector jobsToRemove (name);
+    threadPool.removeAllJobs (true, 0, &jobsToRemove);
+}
+
+void TaskPool::cancelAll()
+{
+    threadPool.removeAllJobs (true, 0);
+}
+
+StringArray TaskPool::getActiveTaskNames() const
+{
+    return threadPool.getNamesOfAllJobs (false);
+}
+
+
+
+
+//=========================================================================
+ThreadPoolJob::JobStatus TaskPool::notify (String name, var result, std::string error, bool completed)
+{
+    MessageManager::callAsync ([this, name, result, error, completed]
     {
         if (completed)
-            listeners.call (&Listener::taskCompleted, name, result);
+            listeners.call (&Listener::taskCompleted, name, result, error);
         else
             listeners.call (&Listener::taskWasCancelled, name);
     });
@@ -126,7 +154,7 @@ TaskPoolTestComponent::TaskPoolTestComponent() : pool (4)
     layout.items.add (&resultLabel3);
 }
 
-void TaskPoolTestComponent::taskCompleted (const String& taskName, const var& result)
+void TaskPoolTestComponent::taskCompleted (const String& taskName, const var& result, const std::string&)
 {
     if (taskName == "Task 1")
         resultLabel1.setText (result.toString(), NotificationType::dontSendNotification);

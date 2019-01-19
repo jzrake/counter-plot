@@ -418,6 +418,13 @@ static void convert (const var& source, StringPairArray& value)
 
 
 //=============================================================================
+FigureModel FigureModel::withoutContent() const
+{
+    auto result = *this;
+    result.content.clear();
+    return result;
+}
+
 FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultModel)
 {
     FigureModel model = defaultModel;

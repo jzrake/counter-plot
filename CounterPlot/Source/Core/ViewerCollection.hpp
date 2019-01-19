@@ -1,11 +1,11 @@
 #pragma once
 #include "JuceHeader.h"
+#include "../Viewers/Viewer.hpp"
 
 
 
 
 //=============================================================================
-class Viewer;
 class UserExtensionView;
 
 
@@ -48,7 +48,7 @@ public:
      * Create a UserExtensionView for each of the .yaml files in the given
      * directory.
      */
-    void loadAllInDirectory (File directory);
+    void loadAllInDirectory (File directory, Viewer::MessageSink* messageSink=nullptr);
 
 
     /**

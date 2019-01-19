@@ -33,7 +33,8 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void taskCompleted (const String& taskName, const var& result) = 0;
+        virtual void taskStarted (const String& taskName) = 0;
+        virtual void taskCompleted (const String& taskName, const var& result, const std::string& error) = 0;
         virtual void taskWasCancelled (const String& taskName) = 0;
     };
 
@@ -43,8 +44,31 @@ public:
     ~TaskPool();
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
+
+    /**
+     * Add a task to the queue with the given name. Cancels any earlier tasks
+     * with the same name.
+     */
     void enqueue (const String& name, Task task);
 
+    /**
+     * Cancel any tasks with the given name. Returns immediately. taskWasCancelled
+     * will be called when the thread actually exits.
+     */
+    void cancel (const String& name);
+
+    /**
+     * Cancel all tasks. Returns immediately.  taskWasCancelled be called when the
+     * thread actually exits.
+     */
+    void cancelAll();
+
+
+    /**
+     * Return the names of all tasks that are queued, running, or cancelled but not
+     * yet removed.
+     */
+    StringArray getActiveTaskNames() const;
 
 private:
 
@@ -71,7 +95,7 @@ private:
 
 
     //=========================================================================
-    ThreadPoolJob::JobStatus notify (String name, var result, bool completed);
+    ThreadPoolJob::JobStatus notify (String name, var result, std::string error, bool completed);
     ThreadPool threadPool;
     ListenerList<Listener> listeners;
 };
@@ -87,7 +111,8 @@ public:
 
     //=========================================================================
     TaskPoolTestComponent();
-    void taskCompleted (const String& taskName, const var& result) override;
+    void taskStarted (const String& taskName) override {}
+    void taskCompleted (const String& taskName, const var& result, const std::string& error) override;
     void taskWasCancelled (const String& taskName) override;
 
 

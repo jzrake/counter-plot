@@ -57,9 +57,25 @@ void Viewer::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result
     }
 }
 
+void Viewer::sendAsyncTaskStarted() const
+{
+    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
+    {
+        sink->viewerAsyncTaskStarted();
+    }
+}
+
+void Viewer::sendAsyncTaskFinished() const
+{
+    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
+    {
+        sink->viewerAsyncTaskFinished();
+    }
+}
+
 void Viewer::sendErrorMessage (const String& what) const
 {
-    if (auto sink = findParentComponentOfClass<MessageSink>())
+    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
     {
         sink->viewerLogErrorMessage (what);
     }
@@ -67,7 +83,7 @@ void Viewer::sendErrorMessage (const String& what) const
 
 void Viewer::sendIndicateSuccess() const
 {
-    if (auto sink = findParentComponentOfClass<MessageSink>())
+    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
     {
         sink->viewerIndicateSuccess();
     }
@@ -75,7 +91,7 @@ void Viewer::sendIndicateSuccess() const
 
 void Viewer::sendEnvironmentChanged() const
 {
-    if (auto sink = findParentComponentOfClass<MessageSink>())
+    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
     {
         sink->viewerEnvironmentChanged();
     }

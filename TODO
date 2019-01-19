@@ -29,8 +29,8 @@
 	+ Write TaskPool
 	+ Make kernel updates take CallAdapter instance rather than class
 	+ Pass bailout checker through runtime methods
-	- Indicate expensive (async updated) symbols in YAML
-	- Defer async updates in kernel resolves; resume on task completion
+	+ Indicate expensive (async updated) symbols in YAML
+	/ Defer async updates in kernel resolves; resume on task completion
 - File events trigger reloads, reconfigs, directory tree refresh
 
 

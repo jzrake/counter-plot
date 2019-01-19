@@ -30,13 +30,14 @@ void ViewerCollection::clear()
     items.clear();
 }
 
-void ViewerCollection::loadAllInDirectory (File directory)
+void ViewerCollection::loadAllInDirectory (File directory, Viewer::MessageSink* messageSink)
 {
     for (auto child : directory.findChildFiles (File::findFiles, false))
     {
         if (child.hasFileExtension (".yaml"))
         {
             auto viewer = std::make_unique<UserExtensionView>();
+            viewer->setMessageSink (messageSink);
             viewer->configure (child);
             listeners.call (&Listener::extensionViewerReconfigured, viewer.get());
             items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });

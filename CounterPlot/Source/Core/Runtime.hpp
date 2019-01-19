@@ -61,6 +61,10 @@ public:
         }
         auto f = head.getNativeFunction();
         auto a = var::NativeFunctionArgs (self, args.begin(), args.size());
+
+        if (f == nullptr)
+            throw std::runtime_error("expression head is not a function");
+
         return f(a);
     }
 
@@ -95,7 +99,8 @@ class Runtime
 public:
 
     enum Flags {
-        builtin = 2,
+        builtin      = 2,
+        asynchronous = 4,
     };
 
     //=========================================================================

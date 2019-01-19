@@ -53,14 +53,6 @@ public:
     static void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result);
 
     /**
-     * Derived classes can call these method to find the nearest parent that is a message
-     * sink and call the appropriate method.
-     */
-    void sendErrorMessage (const String& what) const;
-    void sendIndicateSuccess() const;
-    void sendEnvironmentChanged() const;
-
-    /**
      * Destructor.
      */
     virtual ~Viewer() {}
@@ -94,6 +86,24 @@ public:
      * a view of its contents.
      */
     virtual const Runtime::Kernel* getKernel() const { return nullptr; }
+
+    /**
+     * Derived classes can call these method to send a message to the sink. This
+     * is either the private messageSink instance if it is not null, or the
+     * nearest parent that is a message sink, if it exists.
+     */
+    void sendAsyncTaskStarted() const;
+    void sendAsyncTaskFinished() const;
+    void sendErrorMessage (const String& what) const;
+    void sendIndicateSuccess() const;
+    void sendEnvironmentChanged() const;
+
+    void setMessageSink (MessageSink* explicitMessageSink)
+    {
+        messageSink = explicitMessageSink;
+    }
+private:
+    MessageSink* messageSink = nullptr;
 };
 
 

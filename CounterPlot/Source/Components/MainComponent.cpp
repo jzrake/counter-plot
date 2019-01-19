@@ -292,16 +292,16 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
 MainComponent::MainComponent()
 {
     directoryTree.addListener (this);
+    directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
+    environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
+
     viewers.addListener (this);
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
     viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
-    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
-
-    directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
-    environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
+    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
 
     addAndMakeVisible (directoryTree);
 
@@ -310,7 +310,6 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
-    // addAndMakeVisible (taskPoolComponent); //////
 
     setSize (1024, 768 - 64);
 }

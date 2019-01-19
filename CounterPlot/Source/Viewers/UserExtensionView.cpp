@@ -7,15 +7,17 @@
 
 
 //=============================================================================
-UserExtensionView::UserExtensionView()
+UserExtensionView::UserExtensionView() : taskPool (4)
 {
+    taskPool.addListener (this);
     setWantsKeyboardFocus (true);
 }
 
 void UserExtensionView::configure (const var& config)
 {
-    int errors = 0;
-
+    // Reset everything
+    // -----------------------------------------------------------------------
+    taskPool.cancelAll();
     kernel.clear();
     figures.clear();
     layout.items.clear();
@@ -24,9 +26,7 @@ void UserExtensionView::configure (const var& config)
     // Set the name of the viewer
     // -----------------------------------------------------------------------
     if (config.hasProperty ("name"))
-    {
         viewerName = config["name"];
-    }
 
 
     // Configure the file filter
@@ -35,76 +35,49 @@ void UserExtensionView::configure (const var& config)
     fileFilter.setFilePatterns (DataHelpers::stringArrayFromVar (config["file-patterns"]));
 
     if (auto arr = config["hdf5-required-groups"].getArray())
-    {
         for (auto item : *arr)
-        {
             fileFilter.requireHDF5Group (item.toString());
-        }
-    }
 
     if (auto arr = config["hdf5-required-datasets"].getArray())
-    {
         for (auto item : *arr)
-        {
             fileFilter.requireHDF5Dataset (item["name"], item.getProperty ("rank", -1));
-        }
-    }
 
 
-    // Load the viewer environment into the kernel
+    // Record the rules that are expensive (aka heavyweight, aka async).
+    // -----------------------------------------------------------------------
+    asyncRules = DataHelpers::stringArrayFromVar (config["expensive"]);
+
+
+    // Load the builtins and viewer environment into the kernel
     // -----------------------------------------------------------------------
     Runtime::load_builtins (kernel);
     kernel.insert ("file", currentFile.getFullPathName());
     kernel.insert ("cmap", Runtime::make_data (colourMaps.getCurrentStops()));
 
-    if (auto environment = config["environment"].getDynamicObject())
-    {
-        for (const auto& item : environment->getProperties())
-        {
-            auto key = item.name.toString().toStdString();
-
-            if (item.value.isString())
-            {
-                try {
-                    auto val = item.value.toString().toStdString();
-                    kernel.insert (key, crt::parser::parse (val.data()));
-                }
-                catch (const std::exception& e)
-                {
-                    kernel.insert (key, var());
-                    kernel.set_error (key, e.what());
-                    ++errors;
-                }
-            }
-            else
-            {
-                kernel.insert (key, item.value);
-            }
-        }
-    }
+    loadExpressionsFromDictIntoKernel (kernel, config["environment"]);
+    loadExpressionsFromListIntoKernel (kernel, config["figures"], "figure-");
 
 
-    // Load figure definitions into the kernel
+    // Update kernel definitions
     // -----------------------------------------------------------------------
-    if (auto items = config["figures"].getArray())
+    resolveKernel();
+
+
+    // Create the figure components
+    // -----------------------------------------------------------------------
+    for (int n = 0; n < config["figures"].size(); ++n)
     {
-        for (auto item : *items)
-        {
-            auto id = "figure-" + std::to_string (figures.size());
+        auto figure = std::make_unique<FigureView>();
+        auto id = "figure-" + std::to_string(n);
 
-            try {
-                kernel.insert (id, DataHelpers::expressionFromVar (item));
-            }
-            catch (const std::exception& e)
-            {
-                kernel.insert (id, FigureModel().toVar());
-                kernel.set_error (id, e.what());
-                ++errors;
-            }
+        figure->addListener (this);
+        figure->setComponentID (id);
+        figure->setModel (FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent()));
 
-            figures.add (new FigureView);
-            figures.getLast()->setComponentID (id);
-        }
+        addAndMakeVisible (figure.get());
+
+        layout.items.add (figure.get());
+        figures.add (figure.release());
     }
 
 
@@ -112,30 +85,10 @@ void UserExtensionView::configure (const var& config)
     // -----------------------------------------------------------------------
     layout.templateColumns = DataHelpers::gridTrackInfoArrayFromVar (config["cols"]);
     layout.templateRows    = DataHelpers::gridTrackInfoArrayFromVar (config["rows"]);
-
-
-    for (auto figure : figures)
-    {
-        figure->addListener (this);
-        addAndMakeVisible (*figure);
-        layout.items.add (figure);
-    }
-
-    errors += resolveKernel();
-
-    for (auto figure : figures)
-    {
-        captureInKernel (figure);
-    }
-
-    errors += resolveKernel();
-
     layout.performLayout (getLocalBounds());
 
-    if (errors == 0)
-    {
-        sendIndicateSuccess();
-    }
+    sendIndicateSuccess();
+    sendEnvironmentChanged();
 }
 
 void UserExtensionView::configure (File file)
@@ -182,6 +135,7 @@ void UserExtensionView::loadFile (File fileToDisplay)
         currentFile = fileToDisplay;
         kernel.insert ("file", fileToDisplay.getFullPathName());
         resolveKernel();
+        sendEnvironmentChanged();
     }
 }
 
@@ -225,7 +179,8 @@ void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle
     model.xmax = domain.getRight();
     model.ymax = domain.getBottom();
     figure->setModel (model);
-    captureInKernel (figure);
+
+    captureInKernel (kernel, figure);
     resolveKernel();
 }
 
@@ -254,7 +209,118 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 
 
 //=========================================================================
-void UserExtensionView::captureInKernel (const FigureView* figure)
+void UserExtensionView::taskStarted (const String& taskName)
+{
+    sendAsyncTaskStarted();
+}
+
+void UserExtensionView::taskCompleted (const String& taskName, const var& result, const std::string& error)
+{
+    kernel.update_directly (taskName.toStdString(), result, error);
+    loadFromKernelIfFigure (taskName.toStdString());
+    resolveKernel();
+    sendEnvironmentChanged();
+    sendAsyncTaskFinished();
+}
+
+void UserExtensionView::taskWasCancelled (const String& taskName)
+{
+    sendAsyncTaskFinished();
+}
+
+
+
+
+//=========================================================================
+void UserExtensionView::resolveKernel()
+{
+    auto synchronousDirtyRules = kernel.dirty_rules_excluding (Runtime::asynchronous);
+    kernel.update_all (synchronousDirtyRules);
+
+    for (const auto& rule : synchronousDirtyRules)
+        loadFromKernelIfFigure (rule);
+
+    sendEnvironmentChanged();
+
+    for (auto rule : kernel.dirty_rules_only (Runtime::asynchronous))
+    {
+        if (kernel.current (kernel.incoming (rule)))
+        {
+            taskPool.enqueue (rule, [kernel=kernel, rule] (auto bailout)
+            {
+                auto what = std::string();
+                auto adapter = VarCallAdapter (bailout);
+                auto result = kernel.resolve (rule, what, adapter);
+
+                if (what.empty())
+                    return result;
+
+                throw std::runtime_error(what);
+            });
+        }
+    }
+}
+
+void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
+{
+    if (auto figure = dynamic_cast<FigureView*> (findChildWithID (id)))
+    {
+        try {
+            figure->setModel (FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent()));
+        }
+        catch (const std::exception& e)
+        {
+            kernel.set_error (id, e.what());
+        }
+    }
+}
+
+void UserExtensionView::loadExpressionsFromListIntoKernel (Runtime::Kernel& kernel, const var& list, const std::string& basename) const
+{
+    if (auto items = list.getArray())
+    {
+        int n = 0;
+
+        for (auto item : *items)
+        {
+            auto id = basename + std::to_string(n);
+
+            try {
+                auto flags = asyncRules.contains (id.data()) ? Runtime::asynchronous : 0;
+                kernel.insert (id, DataHelpers::expressionFromVar (item), flags);
+            }
+            catch (const std::exception& e)
+            {
+                kernel.insert (id, var());
+                kernel.set_error (id, e.what());
+            }
+            ++n;
+        }
+    }
+}
+
+void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const
+{
+    if (auto obj = dict.getDynamicObject())
+    {
+        for (const auto& item : obj->getProperties())
+        {
+            auto key = item.name.toString().toStdString();
+
+            try {
+                auto flags = asyncRules.contains (key.data()) ? Runtime::asynchronous : 0;
+                kernel.insert (key, DataHelpers::expressionFromVar (item.value), flags);
+            }
+            catch (const std::exception& e)
+            {
+                kernel.insert (key, var());
+                kernel.set_error (key, e.what());
+            }
+        }
+    }
+}
+
+void UserExtensionView::captureInKernel (Runtime::Kernel& kernel, const FigureView* figure) const
 {
     const auto& model = figure->getModel();
     const auto& keys = model.capture.getAllKeys();
@@ -267,32 +333,4 @@ void UserExtensionView::captureInKernel (const FigureView* figure)
         if (keys[n] == "ymin") kernel.insert (vals[n].toStdString(), var (model.ymin));
         if (keys[n] == "ymax") kernel.insert (vals[n].toStdString(), var (model.ymax));
     }
-}
-
-int UserExtensionView::resolveKernel()
-{
-    int errors = 0;
-    auto initiallyDirtyRules = kernel.dirty_rules();
-    kernel.update_all (initiallyDirtyRules);
-
-    for (auto figure : figures)
-    {
-        auto id = figure->getComponentID().toStdString();
-
-        if (initiallyDirtyRules.count (id))
-        {
-            try {
-                auto existingModel = figure->getModel();
-                existingModel.content.clear();
-                figure->setModel (FigureModel::fromVar (kernel.at (id), existingModel));
-            }
-            catch (const std::exception& e)
-            {
-                kernel.set_error (id, e.what());
-                ++errors;
-            }
-        }
-    }
-    sendEnvironmentChanged();
-    return errors;
 }

@@ -171,6 +171,7 @@ struct FigureModel
      */
     static FigureModel fromVar (const var&, const FigureModel& defaultModel);
 
+    FigureModel withoutContent() const;
 
     /**
      * Store the model as a DynamicObject variant. Properties not different from the
