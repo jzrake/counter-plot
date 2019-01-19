@@ -9,11 +9,30 @@
 class VarCallAdapter
 {
 public:
+
+
+    //=========================================================================
     using ObjectType = var;
     using list_t = std::vector<ObjectType>;
     using dict_t = std::unordered_map<std::string, ObjectType>;
     using func_t = std::function<ObjectType(list_t, dict_t)>;
 
+
+    //=========================================================================
+    struct BailoutChecker : public ReferenceCountedObject
+    {
+        static Identifier argkey;
+        BailoutChecker (std::function<bool()> callback) : callback (callback) {}
+        std::function<bool()> callback;
+    };
+
+
+    //=========================================================================
+    VarCallAdapter() {}
+    VarCallAdapter (std::function<bool()> callback) : bailout (new BailoutChecker (callback)) {}
+
+
+    //=========================================================================
     template<typename Mapping>
     ObjectType call (const Mapping& scope, const crt::expression& expr) const
     {
@@ -21,6 +40,11 @@ public:
         auto self = var (new DynamicObject);
         auto args = Array<var>();
         auto first = true;
+
+        if (! bailout.isVoid())
+        {
+            self.getDynamicObject()->setProperty (BailoutChecker::argkey, bailout);
+        }
 
         for (const auto& part : expr)
         {
@@ -58,6 +82,8 @@ public:
     ObjectType convert (const int& value) const { return value; }
     ObjectType convert (const double& value) const { return value; }
     ObjectType convert (const std::string& value) const { return String (value); }
+
+    var bailout;
 };
 
 
@@ -136,11 +162,11 @@ public:
         }
         else if (value.isArray())
         {
-            return "list[ ]";
+            return "list[]";
         }
         else if (value.getDynamicObject())
         {
-            return "dict{ }";
+            return "dict{}";
         }
         return value.toString();
     }
