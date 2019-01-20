@@ -125,8 +125,8 @@ public:
     public:
         Data() {}
         Data (const T& value) : value (value) {}
-        std::string name() override { return  DataTypeInfo<T>::name(); }
-        std::string summary() override { return  DataTypeInfo<T>::summary (value); }
+        std::string name() override { return DataTypeInfo<T>::name(); }
+        std::string summary() override { return DataTypeInfo<T>::summary (value); }
         T value;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Data)
     };

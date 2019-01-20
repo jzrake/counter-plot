@@ -34,12 +34,19 @@
 - File events trigger reloads, reconfigs, directory tree refresh
 
 
+/ Improve figure margin editing with "one-way" resize border
 - Figure zoom-to-content-extent command
 - Figure legends
 - Figure color cycles for lines
 - Figure log scaling
-- Expose gradient artist to runtime
-- Create type-safe GPU buffer objects, change RenderingSurface to use them
++ Create type-safe GPU buffer objects, change RenderingSurface to use them
   Then data can be moved to the GPU on a background thread, and we can forego
   the complexity of cacheing GPU buffers based on their std::vector<simd>
   data.
+
+
+- Expose gradient artist to runtime
+- Expose mesh helper methods to runtime
+- Start documenting the runtime API
+- Decide on a way to present API docs in the app
+- Write variant mini-viewer: show callout from environment view

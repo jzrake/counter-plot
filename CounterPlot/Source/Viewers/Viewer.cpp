@@ -154,6 +154,7 @@ bool ImageFileViewer::isInterestedInFile (File file) const
 void ImageFileViewer::loadFile (File file)
 {
     currentFile = file;
+    reloadFile();
 }
 
 void ImageFileViewer::reloadFile()

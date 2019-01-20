@@ -8,6 +8,7 @@
 #include "../Core/Runtime.hpp"
 #include "../Core/TaskPool.hpp"
 #include "../Core/DataHelpers.hpp" // FilePoller
+#include "../Plotting/ResizerFrame.hpp"
 
 
 
@@ -175,5 +176,6 @@ private:
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
     FilePoller filePoller;
+    ResizerFrameTestComponent resizerFrameTestComponent;
     // TaskPoolTestComponent taskPoolComponent;
 };

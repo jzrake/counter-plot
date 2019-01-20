@@ -55,6 +55,10 @@
             file="Source/Plotting/MetalSurface.hpp"/>
       <FILE id="AHWlxo" name="PlotModels.cpp" compile="1" resource="0" file="Source/Plotting/PlotModels.cpp"/>
       <FILE id="qGdvq0" name="PlotModels.hpp" compile="0" resource="0" file="Source/Plotting/PlotModels.hpp"/>
+      <FILE id="u1eLeb" name="ResizerFrame.cpp" compile="1" resource="0"
+            file="Source/Plotting/ResizerFrame.cpp"/>
+      <FILE id="gEXntN" name="ResizerFrame.hpp" compile="0" resource="0"
+            file="Source/Plotting/ResizerFrame.hpp"/>
     </GROUP>
     <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers">
       <FILE id="ZmxzWh" name="BinaryTorquesView.cpp" compile="1" resource="0"
