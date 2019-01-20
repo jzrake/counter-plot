@@ -344,10 +344,8 @@ void TriangleMeshArtist::render (RenderingSurface& surface)
 //=============================================================================
 FigureView::PlotArea::PlotArea (FigureView& figure)
 : figure (figure)
-, resizer (this, &constrainer)
 {
-    constrainer.setMinimumOnscreenAmounts (0xffffff, 0xffffff, 0xffffff, 0xffffff);
-    constrainer.setMinimumSize (16, 16);
+    resizer.setCallback ([this] (auto b) { handleResizer(b); });
     addChildComponent (resizer);
 }
 
@@ -355,9 +353,16 @@ void FigureView::PlotArea::paint (Graphics& g)
 {
     if (figure.paintMarginsAndBackground)
     {
-        g.fillAll (figure.findColour (backgroundColourId));
+        g.setColour (figure.findColour (backgroundColourId));
+        g.fillAll();
+
+        g.setColour (figure.findColour (borderColourId));
+        g.drawRect (getLocalBounds());
     }
 
+
+    // Create tick locations
+    // ========================================================================
     const auto& m = figure.model;
     auto xticks = Ticker::createTicks (m.xmin, m.xmax, 0, getWidth(),  m.xtickCount);
     auto yticks = Ticker::createTicks (m.ymin, m.ymax, getHeight(), 0, m.ytickCount);
@@ -381,25 +386,13 @@ void FigureView::PlotArea::paint (Graphics& g)
 void FigureView::PlotArea::resized()
 {
     resizer.setBounds (getLocalBounds());
-    auto newMargin = computeMargin();
 
-    if (! figure.model.canDeformDomain && ! domainLengthPerPixel.isOrigin())
-    {
-        auto newx0 = 0.5 * (figure.model.xmin + figure.model.xmax - domainLengthPerPixel.x * getWidth());
-        auto newx1 = 0.5 * (figure.model.xmin + figure.model.xmax + domainLengthPerPixel.x * getWidth());
-        auto newy0 = 0.5 * (figure.model.ymin + figure.model.ymax - domainLengthPerPixel.y * getHeight());
-        auto newy1 = 0.5 * (figure.model.ymin + figure.model.ymax + domainLengthPerPixel.y * getHeight());
-        auto newDomain = Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
-
-        if (figure.model.margin == newMargin)
-            sendSetDomain (newDomain);
-        else
-            sendSetDomainAndMargin (newDomain, newMargin);
-    }
-    else if (figure.model.margin != newMargin)
-    {
-        sendSetMargin (newMargin);
-    }
+    // This code is here as a reminder of how to prevent deforming the domain:
+    // auto newx0 = 0.5 * (figure.model.xmin + figure.model.xmax - domainLengthPerPixel.x * getWidth());
+    // auto newx1 = 0.5 * (figure.model.xmin + figure.model.xmax + domainLengthPerPixel.x * getWidth());
+    // auto newy0 = 0.5 * (figure.model.ymin + figure.model.ymax - domainLengthPerPixel.y * getHeight());
+    // auto newy1 = 0.5 * (figure.model.ymin + figure.model.ymax + domainLengthPerPixel.y * getHeight());
+    // auto newDomain = Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
 }
 
 void FigureView::PlotArea::mouseMove (const MouseEvent& e)
@@ -436,50 +429,29 @@ void FigureView::PlotArea::mouseDrag (const MouseEvent& e)
 void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
 {
     grabKeyboardFocus();
-    const double xlim[2] = {figure.model.xmin, figure.model.xmax};
-    const double ylim[2] = {figure.model.ymin, figure.model.ymax};
-    const double Dx = getWidth();
-    const double Dy = getHeight();
-    const double dx = xlim[1] - xlim[0];
-    const double dy = ylim[1] - ylim[0];
-    const double newdx = dx / scaleFactor;
-    const double newdy = dy / scaleFactor;
-    const double fixedx = toDomainX (e.position.x);
-    const double fixedy = toDomainY (e.position.y);
-    const double newx0 = e.mods.isAltDown()  ? xlim[0] : fixedx - newdx * (0 + e.position.x / Dx);
-    const double newx1 = e.mods.isAltDown()  ? xlim[1] : fixedx + newdx * (1 - e.position.x / Dx);
-    const double newy0 = e.mods.isCtrlDown() ? ylim[0] : fixedy - newdy * (1 - e.position.y / Dy);
-    const double newy1 = e.mods.isCtrlDown() ? ylim[1] : fixedy + newdy * (0 + e.position.y / Dy);
-    sendSetDomain (Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1));
+    sendSetDomain (computeZoomedDomain (e, scaleFactor));
 }
 
 void FigureView::PlotArea::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
 {
     grabKeyboardFocus();
-    const double xlim[2] = {figure.model.xmin, figure.model.xmax};
-    const double ylim[2] = {figure.model.ymin, figure.model.ymax};
-    const double Dx = getWidth();
-    const double Dy = getHeight();
-    const double dx = xlim[1] - xlim[0];
-    const double dy = ylim[1] - ylim[0];
-    const double newdx = dx / (1.0+wheel.deltaY);
-    const double newdy = dy / (1.0+wheel.deltaY);
-    const double fixedx = toDomainX (e.position.x);
-    const double fixedy = toDomainY (e.position.y);
-    const double newx0 = e.mods.isAltDown()  ? xlim[0] : fixedx - newdx * (0 + e.position.x / Dx);
-    const double newx1 = e.mods.isAltDown()  ? xlim[1] : fixedx + newdx * (1 - e.position.x / Dx);
-    const double newy0 = e.mods.isCtrlDown() ? ylim[0] : fixedy - newdy * (1 - e.position.y / Dy);
-    const double newy1 = e.mods.isCtrlDown() ? ylim[1] : fixedy + newdy * (0 + e.position.y / Dy);
-    sendSetDomain (Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1));
+    sendSetDomain (computeZoomedDomain (e, 1.f + wheel.deltaY));
 }
 
 
 
 
 //=============================================================================
-BorderSize<int> FigureView::PlotArea::computeMargin() const
+void FigureView::PlotArea::handleResizer (const Rectangle<int>& proposedBounds)
 {
-    return {getY(), getX(), getParentHeight() - getBottom(), getParentWidth() - getRight()};
+    auto proposedMargin = BorderSize<int>
+    {
+        proposedBounds.getY(),
+        proposedBounds.getX(),
+        getParentHeight() - proposedBounds.getBottom(),
+        getParentWidth()  - proposedBounds.getRight()
+    };
+    sendSetMargin (proposedMargin);
 }
 
 double FigureView::PlotArea::fromDomainX (double x) const
@@ -530,6 +502,25 @@ void FigureView::PlotArea::sendSetDomainAndMargin (const Rectangle<double>& doma
     figure.listeners.call (&Listener::figureViewSetDomainAndMargin, &figure, domain, margin);
 }
 
+Rectangle<double> FigureView::PlotArea::computeZoomedDomain (const MouseEvent& e, float scaleFactor) const
+{
+    const double xlim[2] = {figure.model.xmin, figure.model.xmax};
+    const double ylim[2] = {figure.model.ymin, figure.model.ymax};
+    const double Dx = getWidth();
+    const double Dy = getHeight();
+    const double dx = xlim[1] - xlim[0];
+    const double dy = ylim[1] - ylim[0];
+    const double newdx = dx / scaleFactor;
+    const double newdy = dy / scaleFactor;
+    const double fixedx = toDomainX (e.position.x);
+    const double fixedy = toDomainY (e.position.y);
+    const double newx0 = e.mods.isAltDown()  ? xlim[0] : fixedx - newdx * (0 + e.position.x / Dx);
+    const double newx1 = e.mods.isAltDown()  ? xlim[1] : fixedx + newdx * (1 - e.position.x / Dx);
+    const double newy0 = e.mods.isCtrlDown() ? ylim[0] : fixedy - newdy * (1 - e.position.y / Dy);
+    const double newy1 = e.mods.isCtrlDown() ? ylim[1] : fixedy + newdy * (0 + e.position.y / Dy);
+    return Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
+}
+
 
 
 
@@ -547,7 +538,7 @@ void FigureView::setLookAndFeelDefaults (LookAndFeel& laf, ColourScheme scheme)
 
         case ColourScheme::dark:
             laf.setColour (marginColourId, Colours::darkgrey);
-            laf.setColour (borderColourId, Colours::lightgrey);
+            laf.setColour (borderColourId, Colours::black);
             laf.setColour (backgroundColourId, Colours::darkslategrey);
             laf.setColour (gridlinesColourId, Colours::darkslategrey.brighter (0.05f));
             break;

@@ -339,7 +339,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
-    addAndMakeVisible (resizerFrameTestComponent);
+    // addAndMakeVisible (resizerFrameTestComponent);
 
     setSize (1024, 768 - 64);
 }
@@ -555,6 +555,5 @@ void MainComponent::layout (bool animated)
 
     ////////
     // taskPoolComponent.setBounds (area);
-
-    resizerFrameTestComponent.setBounds (area);
+    // resizerFrameTestComponent.setBounds (area);
 }

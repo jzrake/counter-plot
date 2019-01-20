@@ -1,6 +1,7 @@
 #pragma once
 #include "JuceHeader.h"
 #include "PlotModels.hpp"
+#include "ResizerFrame.hpp"
 
 
 
@@ -147,15 +148,15 @@ public:
 
     private:
         //=====================================================================
-        BorderSize<int> computeMargin() const;
+        void handleResizer (const Rectangle<int>& proposedBounds);
         void sendSetMargin (const BorderSize<int>& margin);
         void sendSetDomain (const Rectangle<double>& domain);
         void sendSetDomainAndMargin (const Rectangle<double>& domain, const BorderSize<int>& margin);
+        Rectangle<double> computeZoomedDomain (const MouseEvent&, float scaleFactor) const;
 
         //=====================================================================
         FigureView& figure;
-        ComponentBoundsConstrainer constrainer;
-        ResizableBorderComponent resizer;
+        ResizerFrame resizer;
         Rectangle<double> domainBeforePan;
         Point<double> domainLengthPerPixel;
         friend class FigureView;

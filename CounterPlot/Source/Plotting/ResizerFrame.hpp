@@ -14,12 +14,12 @@ public:
     void setCallback (std::function<void(Rectangle<int>)> callbackToInvoke);
 
     //=========================================================================
-    void paint (Graphics& g) override;
     void resized() override;
+    void mouseMove (const MouseEvent&) override;
     void mouseDown (const MouseEvent&) override;
     void mouseDrag (const MouseEvent&) override;
     bool hitTest (int x, int y) override;
-    MouseCursor getMouseCursor() override;
+//    MouseCursor getMouseCursor() override;
 
 private:
     //=========================================================================
@@ -29,7 +29,7 @@ private:
     Rectangle<int> zoneRectangles[9];
     Rectangle<int> boundsOnMouseDown;
     int zoneOnMouseDown = 4;
-    int width = 8;
+    int width = 10;
 };
 
 

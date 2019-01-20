@@ -26,13 +26,6 @@ void ResizerFrame::setCallback (std::function<void(Rectangle<int>)> callbackToIn
 
 
 //=============================================================================
-void ResizerFrame::paint (Graphics& g)
-{
-    g.setColour (Colours::black);
-    g.drawRect (getLocalBounds().reduced (width));
-    g.drawRect (getLocalBounds());
-}
-
 void ResizerFrame::resized()
 {
     auto area      = getLocalBounds();
@@ -51,10 +44,16 @@ void ResizerFrame::resized()
     zoneRectangles[7] = bottomRow;
 }
 
+void ResizerFrame::mouseMove (const MouseEvent& e)
+{
+    setMouseCursor (mouseCursors[getZoneForPoint (e.getPosition())]);
+}
+
 void ResizerFrame::mouseDown (const MouseEvent& e)
 {
     boundsOnMouseDown = getParentComponent()->getBounds();
     zoneOnMouseDown = getZoneForPoint (e.getPosition());
+    setMouseCursor (mouseCursors[zoneOnMouseDown]);
 }
 
 void ResizerFrame::mouseDrag (const MouseEvent& e)
@@ -80,18 +79,22 @@ bool ResizerFrame::hitTest (int x, int y)
     return false;
 }
 
-MouseCursor ResizerFrame::getMouseCursor()
-{
-    return mouseCursors[getZoneForPoint (getMouseXYRelative())];
-}
+//MouseCursor ResizerFrame::getMouseCursor()
+//{
+//    return mouseCursors[getZoneForPoint (getMouseXYRelative())];
+//}
 
 int ResizerFrame::getZoneForPoint (Point<int> p) const
 {
-    for (int n = 0; n < 9; ++n)
-        if (zoneRectangles[n].contains (p))
-            return n;
-
-    return 0;
+    if (zoneRectangles[0].contains(p)) return 0;
+    if (zoneRectangles[2].contains(p)) return 2;
+    if (zoneRectangles[6].contains(p)) return 6;
+    if (zoneRectangles[8].contains(p)) return 8;
+    if (zoneRectangles[1].contains(p)) return 1;
+    if (zoneRectangles[3].contains(p)) return 3;
+    if (zoneRectangles[5].contains(p)) return 5;
+    if (zoneRectangles[7].contains(p)) return 7;
+    return 4;
 }
 
 

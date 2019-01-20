@@ -176,6 +176,6 @@ private:
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
     FilePoller filePoller;
-    ResizerFrameTestComponent resizerFrameTestComponent;
+    // ResizerFrameTestComponent resizerFrameTestComponent;
     // TaskPoolTestComponent taskPoolComponent;
 };
