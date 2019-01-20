@@ -1,0 +1,19 @@
+rows: [1]
+cols: [1]
+
+environment:
+  x: 12
+  y: 32
+  cmap: (mapping 0.0 1.5 stops)
+  mesh: (lattice x y)
+
+
+figures:
+
+- title: Relief Plot Example
+  xlabel:
+  ylabel:
+  can-edit-title: false
+  can-edit-xlabel: false
+  can-edit-ylabel: false
+  margin: {top: 80, bottom: 60, left: 80, right: 40}

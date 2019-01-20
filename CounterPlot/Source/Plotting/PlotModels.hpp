@@ -80,16 +80,56 @@ public:
 
 
 //=============================================================================
+/**
+ * These structs hold GPU buffer data in a type-safe manner, and can be used
+ * in the RenderingSurface methods. The constructor implementation is in the
+ * MetalSurface.cpp source file. For future implementations on platforms other
+ * than MacOS, the metal::Buffer struct will be declared as a dummy somewhere,
+ * and other structs, e.g. opengl::Buffer or vulkan::Buffer will be added here.
+ */
+struct DeviceBufferFloat1
+{
+    DeviceBufferFloat1 (const std::vector<simd::float1>& data);
+    metal::Buffer metal;
+    std::size_t size;
+};
+
+struct DeviceBufferFloat2
+{
+    DeviceBufferFloat2 (const std::vector<simd::float2>& data);
+    metal::Buffer metal;
+    std::size_t size;
+};
+
+struct DeviceBufferFloat4
+{
+    DeviceBufferFloat4 (const std::vector<simd::float4>& data);
+    metal::Buffer metal;
+    std::size_t size;
+};
+
+
+
+
+//=============================================================================
 class RenderingSurface : public Component
 {
 public:
     virtual ~RenderingSurface() {}
     virtual void setContent (std::vector<std::shared_ptr<PlotArtist>> content, const PlotTransformer& trans) = 0;
+
+    /** DEP */
     virtual void renderTriangles (const std::vector<simd::float2>& vertices,
                                   const std::vector<simd::float4>& colors) = 0;
+
+    /** DEP */
+
     virtual void renderTriangles (const std::vector<simd::float2>& vertices,
                                   const std::vector<simd::float1>& scalars,
                                   const ScalarMapping& mapping) = 0;
+
+    virtual void renderTriangles (DeviceBufferFloat2 vertices, DeviceBufferFloat4 colors) = 0;
+    virtual void renderTriangles (DeviceBufferFloat2 vertices, DeviceBufferFloat1 scalars, const ScalarMapping& mapping) = 0;
     virtual Image createSnapshot() const = 0;
 };
 

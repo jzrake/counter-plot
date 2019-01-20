@@ -24,13 +24,13 @@
 
 + Multiple viewers per file, allow to select from status bar
 + Add file patterns to extension view
-/ Preserve environment between extension view reconfigs
-/ Handle async kernel resolves
++ Preserve environment between extension view reconfigs
++ Handle async kernel resolves
 	+ Write TaskPool
 	+ Make kernel updates take CallAdapter instance rather than class
 	+ Pass bailout checker through runtime methods
 	+ Indicate expensive (async updated) symbols in YAML
-	/ Defer async updates in kernel resolves; resume on task completion
+	+ Defer async updates in kernel resolves; resume on task completion
 - File events trigger reloads, reconfigs, directory tree refresh
 
 
@@ -39,3 +39,7 @@
 - Figure color cycles for lines
 - Figure log scaling
 - Expose gradient artist to runtime
+- Create type-safe GPU buffer objects, change RenderingSurface to use them
+  Then data can be moved to the GPU on a background thread, and we can forego
+  the complexity of cacheing GPU buffers based on their std::vector<simd>
+  data.

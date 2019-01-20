@@ -324,6 +324,24 @@ void ColourGradientArtist::paint (Graphics& g, const PlotTransformer& trans)
 
 
 //=============================================================================
+TriangleMeshArtist::TriangleMeshArtist (DeviceBufferFloat2 vertices,
+                                        DeviceBufferFloat1 scalars,
+                                        ScalarMapping mapping)
+: vertices (vertices)
+, scalars (scalars)
+, mapping (mapping)
+{
+}
+
+void TriangleMeshArtist::render (RenderingSurface& surface)
+{
+    surface.renderTriangles (vertices, scalars, mapping);
+}
+
+
+
+
+//=============================================================================
 FigureView::PlotArea::PlotArea (FigureView& figure)
 : figure (figure)
 , resizer (this, &constrainer)

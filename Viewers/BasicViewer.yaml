@@ -7,7 +7,7 @@ name: Basic Example
 rows: [1]
 cols: [1]
 
-file-patterns: [] # ['*.md']
+file-patterns: ['*.md']
 
 environment:
   x: (linspace 0 1 4)

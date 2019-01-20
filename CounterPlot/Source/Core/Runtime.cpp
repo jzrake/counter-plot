@@ -125,13 +125,21 @@ namespace builtin
     //=========================================================================
     var linspace (var::NativeFunctionArgs args)
     {
-        //////////////////
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 2000);
-        //////////////////
         auto x0  = checkArg<double> ("linspace", args, 0);
         auto x1  = checkArg<double> ("linspace", args, 1);
         auto num = checkArg<int>    ("linspace", args, 2);
         return Runtime::make_data (nd::linspace<double> (x0, x1, num));
+    }
+
+
+    //=========================================================================
+    var mapping (var::NativeFunctionArgs args)
+    {
+        auto m  = ScalarMapping();
+        m.vmin  = checkArg<float> ("mapping", args, 0);
+        m.vmax  = checkArg<float> ("mapping", args, 1);
+        m.stops = checkArgData<Array<Colour>> ("mapping", args, 2);
+        return Runtime::make_data(m);
     }
 
 
@@ -180,6 +188,16 @@ namespace builtin
 
 
     //=========================================================================
+    var trimesh (var::NativeFunctionArgs args)
+    {
+        auto vertices = checkArgData<DeviceBufferFloat2> ("trimesh", args, 0);
+        auto scalars  = checkArgData<DeviceBufferFloat1> ("trimesh", args, 1);
+        auto mapping  = checkArgData<ScalarMapping> ("trimesh", args, 2);
+        return Runtime::make_data (std::shared_ptr<PlotArtist> (new TriangleMeshArtist (vertices, scalars, mapping)));
+    }
+
+
+    //=========================================================================
     var load_hdf5 (var::NativeFunctionArgs args)
     {
         ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
@@ -221,6 +239,8 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("item", var::NativeFunction (builtin::item), Flags::builtin);
     kernel.insert ("join", var::NativeFunction (builtin::join), Flags::builtin);
     kernel.insert ("linspace", var::NativeFunction (builtin::linspace), Flags::builtin);
+    kernel.insert ("mapping", var::NativeFunction (builtin::mapping), Flags::builtin);
     kernel.insert ("plot", var::NativeFunction (builtin::plot), Flags::builtin);
+    kernel.insert ("trimesh", var::NativeFunction (builtin::trimesh), Flags::builtin);
     kernel.insert ("load-hdf5", var::NativeFunction (builtin::load_hdf5), Flags::builtin);
 }

@@ -19,6 +19,10 @@ public:
     void renderTriangles (const std::vector<simd::float2>& vertices,
                           const std::vector<simd::float1>& scalars,
                           const ScalarMapping& mapping) override;
+
+    void renderTriangles (DeviceBufferFloat2 vertices, DeviceBufferFloat4 colors) override;
+    void renderTriangles (DeviceBufferFloat2 vertices, DeviceBufferFloat1 scalars, const ScalarMapping& mapping) override;
+
     Image createSnapshot() const override;
 
     //=========================================================================
@@ -33,9 +37,6 @@ private:
     std::map<const std::vector<simd::float1>*, metal::Buffer> cachedBuffers1;
     std::map<const std::vector<simd::float2>*, metal::Buffer> cachedBuffers2;
     std::map<const std::vector<simd::float4>*, metal::Buffer> cachedBuffers4;
-//    std::map<const simd::float1*, metal::Buffer> cachedBuffers1;
-//    std::map<const simd::float2*, metal::Buffer> cachedBuffers2;
-//    std::map<const simd::float4*, metal::Buffer> cachedBuffers4;
 
     void cleanBufferCaches();
 

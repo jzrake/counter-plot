@@ -11,7 +11,7 @@ UserExtensionView::UserExtensionView() : taskPool (4)
 {
     Runtime::load_builtins (kernel);
     kernel.insert ("file", currentFile.getFullPathName());
-    kernel.insert ("cmap", Runtime::make_data (colourMaps.getCurrentStops()));
+    kernel.insert ("stops", Runtime::make_data (colourMaps.getCurrentStops()));
 
     taskPool.addListener (this);
     setWantsKeyboardFocus (true);
@@ -381,13 +381,12 @@ var UserExtensionView::recordHotReloadableData() const
         obj->setProperty ("xmax", model.xmax);
         obj->setProperty ("ymin", model.ymin);
         obj->setProperty ("ymax", model.ymax);
-        obj->setProperty ("xlabel", model.xlabel);
-        obj->setProperty ("ylabel", model.ylabel);
-        obj->setProperty ("title", model.title);
         obj->setProperty ("margin", DataHelpers::varFromBorderSize (model.margin));
+        //        obj->setProperty ("xlabel", model.xlabel);
+        //        obj->setProperty ("ylabel", model.ylabel);
+        //        obj->setProperty ("title", model.title);
 
         result.append (obj.release());
     }
-
     return result;
 }

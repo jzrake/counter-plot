@@ -68,6 +68,21 @@ private:
 
 
 //=============================================================================
+class TriangleMeshArtist : public PlotArtist
+{
+public:
+    TriangleMeshArtist (DeviceBufferFloat2 vertices, DeviceBufferFloat1 scalars, ScalarMapping mapping);
+    void render (RenderingSurface& surface) override;
+private:
+    DeviceBufferFloat2 vertices;
+    DeviceBufferFloat1 scalars;
+    ScalarMapping mapping;
+};
+
+
+
+
+//=============================================================================
 class FigureView : public Component, private Label::Listener
 {
 public:

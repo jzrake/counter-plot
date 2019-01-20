@@ -189,6 +189,7 @@ public:
     static std::string summary (const nd::ndarray<double, 1>& A) { return "double[" + std::to_string (A.shape(0)) + "]"; }
 };
 
+//=============================================================================
 template<>
 class Runtime::DataTypeInfo<Array<Colour>>
 {
@@ -197,10 +198,50 @@ public:
     static std::string summary (const Array<Colour>& A) { return "color[" + std::to_string (A.size()) + "]"; }
 };
 
+//=============================================================================
 template<>
 class Runtime::DataTypeInfo<std::shared_ptr<PlotArtist>>
 {
 public:
     static std::string name() { return "std::shared_ptr<PlotArtist>"; }
     static std::string summary (const std::shared_ptr<PlotArtist>& A) { return "PlotArtist"; }
+};
+
+//=============================================================================
+template<>
+class Runtime::DataTypeInfo<ScalarMapping>
+{
+public:
+    static std::string name() { return "ScalarMapping"; }
+    static std::string summary (const ScalarMapping& A)
+    {
+        return "mapping(" + std::to_string (A.vmin) + " -> " + std::to_string (A.vmax) + ")";
+    }
+};
+
+//=============================================================================
+template<>
+class Runtime::DataTypeInfo<DeviceBufferFloat1>
+{
+public:
+    static std::string name() { return "DeviceBufferFloat1"; }
+    static std::string summary (const DeviceBufferFloat1& A) { return "device::float1[" + std::to_string (A.size) + "]"; }
+};
+
+//=============================================================================
+template<>
+class Runtime::DataTypeInfo<DeviceBufferFloat2>
+{
+public:
+    static std::string name() { return "DeviceBufferFloat2"; }
+    static std::string summary (const DeviceBufferFloat2& A) { return "device::float2[" + std::to_string (A.size) + "]"; }
+};
+
+//=============================================================================
+template<>
+class Runtime::DataTypeInfo<DeviceBufferFloat4>
+{
+public:
+    static std::string name() { return "DeviceBufferFloat4"; }
+    static std::string summary (const DeviceBufferFloat4& A) { return "device::float4[" + std::to_string (A.size) + "]"; }
 };
