@@ -82,6 +82,7 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
     if (menuName == "File")
     {
         menu.addCommandItem (manager, Commands::openDirectory);
+        menu.addCommandItem (manager, Commands::reloadCurrentFile);
         menu.addSeparator();
         menu.addCommandItem (manager, Viewer::Commands::makeSnapshotAndOpen);
         menu.addCommandItem (manager, Viewer::Commands::saveSnapshotAs);

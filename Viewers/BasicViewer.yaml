@@ -4,10 +4,10 @@
 
 
 name: Basic Example
+file-patterns: [TODO]
 rows: [1]
 cols: [1]
 
-file-patterns: ['*.md']
 
 environment:
   x: (linspace 0 1 4)

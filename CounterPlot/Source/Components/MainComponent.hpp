@@ -7,6 +7,7 @@
 #include "../Core/ViewerCollection.hpp"
 #include "../Core/Runtime.hpp"
 #include "../Core/TaskPool.hpp"
+#include "../Core/DataHelpers.hpp" // FilePoller
 
 
 
@@ -173,5 +174,6 @@ private:
     ViewerCollection viewers;
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
+    FilePoller filePoller;
     // TaskPoolTestComponent taskPoolComponent;
 };

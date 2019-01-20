@@ -1,5 +1,7 @@
 #include "Viewer.hpp"
 #include "../Components/VariantView.hpp"
+#include "../Core/DataHelpers.hpp"
+#include "yaml-cpp/yaml.h"
 
 
 
@@ -108,12 +110,26 @@ JsonFileViewer::JsonFileViewer()
 
 bool JsonFileViewer::isInterestedInFile (File file) const
 {
-    return file.hasFileExtension (".json");
+    return file.hasFileExtension (".json") || file.hasFileExtension (".yaml");
 }
 
 void JsonFileViewer::loadFile (File fileToDisplay)
 {
-    view.setData (JSON::parse (fileToDisplay));
+    currentFile = fileToDisplay;
+    reloadFile();
+}
+
+void JsonFileViewer::reloadFile()
+{
+    if (currentFile.hasFileExtension (".json"))
+    {
+        view.setData (JSON::parse (currentFile));
+    }
+    else if (currentFile.hasFileExtension (".yaml"))
+    {
+        auto yroot = YAML::LoadFile (currentFile.getFullPathName().toStdString());
+        view.setData (DataHelpers::varFromYamlNode (yroot));
+    }
 }
 
 void JsonFileViewer::resized()
@@ -137,9 +153,14 @@ bool ImageFileViewer::isInterestedInFile (File file) const
 
 void ImageFileViewer::loadFile (File file)
 {
-    if (auto format = ImageFileFormat::findImageFormatForFileExtension (file))
+    currentFile = file;
+}
+
+void ImageFileViewer::reloadFile()
+{
+    if (auto format = ImageFileFormat::findImageFormatForFileExtension (currentFile))
     {
-        view.setImage (format->loadFrom (file));
+        view.setImage (format->loadFrom (currentFile));
     }
 }
 

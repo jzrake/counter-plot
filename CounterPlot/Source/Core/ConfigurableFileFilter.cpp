@@ -11,8 +11,14 @@ ConfigurableFileFilter::ConfigurableFileFilter() : FileFilter(""), wildcardFilte
 
 void ConfigurableFileFilter::clear()
 {
+    rejectAllFiles = false;
     wildcardFilter = WildcardFileFilter ("", "", "");
     hdf5Requirements.clear();
+}
+
+void ConfigurableFileFilter::setRejectsAllFiles (bool shouldRejectAllFiles)
+{
+    rejectAllFiles = shouldRejectAllFiles;
 }
 
 void ConfigurableFileFilter::setFilePatterns (StringArray patterns)
@@ -41,10 +47,15 @@ void ConfigurableFileFilter::requireHDF5Dataset (const String& datasetThatMustEx
 //=============================================================================
 bool ConfigurableFileFilter::isFileSuitable (const File& file) const
 {
-    ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
+    if (rejectAllFiles)
+    {
+        return false;
+    }
 
     for (auto requirement : hdf5Requirements)
     {
+        ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
+
         if (! h5::File::exists (file.getFullPathName().toStdString()))
         {
             return false;

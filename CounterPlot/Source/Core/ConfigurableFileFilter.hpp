@@ -20,6 +20,12 @@ public:
 
 
     /**
+     * Whether the filter should just reject everything.
+     */
+    void setRejectsAllFiles (bool shouldRejectAllFiles);
+
+
+    /**
      * Sets a list of file patterns to be considered suitable.
      */
     void setFilePatterns (StringArray patterns);
@@ -56,4 +62,5 @@ private:
 
     WildcardFileFilter wildcardFilter;
     Array<HDF5Requirements> hdf5Requirements;
+    bool rejectAllFiles = false;
 };

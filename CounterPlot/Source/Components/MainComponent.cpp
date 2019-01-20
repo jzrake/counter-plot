@@ -11,20 +11,47 @@
 
 
 //=============================================================================
-class DefaultView : public Viewer
+class MetaYamlViewer : public Viewer
 {
 public:
 
     //=========================================================================
-    bool isInterestedInFile (File) const override { return true; }
-    void loadFile (File) override {}
-    String getViewerName() const override { return String(); }
+    MetaYamlViewer()
+    {
+        addAndMakeVisible (viewer);
+    }
 
     //=========================================================================
-    void paint (Graphics& g) override
+    bool isInterestedInFile (File file) const override
     {
-        g.fillAll (findColour (LookAndFeelHelpers::propertyViewBackground));
+        return file.hasFileExtension (".yaml");
     }
+
+    void loadFile (File file) override
+    {
+        currentFile = file;
+        reloadFile();
+    }
+
+    void reloadFile() override
+    {
+        viewer.configure (currentFile);
+    }
+
+    String getViewerName() const override
+    {
+        return "Meta Viewer";
+    }
+
+    //=========================================================================
+    void resized() override
+    {
+        viewer.setBounds (getLocalBounds());
+    }
+
+private:
+    File currentFile;
+    UserExtensionView viewer;
 };
 
 
@@ -291,11 +318,13 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
 //=============================================================================
 MainComponent::MainComponent()
 {
+    filePoller.setCallback ([this] (File) { reloadCurrentFile(); });
     directoryTree.addListener (this);
     directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
     environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
 
     viewers.addListener (this);
+    viewers.add (std::make_unique<MetaYamlViewer>());
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
@@ -326,7 +355,7 @@ void MainComponent::setCurrentDirectory (File newCurrentDirectory)
 void MainComponent::reloadCurrentFile()
 {
     if (currentViewer)
-        currentViewer->loadFile (currentFile);
+        currentViewer->reloadFile();
 }
 
 void MainComponent::reloadDirectoryTree()
@@ -423,6 +452,7 @@ void MainComponent::resized()
 void MainComponent::selectedFileChanged (DirectoryTree*, File file)
 {
     currentFile = file;
+    filePoller.setFileToPoll (currentFile);
 
     if (currentViewer && currentViewer->isInterestedInFile (currentFile))
     {

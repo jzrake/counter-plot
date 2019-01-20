@@ -35,15 +35,23 @@ void UserExtensionView::configure (const var& config)
     // Configure the file filter
     // -----------------------------------------------------------------------
     fileFilter.clear();
-    fileFilter.setFilePatterns (DataHelpers::stringArrayFromVar (config["file-patterns"]));
 
-    if (auto arr = config["hdf5-required-groups"].getArray())
-        for (auto item : *arr)
-            fileFilter.requireHDF5Group (item.toString());
+    if (config["file-patterns"].isVoid())
+    {
+        fileFilter.setRejectsAllFiles (true);
+    }
+    else
+    {
+        fileFilter.setFilePatterns (DataHelpers::stringArrayFromVar (config["file-patterns"]));
 
-    if (auto arr = config["hdf5-required-datasets"].getArray())
-        for (auto item : *arr)
-            fileFilter.requireHDF5Dataset (item["name"], item.getProperty ("rank", -1));
+        if (auto arr = config["hdf5-required-groups"].getArray())
+            for (auto item : *arr)
+                fileFilter.requireHDF5Group (item.toString());
+
+        if (auto arr = config["hdf5-required-datasets"].getArray())
+            for (auto item : *arr)
+                fileFilter.requireHDF5Dataset (item["name"], item.getProperty ("rank", -1));
+    }
 
 
     // Record the rules that are expensive (aka heavyweight, aka async).
@@ -133,9 +141,14 @@ void UserExtensionView::loadFile (File fileToDisplay)
     if (currentFile != fileToDisplay)
     {
         currentFile = fileToDisplay;
-        kernel.insert ("file", fileToDisplay.getFullPathName());
-        resolveKernel();
+        reloadFile();
     }
+}
+
+void UserExtensionView::reloadFile()
+{
+    kernel.insert ("file", currentFile.getFullPathName());
+    resolveKernel();
 }
 
 String UserExtensionView::getViewerName() const

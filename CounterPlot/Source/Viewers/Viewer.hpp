@@ -65,9 +65,15 @@ public:
     virtual bool isInterestedInFile (File file) const = 0;
 
     /**
-     * This method should display the given file.
+     * This method should display the given file. It may do nothing if the file
+     * name has not changed.
      */
     virtual void loadFile (File fileToDisplay) = 0;
+
+    /**
+     * This method should reload the current file.
+     */
+    virtual void reloadFile() {}
 
     /**
      * This method must return a name for this viewer. The name should be in the
@@ -118,11 +124,14 @@ public:
     JsonFileViewer();
     bool isInterestedInFile (File file) const override;
     void loadFile (File fileToDisplay) override;
-    String getViewerName() const override { return "JSON"; }
+    void reloadFile() override;
+    String getViewerName() const override { return "JSON / YAML Viewer"; }
 
     //=========================================================================
     void resized() override;
+
 private:
+    File currentFile;
     VariantView view;
 };
 
@@ -138,10 +147,13 @@ public:
     ImageFileViewer();
     bool isInterestedInFile (File file) const override;
     void loadFile (File file) override;
+    void reloadFile() override;
     String getViewerName() const override { return "Image"; }
 
     //=========================================================================
     void resized() override;
+
 private:
+    File currentFile;
     ImageComponent view;
 };

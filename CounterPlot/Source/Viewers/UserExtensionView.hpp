@@ -27,6 +27,7 @@ public:
     //=========================================================================
     bool isInterestedInFile (File file) const override;
     void loadFile (File fileToDisplay) override;
+    void reloadFile() override;
     String getViewerName() const override;
     const Runtime::Kernel* getKernel() const override;
 
