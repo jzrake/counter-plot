@@ -1,12 +1,12 @@
 
-name: Test Plot
+name: Test Plot 2
 
 environment:
   cmap: (mapping 0.0 1.5 stops)
 
 figures:
 
-- title: Test Plot
+- title: The Title
   xlabel: X
   ylabel: Y
   xmin: $xmin
@@ -23,3 +23,6 @@ figures:
     xmax: xmax
     ymin: ymin
     ymax: ymax
+
+  content:
+    - (gradient stops orientation='horizontal')

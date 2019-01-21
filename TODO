@@ -31,13 +31,13 @@
 	+ Pass bailout checker through runtime methods
 	+ Indicate expensive (async updated) symbols in YAML
 	+ Defer async updates in kernel resolves; resume on task completion
-- File events trigger reloads, reconfigs, directory tree refresh
+/ File events trigger reloads, reconfigs, directory tree refresh
 
 
 / Improve figure margin editing with "one-way" resize border
 - Figure zoom-to-content-extent command
 - Figure legends
-- Figure color cycles for lines
+- Figure color cycles for line plots
 - Figure log scaling
 + Create type-safe GPU buffer objects, change RenderingSurface to use them
   Then data can be moved to the GPU on a background thread, and we can forego
@@ -45,8 +45,9 @@
   data.
 
 
-- Expose gradient artist to runtime
++ Expose gradient artist to runtime
 - Expose mesh helper methods to runtime
 - Start documenting the runtime API
 - Decide on a way to present API docs in the app
 - Write variant mini-viewer: show callout from environment view
+- Ascii loader

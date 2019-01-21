@@ -202,14 +202,23 @@ void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle
 
 void UserExtensionView::figureViewSetXlabel (FigureView* figure, const String& xlabel)
 {
+    const auto& capture = figure->getModel().capture;
+    kernel.insert (capture.at ("xlabel"), xlabel);
+    resolveKernel();
 }
 
 void UserExtensionView::figureViewSetYlabel (FigureView* figure, const String& ylabel)
 {
+    const auto& capture = figure->getModel().capture;
+    kernel.insert (capture.at ("ylabel"), ylabel);
+    resolveKernel();
 }
 
 void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& title)
 {
+    const auto& capture = figure->getModel().capture;
+    kernel.insert (capture.at ("title"), title);
+    resolveKernel();
 }
 
 
@@ -277,6 +286,9 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
     {
         try {
             auto model = FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent());
+            model.canEditTitle = model.capture.count ("title");
+            model.canEditXlabel = model.capture.count ("xlabel");
+            model.canEditYlabel = model.capture.count ("ylabel");
             model.canEditMargin = model.capture.count ("margin");
             figure->setModel (model);
         }

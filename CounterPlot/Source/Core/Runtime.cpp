@@ -198,6 +198,20 @@ namespace builtin
 
 
     //=========================================================================
+    var gradient (var::NativeFunctionArgs args)
+    {
+        auto stops = checkArgData<Array<Colour>> ("gradient", args, 0);
+        auto orientation = optKeywordArg<String> (args, "orientation", "vertical");
+        auto transformed = optKeywordArg<bool>   (args, "transformed", false);
+        auto gradient = std::make_shared<ColourGradientArtist>();
+        gradient->setStops (stops);
+        gradient->setOrientation (orientation, true);
+        gradient->setGradientFollowsTransform (transformed);
+        return Runtime::make_data (std::dynamic_pointer_cast<PlotArtist> (gradient));
+    }
+
+
+    //=========================================================================
     var load_hdf5 (var::NativeFunctionArgs args)
     {
         ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
@@ -242,5 +256,6 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("mapping", var::NativeFunction (builtin::mapping), Flags::builtin);
     kernel.insert ("plot", var::NativeFunction (builtin::plot), Flags::builtin);
     kernel.insert ("trimesh", var::NativeFunction (builtin::trimesh), Flags::builtin);
+    kernel.insert ("gradient", var::NativeFunction (builtin::gradient), Flags::builtin);
     kernel.insert ("load-hdf5", var::NativeFunction (builtin::load_hdf5), Flags::builtin);
 }

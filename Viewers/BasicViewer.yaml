@@ -21,8 +21,10 @@ figures:
 - title: $file
   xlabel: $fig1-xmin
   ylabel: Y
-  xmin: -1
-  xmax:  2
+  xmin: $xmin
+  xmax: $xmax
+  ymin: $ymin
+  ymax: $ymax
   can-edit-title: false
   can-deform-domain: true
   margin: {top: 80, bottom: 60, left: 80, right: 40}
@@ -30,5 +32,7 @@ figures:
   - (plot x u lw=1 ls='dash'  lc='magenta' mew=3 ms='circle'  mw=20 mfc='orange' mec='black')
   - (plot x v lw=3 ls='solid' lc='orange'  mew=3 ms='diamond' mw=25 mfc='brown'  mec='red')
   capture:
-    xmin: fig1-xmin
-    xmax: fig1-xmax
+    xmin: xmin
+    xmax: xmax
+    ymin: ymin
+    ymax: ymax

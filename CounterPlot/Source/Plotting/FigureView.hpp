@@ -35,6 +35,12 @@ public:
     void setOrientation (Orientation orientationToUse);
 
     /**
+     * Set the orientation of the gradient using a string version of the enum
+     * key. Can throw an invalid_argument exception if the name does not exist.
+     */
+    void setOrientation (const String& name, bool throwIfNotFound);
+
+    /**
      * If this is set to true, then the gradient will be drawn in the domain
      * [0, 1], transformed to the target pixel range. By default it is false:
      * the gradient is drawn from edge-to-edge in the target range.

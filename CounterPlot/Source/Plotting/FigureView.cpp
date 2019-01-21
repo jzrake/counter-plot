@@ -268,6 +268,14 @@ void ColourGradientArtist::setOrientation (Orientation orientationToUse)
     orientation = orientationToUse;
 }
 
+void ColourGradientArtist::setOrientation (const String& name, bool throwIfNotFound)
+{
+    if (false) {}
+    else if (name == "vertical")   orientation = Orientation::vertical;
+    else if (name == "horizontal") orientation = Orientation::horizontal;
+    else if (throwIfNotFound) throw std::invalid_argument ("orientation must be vertical or horizontal");
+}
+
 void ColourGradientArtist::setGradientFollowsTransform (bool shouldGradientBeTransformed)
 {
     transformGradient = shouldGradientBeTransformed;
@@ -433,7 +441,18 @@ void FigureView::PlotArea::mouseMagnify (const MouseEvent& e, float scaleFactor)
 void FigureView::PlotArea::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
 {
     grabKeyboardFocus();
-    sendSetDomain (computeZoomedDomain (e, 1.f + wheel.deltaY));
+
+    if (e.mods.isCtrlDown())
+    {
+        const auto dx = figure.model.xmax - figure.model.xmin;
+        const auto dy = figure.model.ymax - figure.model.ymin;
+        const auto m = Point<double> (-wheel.deltaX * dx, wheel.deltaY * dy);
+        sendSetDomain (figure.model.getDomain().translated (m.x, m.y));
+    }
+    else
+    {
+        sendSetDomain (computeZoomedDomain (e, 1.f + wheel.deltaY));
+    }
 }
 
 
