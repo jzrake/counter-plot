@@ -51,6 +51,10 @@ private:
     void loadFromKernelIfFigure (const std::string& id);
     void loadExpressionsFromListIntoKernel (Runtime::Kernel& kernel, const var& list, const std::string& basename) const;
     void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const;
+    Rectangle<double> computeDomainForResize (const FigureModel& model,
+                                              const Rectangle<int>& oldBounds,
+                                              const Rectangle<int>& newBounds) const;
+    Array<Rectangle<int>> getBoundsOfAllfigures() const;
 
     //=========================================================================
     String viewerName;

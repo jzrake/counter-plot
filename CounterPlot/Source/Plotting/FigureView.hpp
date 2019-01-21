@@ -108,12 +108,14 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) {}
         virtual void figureViewSetDomain (FigureView*, const Rectangle<double>&) = 0;
         virtual void figureViewSetMargin (FigureView*, const BorderSize<int>&) = 0;
         virtual void figureViewSetXlabel (FigureView*, const String&) = 0;
         virtual void figureViewSetYlabel (FigureView*, const String&) = 0;
         virtual void figureViewSetTitle  (FigureView*, const String&) = 0;
+
+        /* DEP */
+        virtual void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) {}
     };
 
     //=========================================================================
@@ -158,7 +160,6 @@ public:
         FigureView& figure;
         ResizerFrame resizer;
         Rectangle<double> domainBeforePan;
-        Point<double> domainLengthPerPixel;
         friend class FigureView;
     };
 

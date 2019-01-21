@@ -119,7 +119,20 @@ void UserExtensionView::configure (File file)
 //=============================================================================
 void UserExtensionView::resized()
 {
+    auto oldBounds = getBoundsOfAllfigures();
     layout.performLayout (getLocalBounds());
+
+    int n = 0;
+
+    for (auto figure : figures)
+    {
+        if (! figure->getModel().canDeformDomain && ! oldBounds[n].isEmpty())
+        {
+            auto newDomain = computeDomainForResize (figure->getModel(), oldBounds[n], figure->getBounds());
+            figureViewSetDomain (figure, newDomain);
+        }
+        ++n;
+    }
 }
 
 
@@ -170,9 +183,31 @@ void UserExtensionView::figureViewSetDomainAndMargin (FigureView* figure, const 
 
 void UserExtensionView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
 {
-    const auto& capture = figure->getModel().capture;
-    if (capture.count ("margin")) kernel.insert (capture.at ("margin"), DataHelpers::varFromBorderSize (margin));
-    resolveKernel();
+    const auto& model = figure->getModel();
+    const auto& capture = model.capture;
+
+    if (capture.count ("margin"))
+    {
+        kernel.insert (capture.at ("margin"), DataHelpers::varFromBorderSize (margin));
+    }
+
+//    auto oldBounds = figure->getPlotAreaBounds();
+//    auto newBounds = margin.subtractedFrom (figure->getLocalBounds());
+//
+//    if (! figure->sendDomainChangeForResizeIfNeeded (oldBounds, newBounds))
+//    {
+//        resolveKernel();
+//    }
+    if (! model.canDeformDomain)
+    {
+        auto oldBounds = figure->getPlotAreaBounds();
+        auto newBounds = margin.subtractedFrom (figure->getLocalBounds());
+        figureViewSetDomain (figure, computeDomainForResize (model, oldBounds, newBounds));
+    }
+    else
+    {
+        resolveKernel();
+    }
 }
 
 void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
@@ -261,7 +296,9 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
     if (auto figure = dynamic_cast<FigureView*> (findChildWithID (id)))
     {
         try {
-            figure->setModel (FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent()));
+            auto model = FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent());
+            model.canEditMargin = model.capture.count ("margin");
+            figure->setModel (model);
         }
         catch (const std::exception& e)
         {
@@ -323,4 +360,26 @@ void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kern
             }
         }
     }
+}
+
+Rectangle<double> UserExtensionView::computeDomainForResize (const FigureModel& model,
+                                                             const Rectangle<int>& oldBounds,
+                                                             const Rectangle<int>& newBounds) const
+{
+    auto domainLengthPerPixelX = (model.xmax - model.xmin) / oldBounds.getWidth();
+    auto domainLengthPerPixelY = (model.ymax - model.ymin) / oldBounds.getHeight();
+    auto newx0 = 0.5 * (model.xmin + model.xmax - domainLengthPerPixelX * newBounds.getWidth());
+    auto newx1 = 0.5 * (model.xmin + model.xmax + domainLengthPerPixelX * newBounds.getWidth());
+    auto newy0 = 0.5 * (model.ymin + model.ymax - domainLengthPerPixelY * newBounds.getHeight());
+    auto newy1 = 0.5 * (model.ymin + model.ymax + domainLengthPerPixelY * newBounds.getHeight());
+    return Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
+}
+
+Array<Rectangle<int>> UserExtensionView::getBoundsOfAllfigures() const
+{
+    Array<Rectangle<int>> result;
+
+    for (auto figure : figures)
+        result.add (figure->getBounds());
+    return result;
 }

@@ -351,6 +351,8 @@ FigureView::PlotArea::PlotArea (FigureView& figure)
 
 void FigureView::PlotArea::paint (Graphics& g)
 {
+    // Do fills
+    // ========================================================================
     if (figure.paintMarginsAndBackground)
     {
         g.setColour (figure.findColour (backgroundColourId));
@@ -389,13 +391,6 @@ void FigureView::PlotArea::paint (Graphics& g)
 void FigureView::PlotArea::resized()
 {
     resizer.setBounds (getLocalBounds());
-
-    // This code is here as a reminder of how to prevent deforming the domain:
-    // auto newx0 = 0.5 * (figure.model.xmin + figure.model.xmax - domainLengthPerPixel.x * getWidth());
-    // auto newx1 = 0.5 * (figure.model.xmin + figure.model.xmax + domainLengthPerPixel.x * getWidth());
-    // auto newy0 = 0.5 * (figure.model.ymin + figure.model.ymax - domainLengthPerPixel.y * getHeight());
-    // auto newy1 = 0.5 * (figure.model.ymin + figure.model.ymax + domainLengthPerPixel.y * getHeight());
-    // auto newDomain = Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
 }
 
 void FigureView::PlotArea::mouseMove (const MouseEvent& e)
@@ -612,22 +607,11 @@ void FigureView::setModel (const FigureModel& newModel)
     model = newModel;
 
     if (surface)
-    {
         surface->setContent (model.content, plotArea);
-    }
-
-    if (! getBounds().isEmpty())
-    {
-        plotArea.domainLengthPerPixel.x = (model.xmax - model.xmin) / (getWidth() - model.margin.getLeftAndRight());
-        plotArea.domainLengthPerPixel.y = (model.ymax - model.ymin) / (getHeight() - model.margin.getTopAndBottom());
-    }
 
     xlabel.setText (model.xlabel, NotificationType::dontSendNotification);
     ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
     title .setText (model.title , NotificationType::dontSendNotification);
-
-//    gridItem.setArea (model.gridArea);
-//    gridItem.setArea (GridItem::useDefaultValue, GridItem::useDefaultValue);
 
     setComponentColours (*this, model);
     refreshModes (false);
