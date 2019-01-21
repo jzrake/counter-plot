@@ -27,6 +27,7 @@ public:
     static BorderSize<int> borderSizeFromVar (const var&);
     static StringPairArray stringPairArrayFromVar (const var&);
     static std::map<std::string, std::string> stringMapFromVar (const var&);
+    static nd::array<double, 1> ndarrayDouble1FromVar (const var&);
 
     static CriticalSection& getCriticalSectionForHDF5();
 };

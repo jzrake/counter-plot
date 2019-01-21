@@ -284,10 +284,35 @@ std::vector<simd::float2> MeshHelpers::triangulateUniformRectilinearMesh (int ni
     return verts;
 }
 
-//std::vector<simd::float2> MeshHelpers::triangulateGeneralRectilinearGrid (const nd::array<double, 3>& vertices, Bailout bailout)
-//{
-//    return {};
-//}
+std::vector<simd::float2> MeshHelpers::triangulateQuadMesh (const nd::array<double, 3>& vertices, Bailout bailout)
+{
+    int ni = vertices.shape(0) - 1;
+    int nj = vertices.shape(1) - 1;
+    std::vector<simd::float2> verts;
+    verts.reserve (ni * nj * 6);
+
+    for (int i = 0; i < ni; ++i)
+    {
+        if (bailout && bailout())
+            break;
+
+        for (int j = 0; j < nj; ++j)
+        {
+            const float x0 = vertices (i, j, 0);
+            const float y0 = vertices (i, j, 1);
+            const float x1 = vertices (i + 1, j, 0);
+            const float y1 = vertices (i, j + 1, 1);
+
+            verts.push_back (simd::float2 {x0, y0});
+            verts.push_back (simd::float2 {x0, y1});
+            verts.push_back (simd::float2 {x1, y0});
+            verts.push_back (simd::float2 {x0, y1});
+            verts.push_back (simd::float2 {x1, y0});
+            verts.push_back (simd::float2 {x1, y1});
+        }
+    }
+    return verts;
+}
 
 std::vector<simd::float1> MeshHelpers::makeRectilinearGridScalars (const nd::array<double, 2>& scalar, Bailout bailout)
 {

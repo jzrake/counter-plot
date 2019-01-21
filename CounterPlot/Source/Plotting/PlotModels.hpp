@@ -71,6 +71,7 @@ public:
     virtual void paint (Graphics& g, const PlotTransformer& trans) {}
     virtual void render (RenderingSurface& surface) {}
     virtual bool isScalarMappable() const { return false; }
+    virtual bool wantsSurface() const { return false; }
     virtual ScalarMapping getScalarMapping() const { return ScalarMapping(); }
     virtual std::array<float, 2> getScalarExtent() const { return {0, 1}; }
     virtual std::array<float, 4> getSpatialExtent() const { return {0, 1, 0, 1}; }
@@ -338,7 +339,14 @@ public:
     static std::vector<simd::float2> triangulateUniformRectilinearMesh (int ni, int nj, std::array<float, 4> extent, Bailout=nullptr);
 
     /**
-     * Return a list of scalars corresponding to the triangulation of a rectilinear
+     * Return triangle data of the same format as above, except using a 3D array
+     * of vertex data [ni, nj, 2]. The final axis contains the (x, y) position of
+     * the (i, j) vertex.
+     */
+    static std::vector<simd::float2> triangulateQuadMesh (const nd::array<double, 3>& vertices, Bailout=nullptr);
+
+    /**
+     * Return a list of scalars corresponding to the triangulation of a quadrilateral
      * mesh. The input array identifies scalar quantities at cell locations, and the
      * output data is just those scalars duplicated 6 times (once for each triangle
      * vertex) contiguously. The bailout callback is invoked periodically, and if it

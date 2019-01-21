@@ -561,7 +561,7 @@ void MainComponent::layout (bool animated)
     auto area = getLocalBounds();
     auto statusBarArea = area.removeFromBottom (22);
     auto directoryTreeArea = directoryTreeShowing ? area.removeFromLeft (300) : area.withWidth (300).translated (-300, 0);
-    auto environmentViewArea = Rectangle<int> (0, 0, 300, 330)
+    auto environmentViewArea = Rectangle<int> (0, 0, 400, 330)
     .withBottomY (statusBarArea.getY())
     .translated (0, environmentViewShowing ? 0 : 330 + 22); // the 22 is to ensure it's offscreen, so not painted
 

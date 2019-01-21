@@ -14,11 +14,7 @@ Identifier VarCallAdapter::BailoutChecker::argkey = "__bailout__";
 //=============================================================================
 namespace builtin
 {
-
-
-    //=========================================================================
-    template<typename T>
-    T checkArg (const char* caller, var::NativeFunctionArgs args, int index)
+    void checkIndexValid (const char* caller, var::NativeFunctionArgs args, int index)
     {
         if (index >= args.numArguments)
         {
@@ -26,70 +22,71 @@ namespace builtin
                                       + ": required argument at index "
                                       + std::to_string (index) + " not found");
         }
+    }
+
+    //=========================================================================
+    template<typename T>
+    T checkArg (const char* caller, var::NativeFunctionArgs args, int index)
+    {
+        checkIndexValid (caller, args, index);
         return args.arguments[index];
     }
 
     template<>
     std::string checkArg<std::string> (const char* caller, var::NativeFunctionArgs args, int index)
     {
-        if (index >= args.numArguments)
-        {
-            throw std::runtime_error (std::string (caller)
-                                      + ": required argument at index "
-                                      + std::to_string (index)
-                                      + " not found");
-        }
+        checkIndexValid (caller, args, index);
         return args.arguments[index].toString().toStdString();
     }
 
     template<>
     nd::array<double, 1> checkArg<nd::array<double, 1>> (const char* caller, var::NativeFunctionArgs args, int index)
     {
-        if (index >= args.numArguments)
-        {
-            throw std::runtime_error (std::string (caller)
-                                      + ": required argument at index "
-                                      + std::to_string (index)
-                                      + " not found");
+        checkIndexValid (caller, args, index);
+        auto value = args.arguments[index];
 
-        }
+        if (value.isArray())
+            return DataHelpers::ndarrayDouble1FromVar (value);
 
-        if (auto arr = args.arguments[index].getArray())
-        {
-            nd::array<double, 1> result (arr->size());
+        return Runtime::check_data<nd::array<double, 1>> (value);
+    }
 
-            for (int n = 0; n < result.size(); ++n)
-                result(n) = arr->getUnchecked(n);
-            return result;
-        }
-        return Runtime::check_data<nd::array<double, 1>> (args.arguments[index]);
+    nd::array<double, 1> checkFlatten (const char* caller, var::NativeFunctionArgs args, int index)
+    {
+        checkIndexValid (caller, args, index);
+        auto value = args.arguments[index];
+
+        if (auto result = dynamic_cast<Runtime::Data<nd::array<double, 1>>*> (value.getObject()))
+            return result->value;
+        if (auto result = dynamic_cast<Runtime::Data<nd::array<double, 2>>*> (value.getObject()))
+            return result->value.reshape (int (result->value.size()));
+        if (auto result = dynamic_cast<Runtime::Data<nd::array<double, 3>>*> (value.getObject()))
+            return result->value.reshape (int (result->value.size()));
+
+        return Runtime::check_data<nd::array<double, 1>> (value, caller, index); // will throw
     }
 
     template<typename T>
     const T& checkArgData (const char* caller, var::NativeFunctionArgs args, int index)
     {
-        if (index >= args.numArguments)
-        {
-            throw std::runtime_error (std::string (caller)
-                                      + ": required argument at index "
-                                      + std::to_string (index)
-                                      + " not found");
-        }
-        try {
-            return Runtime::check_data<T> (args.arguments[index]);
-        }
-        catch (const std::exception& e)
-        {
-            throw std::runtime_error (std::string (caller)
-                                      + ": wrong type for argument at index "
-                                      + std::to_string (index));
-        }
+        checkIndexValid (caller, args, index);
+        return Runtime::check_data<T> (args.arguments[index], caller, index);
     }
 
     template<typename T>
     T optKeywordArg (var::NativeFunctionArgs args, String key, T defaultValue)
     {
         return args.thisObject.getProperty (key, defaultValue);
+    }
+
+    std::function<bool()> optBailout (var::NativeFunctionArgs args)
+    {
+        if (args.thisObject.hasProperty (VarCallAdapter::BailoutChecker::argkey))
+        {
+            auto value = args.thisObject[VarCallAdapter::BailoutChecker::argkey];
+            return dynamic_cast<VarCallAdapter::BailoutChecker*> (value.getObject())->callback;
+        }
+        return nullptr;
     }
 
 
@@ -129,6 +126,60 @@ namespace builtin
         auto x1  = checkArg<double> ("linspace", args, 1);
         auto num = checkArg<int>    ("linspace", args, 2);
         return Runtime::make_data (nd::linspace<double> (x0, x1, num));
+    }
+
+
+    //=========================================================================
+    var cartprod (var::NativeFunctionArgs args)
+    {
+        auto bailout = optBailout (args);
+        auto x = checkArg<nd::array<double, 1>> ("cartprod", args, 0);
+        auto y = checkArg<nd::array<double, 1>> ("cartprod", args, 1);
+        auto c = nd::array<double, 3> (x.size(), y.size(), 2);
+
+        for (int i = 0; i < x.size(); ++i)
+        {
+            if (bailout && bailout())
+                break;
+
+            for (int j = 0; j < y.size(); ++j)
+            {
+                c(i, j, 0) = x(i);
+                c(i, j, 1) = y(j);
+            }
+        }
+        return Runtime::make_data(c);
+    }
+
+
+    //=========================================================================
+    var to_gpu_triangulate (var::NativeFunctionArgs args)
+    {
+        auto bailout = optBailout (args);
+        auto vertices = checkArgData<nd::array<double, 3>> ("to_gpu_triangulate", args, 0);
+        auto triverts = MeshHelpers::triangulateQuadMesh (vertices, bailout);
+
+        if (bailout && bailout())
+            return var();
+
+        return Runtime::make_data (DeviceBufferFloat2 (triverts));
+    }
+
+
+    //=========================================================================
+    var to_gpu_replicate (var::NativeFunctionArgs args)
+    {
+        auto data  = checkFlatten  ("to_gpu_replicate", args, 0);
+        auto count = checkArg<int> ("to_gpu_replicate", args, 1);
+
+        std::vector<simd::float1> result;
+        result.reserve (data.size() * count);
+
+        for (const auto& x : data)
+            for (int n = 0; n < count; ++n)
+                result.push_back(x);
+
+        return Runtime::make_data (DeviceBufferFloat1 (result));
     }
 
 
@@ -193,17 +244,18 @@ namespace builtin
         auto vertices = checkArgData<DeviceBufferFloat2> ("trimesh", args, 0);
         auto scalars  = checkArgData<DeviceBufferFloat1> ("trimesh", args, 1);
         auto mapping  = checkArgData<ScalarMapping> ("trimesh", args, 2);
-        return Runtime::make_data (std::shared_ptr<PlotArtist> (new TriangleMeshArtist (vertices, scalars, mapping)));
+        auto trimesh  = std::make_shared<TriangleMeshArtist> (vertices, scalars, mapping);
+        return Runtime::make_data (std::dynamic_pointer_cast<PlotArtist> (trimesh));
     }
 
 
     //=========================================================================
     var gradient (var::NativeFunctionArgs args)
     {
-        auto stops = checkArgData<Array<Colour>> ("gradient", args, 0);
+        auto stops       = checkArgData<Array<Colour>> ("gradient", args, 0);
         auto orientation = optKeywordArg<String> (args, "orientation", "vertical");
         auto transformed = optKeywordArg<bool>   (args, "transformed", false);
-        auto gradient = std::make_shared<ColourGradientArtist>();
+        auto gradient    = std::make_shared<ColourGradientArtist>();
         gradient->setStops (stops);
         gradient->setOrientation (orientation, true);
         gradient->setGradientFollowsTransform (transformed);
@@ -247,15 +299,19 @@ namespace builtin
 // ============================================================================
 void Runtime::load_builtins (Kernel& kernel)
 {
-    kernel.insert ("list", var::NativeFunction (builtin::list), Flags::builtin);
-    kernel.insert ("dict", var::NativeFunction (builtin::dict), Flags::builtin);
-    kernel.insert ("attr", var::NativeFunction (builtin::attr), Flags::builtin);
-    kernel.insert ("item", var::NativeFunction (builtin::item), Flags::builtin);
-    kernel.insert ("join", var::NativeFunction (builtin::join), Flags::builtin);
-    kernel.insert ("linspace", var::NativeFunction (builtin::linspace), Flags::builtin);
-    kernel.insert ("mapping", var::NativeFunction (builtin::mapping), Flags::builtin);
-    kernel.insert ("plot", var::NativeFunction (builtin::plot), Flags::builtin);
-    kernel.insert ("trimesh", var::NativeFunction (builtin::trimesh), Flags::builtin);
-    kernel.insert ("gradient", var::NativeFunction (builtin::gradient), Flags::builtin);
+    kernel.insert ("list",      var::NativeFunction (builtin::list),      Flags::builtin);
+    kernel.insert ("dict",      var::NativeFunction (builtin::dict),      Flags::builtin);
+    kernel.insert ("attr",      var::NativeFunction (builtin::attr),      Flags::builtin);
+    kernel.insert ("item",      var::NativeFunction (builtin::item),      Flags::builtin);
+    kernel.insert ("join",      var::NativeFunction (builtin::join),      Flags::builtin);
+    kernel.insert ("linspace",  var::NativeFunction (builtin::linspace),  Flags::builtin);
+    kernel.insert ("cartprod",  var::NativeFunction (builtin::cartprod),  Flags::builtin);
+    kernel.insert ("mapping",   var::NativeFunction (builtin::mapping),   Flags::builtin);
+    kernel.insert ("plot",      var::NativeFunction (builtin::plot),      Flags::builtin);
+    kernel.insert ("trimesh",   var::NativeFunction (builtin::trimesh),   Flags::builtin);
+    kernel.insert ("gradient",  var::NativeFunction (builtin::gradient),  Flags::builtin);
     kernel.insert ("load-hdf5", var::NativeFunction (builtin::load_hdf5), Flags::builtin);
+
+    kernel.insert ("to-gpu-triangulate", var::NativeFunction (builtin::to_gpu_triangulate), Flags::builtin);
+    kernel.insert ("to-gpu-replicate",   var::NativeFunction (builtin::to_gpu_replicate),   Flags::builtin);
 }

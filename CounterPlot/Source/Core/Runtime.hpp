@@ -147,16 +147,18 @@ public:
     }
 
     template<typename T>
-    static T& check_data (const var& value)
+    static T& check_data (const var& value, const char* caller=nullptr, int index=-1)
     {
         if (auto result = dynamic_cast<Data<T>*> (value.getObject()))
         {
             return result->value;
         }
-        throw std::runtime_error ("wrong data type: expected "
+        throw std::runtime_error ((caller ? std::string (caller) + ": " : "")
+                                  + "wrong data type "
                                   + DataTypeInfo<T>::name()
                                   + ", got "
-                                  + type_name (value));
+                                  + type_name (value)
+                                  + (index == -1 ? "" : " at index " + std::to_string (index)));
     }
 
     static String represent (const var& value)
@@ -182,11 +184,42 @@ public:
 
 //=============================================================================
 template<>
-class Runtime::DataTypeInfo<nd::ndarray<double, 1>>
+class Runtime::DataTypeInfo<nd::array<double, 1>>
 {
 public:
     static std::string name() { return "nd::array<double, 1>"; }
-    static std::string summary (const nd::ndarray<double, 1>& A) { return "double[" + std::to_string (A.shape(0)) + "]"; }
+    static std::string summary (const nd::array<double, 1>& A)
+    {
+        auto ni = std::to_string (A.shape(0));
+        return "double[" + ni + "]";
+    }
+};
+
+template<>
+class Runtime::DataTypeInfo<nd::array<double, 2>>
+{
+public:
+    static std::string name() { return "nd::array<double, 2>"; }
+    static std::string summary (const nd::array<double, 2>& A)
+    {
+        auto ni = std::to_string (A.shape(0));
+        auto nj = std::to_string (A.shape(1));
+        return "double[" + ni + ", " + nj + "]";
+    }
+};
+
+template<>
+class Runtime::DataTypeInfo<nd::array<double, 3>>
+{
+public:
+    static std::string name() { return "nd::array<double, 3>"; }
+    static std::string summary (const nd::array<double, 3>& A)
+    {
+        auto ni = std::to_string (A.shape(0));
+        auto nj = std::to_string (A.shape(1));
+        auto nk = std::to_string (A.shape(2));
+        return "double[" + ni + ", " + nj + ", " + nk + "]";
+    }
 };
 
 //=============================================================================

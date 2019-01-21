@@ -2,7 +2,13 @@
 name: Test Plot 2
 
 environment:
-  cmap: (mapping 0.0 1.5 stops)
+  x: (linspace -1 1 10)
+  y: (linspace -1 1 10)
+  field: (linspace 0.0 1.0 81)
+  grid: (cartprod x y)
+  triangles: (to-gpu-triangulate grid)
+  scalars: (to-gpu-replicate field 6)
+  cmap: (mapping 0.0 1.0 stops)
 
 figures:
 
@@ -24,4 +30,4 @@ figures:
     ymax: ymax
 
   content:
-    - (gradient stops orientation='horizontal')
+    - (trimesh triangles scalars cmap)

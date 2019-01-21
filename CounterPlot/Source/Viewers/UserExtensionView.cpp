@@ -2,6 +2,7 @@
 #include "yaml-cpp/yaml.h"
 #include "../Core/DataHelpers.hpp"
 #include "../Core/Runtime.hpp"
+#include "../Plotting/MetalSurface.hpp"
 
 
 
@@ -81,9 +82,19 @@ void UserExtensionView::configure (const var& config)
         figure->setComponentID (id);
         figure->setModel (FigureModel::fromVar (kernel.at (id), FigureModel()));
 
-        addAndMakeVisible (figure.get());
+        if (figure->getRenderingSurface() == nullptr)
+        {
+            for (const auto& artist : figure->getModel().content)
+            {
+                if (artist->wantsSurface())
+                {
+                    figure->setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+                    break;
+                }
+            }
+        }
 
-        // layout.items.add (figure.get());
+        addAndMakeVisible (figure.get());
         layout.items.add (GridItem());
         figures.add (figure.release());
     }
@@ -290,6 +301,18 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
             model.canEditXlabel = model.capture.count ("xlabel");
             model.canEditYlabel = model.capture.count ("ylabel");
             model.canEditMargin = model.capture.count ("margin");
+
+            if (figure->getRenderingSurface() == nullptr)
+            {
+                for (const auto& artist : model.content)
+                {
+                    if (artist->wantsSurface())
+                    {
+                        figure->setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+                        break;
+                    }
+                }
+            }
             figure->setModel (model);
         }
         catch (const std::exception& e)

@@ -327,6 +327,19 @@ std::map<std::string, std::string> DataHelpers::stringMapFromVar (const var& val
     return result;
 }
 
+nd::array<double, 1> DataHelpers::ndarrayDouble1FromVar(const var &value)
+{
+    if (auto arr = value.getArray())
+    {
+        nd::array<double, 1> result (arr->size());
+
+        for (int n = 0; n < result.size(); ++n)
+            result(n) = arr->getUnchecked(n);
+        return result;
+    }
+    return var();
+}
+
 
 
 
