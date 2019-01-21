@@ -17,13 +17,16 @@ public:
     static var varFromYamlNode (const YAML::Node& node);
     static var varFromBorderSize (const BorderSize<int>&);
     static var varFromStringPairArray (const StringPairArray& value);
+    static var varFromStringMap (const std::map<std::string, std::string>& value);
 
     static crt::expression expressionFromVar (const var& value);
     static YAML::Node yamlNodeFromVar (const var& value);
     static Array<Grid::TrackInfo> gridTrackInfoArrayFromVar (const var& value);
     static Colour colourFromVar (const var&);
     static StringArray stringArrayFromVar (const var&);
+    static BorderSize<int> borderSizeFromVar (const var&);
     static StringPairArray stringPairArrayFromVar (const var&);
+    static std::map<std::string, std::string> stringMapFromVar (const var&);
 
     static CriticalSection& getCriticalSectionForHDF5();
 };

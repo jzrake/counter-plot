@@ -51,9 +51,6 @@ private:
     void loadFromKernelIfFigure (const std::string& id);
     void loadExpressionsFromListIntoKernel (Runtime::Kernel& kernel, const var& list, const std::string& basename) const;
     void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const;
-    void captureInKernel (Runtime::Kernel& kernel, const FigureView*) const;
-    void patchConfigVar (var& root, const var& hotReloadData) const;
-    var recordHotReloadableData() const;
 
     //=========================================================================
     String viewerName;

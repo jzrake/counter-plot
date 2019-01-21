@@ -140,6 +140,7 @@ public:
     const ViewerCollection& getViewerCollection() const;
     void setCurrentViewer (const String& viewerName);
     void makeViewerCurrent (Viewer* viewer);
+    void refreshCurrentViewerName();
 
     //=========================================================================
     void resized() override;
@@ -176,6 +177,4 @@ private:
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
     FilePoller filePoller;
-    // ResizerFrameTestComponent resizerFrameTestComponent;
-    // TaskPoolTestComponent taskPoolComponent;
 };

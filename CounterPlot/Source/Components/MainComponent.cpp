@@ -16,8 +16,9 @@ class MetaYamlViewer : public Viewer
 public:
 
     //=========================================================================
-    MetaYamlViewer()
+    MetaYamlViewer (MessageSink* messageSink)
     {
+        viewer.setMessageSink (messageSink);
         addAndMakeVisible (viewer);
     }
 
@@ -36,11 +37,21 @@ public:
     void reloadFile() override
     {
         viewer.configure (currentFile);
+
+        if (auto main = findParentComponentOfClass<MainComponent>())
+        {
+            main->refreshCurrentViewerName();
+        }
     }
 
     String getViewerName() const override
     {
-        return "Meta Viewer";
+        return "Meta Viewer (" + viewer.getViewerName() + ")";
+    }
+
+    const Runtime::Kernel* getKernel() const override
+    {
+        return viewer.getKernel();
     }
 
     //=========================================================================
@@ -324,7 +335,7 @@ MainComponent::MainComponent()
     environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
 
     viewers.addListener (this);
-    viewers.add (std::make_unique<MetaYamlViewer>());
+    viewers.add (std::make_unique<MetaYamlViewer> (this));
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
@@ -339,8 +350,6 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
-    // addAndMakeVisible (resizerFrameTestComponent);
-
     setSize (1024, 768 - 64);
 }
 
@@ -434,6 +443,14 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
             viewers.showOnly (nullptr);
         }
         currentViewer = viewer;
+    }
+}
+
+void MainComponent::refreshCurrentViewerName()
+{
+    if (currentViewer)
+    {
+        statusBar.setCurrentViewerName (currentViewer->getViewerName());
     }
 }
 
@@ -552,8 +569,4 @@ void MainComponent::layout (bool animated)
     setBounds (directoryTree, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
     viewers.setBounds (area, animated);
-
-    ////////
-    // taskPoolComponent.setBounds (area);
-    // resizerFrameTestComponent.setBounds (area);
 }

@@ -363,40 +363,35 @@ nd::array<double, 2> MeshHelpers::scaleByLog10 (const nd::array<double, 2>& scal
 //=============================================================================
 static void convert (const var& source, bool& value)
 {
-    value = source;
+    if (! source.isVoid()) value = source;
 }
 static void convert (const var& source, int& value)
 {
-    value = source;
+    if (! source.isVoid()) value = source;
 }
 static void convert (const var& source, float& value)
 {
-    value = source;
+    if (! source.isVoid()) value = source;
 }
 static void convert (const var& source, double& value)
 {
-    value = source;
+    if (! source.isVoid()) value = source;
 }
 static void convert (const var& source, String& value)
 {
-    value = source;
+    if (! source.isVoid()) value = source;
 }
 static void convert (const var& source, BorderSize<int>& value)
 {
-    if (auto obj = source.getDynamicObject())
-    {
-        for (const auto& item : obj->getProperties())
-        {
-            if (item.name == Identifier ("top")) value.setTop (item.value);
-            if (item.name == Identifier ("bottom")) value.setBottom (item.value);
-            if (item.name == Identifier ("left")) value.setLeft (item.value);
-            if (item.name == Identifier ("right")) value.setRight (item.value);
-        }
-    }
+    if (! source.isVoid()) value = DataHelpers::borderSizeFromVar (source);
 }
 static void convert (const var& source, Colour& value)
 {
-    value = DataHelpers::colourFromVar (source);
+    if (! source.isVoid()) value = DataHelpers::colourFromVar (source);
+}
+static void convert (const var& source, std::map<std::string, std::string>& value)
+{
+    if (! source.isVoid()) value = DataHelpers::stringMapFromVar (source);
 }
 static void convert (const var& source, std::vector<std::shared_ptr<PlotArtist>>& value)
 {
@@ -408,10 +403,6 @@ static void convert (const var& source, std::vector<std::shared_ptr<PlotArtist>>
             value.push_back (artist);
         }
     }
-}
-static void convert (const var& source, StringPairArray& value)
-{
-    value = DataHelpers::stringPairArrayFromVar (source);
 }
 
 
@@ -508,6 +499,6 @@ var FigureModel::toVar() const
     if (borderColour != ref.borderColour) obj->setProperty ("border-colour", borderColour.toString());
     if (backgroundColour != ref.backgroundColour) obj->setProperty ("background-colour", backgroundColour.toString());
     if (gridlinesColour != ref.gridlinesColour) obj->setProperty ("gridlines-colour", gridlinesColour.toString());
-    if (capture != ref.capture) obj->setProperty ("capture", DataHelpers::varFromStringPairArray (capture));
+    if (capture != ref.capture) obj->setProperty ("capture", DataHelpers::varFromStringMap (capture));
     return obj.release();
 }

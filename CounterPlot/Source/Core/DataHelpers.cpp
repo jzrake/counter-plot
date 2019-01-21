@@ -71,8 +71,9 @@ var DataHelpers::varFromYamlScalar (const YAML::Node& scalar)
     auto value = String (scalar.Scalar());
 
     if (! JSON::fromString (value).isVoid())
+    {
         return JSON::fromString (value);
-
+    }
     return value;
 }
 
@@ -83,6 +84,17 @@ var DataHelpers::varFromStringPairArray (const StringPairArray &value)
     for (const auto& key : value.getAllKeys())
     {
         obj->setProperty (key, value.getValue (key, ""));
+    }
+    return obj.release();
+}
+
+var DataHelpers::varFromStringMap (const std::map<std::string, std::string>& value)
+{
+    auto obj = std::make_unique<DynamicObject>();
+
+    for (const auto& item : value)
+    {
+        obj->setProperty (item.first.data(), item.second.data());
     }
     return obj.release();
 }
@@ -212,6 +224,10 @@ Array<Grid::TrackInfo> DataHelpers::gridTrackInfoArrayFromVar (const var& value)
             }
         }
     }
+    else if (value.isVoid())
+    {
+        info.add (1_fr);
+    }
     return info;
 }
 
@@ -259,6 +275,30 @@ StringArray DataHelpers::stringArrayFromVar (const var& value)
     return result;
 }
 
+BorderSize<int> DataHelpers::borderSizeFromVar (const var& value)
+{
+    BorderSize<int> result;
+
+    if (auto obj = value.getDynamicObject())
+    {
+        for (const auto& item : obj->getProperties())
+        {
+            if (item.name == Identifier ("top")) result.setTop (item.value);
+            if (item.name == Identifier ("bottom")) result.setBottom (item.value);
+            if (item.name == Identifier ("left")) result.setLeft (item.value);
+            if (item.name == Identifier ("right")) result.setRight (item.value);
+        }
+    }
+    else if (value.size() == 4)
+    {
+        result.setTop    (value[0]); // This ordering is the CSS convention
+        result.setRight  (value[1]);
+        result.setBottom (value[2]);
+        result.setLeft   (value[3]);
+    }
+    return result;
+}
+
 StringPairArray DataHelpers::stringPairArrayFromVar (const var& value)
 {
     StringPairArray result;
@@ -268,6 +308,20 @@ StringPairArray DataHelpers::stringPairArrayFromVar (const var& value)
         for (auto item : obj->getProperties())
         {
             result.set (item.name.toString(), item.value.toString());
+        }
+    }
+    return result;
+}
+
+std::map<std::string, std::string> DataHelpers::stringMapFromVar (const var& value)
+{
+    std::map<std::string, std::string> result;
+
+    if (auto obj = value.getDynamicObject())
+    {
+        for (const auto& item : obj->getProperties())
+        {
+            result[item.name.toString().toStdString()] = item.value.toString().toStdString();
         }
     }
     return result;

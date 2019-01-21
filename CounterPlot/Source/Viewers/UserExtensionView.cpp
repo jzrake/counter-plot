@@ -65,7 +65,7 @@ void UserExtensionView::configure (const var& config)
     loadExpressionsFromListIntoKernel (kernel, config["figures"], "figure-");
 
 
-    // Update kernel definitions (done synchronous on config)
+    // Update kernel definitions (synchronously on config)
     // -----------------------------------------------------------------------
     kernel.update_all (kernel.dirty_rules());
 
@@ -105,7 +105,6 @@ void UserExtensionView::configure (File file)
     try {
         auto yroot = YAML::LoadFile (file.getFullPathName().toStdString());
         auto jroot = DataHelpers::varFromYamlNode (yroot);
-        patchConfigVar (jroot, recordHotReloadableData());
         configure (jroot);
     }
     catch (YAML::ParserException& e)
@@ -167,66 +166,35 @@ const Runtime::Kernel* UserExtensionView::getKernel() const
 //=========================================================================
 void UserExtensionView::figureViewSetDomainAndMargin (FigureView* figure, const Rectangle<double>& domain, const BorderSize<int>& margin)
 {
-    auto id = figure->getComponentID().toStdString();
-    auto expr = kernel.expr_at (id);
-    expr.set ("xmin", domain.getX());
-    expr.set ("ymin", domain.getY());
-    expr.set ("xmax", domain.getRight());
-    expr.set ("ymax", domain.getBottom());
-    expr.set ("margin", DataHelpers::expressionFromVar (DataHelpers::varFromBorderSize (margin)));
-    kernel.insert (id, expr);
-    captureInKernel (kernel, figure);
-    resolveKernel();
 }
 
 void UserExtensionView::figureViewSetMargin (FigureView* figure, const BorderSize<int>& margin)
 {
-    auto id = figure->getComponentID().toStdString();
-    auto expr = kernel.expr_at (id);
-    expr.set ("margin", DataHelpers::expressionFromVar (DataHelpers::varFromBorderSize (margin)));
-    kernel.insert (id, expr);
-    captureInKernel (kernel, figure);
+    const auto& capture = figure->getModel().capture;
+    if (capture.count ("margin")) kernel.insert (capture.at ("margin"), DataHelpers::varFromBorderSize (margin));
     resolveKernel();
 }
 
 void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
 {
-    auto id = figure->getComponentID().toStdString();
-    auto expr = kernel.expr_at (id);
-    expr.set ("xmin", domain.getX());
-    expr.set ("ymin", domain.getY());
-    expr.set ("xmax", domain.getRight());
-    expr.set ("ymax", domain.getBottom());
-    kernel.insert (id, expr);
-    captureInKernel (kernel, figure);
+    const auto& capture = figure->getModel().capture;
+    if (capture.count ("xmin")) kernel.insert (capture.at ("xmin"), var (domain.getX()));
+    if (capture.count ("ymin")) kernel.insert (capture.at ("ymin"), var (domain.getY()));
+    if (capture.count ("xmax")) kernel.insert (capture.at ("xmax"), var (domain.getRight()));
+    if (capture.count ("ymax")) kernel.insert (capture.at ("ymax"), var (domain.getBottom()));
     resolveKernel();
 }
 
 void UserExtensionView::figureViewSetXlabel (FigureView* figure, const String& xlabel)
 {
-    auto id = figure->getComponentID().toStdString();
-    auto expr = kernel.expr_at (id);
-    expr.set ("xlabel", xlabel.toStdString());
-    captureInKernel (kernel, figure);
-    resolveKernel();
 }
 
 void UserExtensionView::figureViewSetYlabel (FigureView* figure, const String& ylabel)
 {
-    auto id = figure->getComponentID().toStdString();
-    auto expr = kernel.expr_at (id);
-    expr.set ("ylabel", ylabel.toStdString());
-    captureInKernel (kernel, figure);
-    resolveKernel();
 }
 
 void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& title)
 {
-    auto id = figure->getComponentID().toStdString();
-    auto expr = kernel.expr_at (id);
-    expr.set ("title", title.toStdString());
-    captureInKernel (kernel, figure);
-    resolveKernel();
 }
 
 
@@ -355,51 +323,4 @@ void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kern
             }
         }
     }
-}
-
-void UserExtensionView::captureInKernel (Runtime::Kernel& kernel, const FigureView* figure) const
-{
-    const auto& model = figure->getModel();
-    const auto& keys = model.capture.getAllKeys();
-    const auto& vals = model.capture.getAllValues();
-
-    for (int n = 0; n < keys.size(); ++n)
-    {
-        if (keys[n] == "xmin") kernel.insert (vals[n].toStdString(), var (model.xmin));
-        if (keys[n] == "xmax") kernel.insert (vals[n].toStdString(), var (model.xmax));
-        if (keys[n] == "ymin") kernel.insert (vals[n].toStdString(), var (model.ymin));
-        if (keys[n] == "ymax") kernel.insert (vals[n].toStdString(), var (model.ymax));
-    }
-}
-
-void UserExtensionView::patchConfigVar (var &root, const var &hotReloadData) const
-{
-    for (int n = 0; n < std::min (root["figures"].size(), hotReloadData.size()); ++n)
-    {
-        auto obj = root["figures"][n];
-        DataHelpers::updateDict (obj, hotReloadData[n]);
-    }
-}
-
-var UserExtensionView::recordHotReloadableData() const
-{
-    var result;
-
-    for (auto figure : figures)
-    {
-        const auto& model = figure->getModel();
-        auto obj = std::make_unique<DynamicObject>();
-
-        obj->setProperty ("xmin", model.xmin);
-        obj->setProperty ("xmax", model.xmax);
-        obj->setProperty ("ymin", model.ymin);
-        obj->setProperty ("ymax", model.ymax);
-        obj->setProperty ("margin", DataHelpers::varFromBorderSize (model.margin));
-        //        obj->setProperty ("xlabel", model.xlabel);
-        //        obj->setProperty ("ylabel", model.ylabel);
-        //        obj->setProperty ("title", model.title);
-
-        result.append (obj.release());
-    }
-    return result;
 }

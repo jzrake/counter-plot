@@ -123,7 +123,6 @@ public:
                                   const std::vector<simd::float4>& colors) = 0;
 
     /** DEP */
-
     virtual void renderTriangles (const std::vector<simd::float2>& vertices,
                                   const std::vector<simd::float1>& scalars,
                                   const ScalarMapping& mapping) = 0;
@@ -170,6 +169,8 @@ struct FigureModel
 {
     //=========================================================================
     std::vector<std::shared_ptr<PlotArtist>> content;
+    std::map<std::string, std::string>       capture;
+
     double                  xmin             = 0.0;
     double                  xmax             = 1.0;
     double                  ymin             = 0.0;
@@ -182,9 +183,9 @@ struct FigureModel
     bool                    xlabelShowing    = true;
     bool                    ylabelShowing    = true;
     bool                    canEditMargin    = true;
-    bool                    canEditTitle     = true;
-    bool                    canEditXlabel    = true;
-    bool                    canEditYlabel    = true;
+    bool                    canEditTitle     = false;
+    bool                    canEditXlabel    = false;
+    bool                    canEditYlabel    = false;
     bool                    canDeformDomain  = true;
     BorderSize<int>         margin           = BorderSize<int> (90, 90, 60, 60);
     float                   borderWidth      = 1.f;
@@ -201,7 +202,6 @@ struct FigureModel
     Colour                  borderColour     = Colours::transparentWhite;
     Colour                  backgroundColour = Colours::transparentWhite;
     Colour                  gridlinesColour  = Colours::transparentWhite;
-    StringPairArray         capture;
 
 
     //=========================================================================

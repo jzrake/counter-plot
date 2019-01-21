@@ -355,9 +355,6 @@ void FigureView::PlotArea::paint (Graphics& g)
     {
         g.setColour (figure.findColour (backgroundColourId));
         g.fillAll();
-
-        g.setColour (figure.findColour (borderColourId));
-        g.drawRect (getLocalBounds());
     }
 
 
@@ -371,7 +368,7 @@ void FigureView::PlotArea::paint (Graphics& g)
     // Draw gridlines
     // ========================================================================
     g.setColour (figure.findColour (gridlinesColourId));
-    for (const auto& tick : xticks) g.drawVerticalLine (tick.pixel, 0, getHeight());
+    for (const auto& tick : xticks) g.drawVerticalLine   (tick.pixel, 0, getHeight());
     for (const auto& tick : yticks) g.drawHorizontalLine (tick.pixel, 0, getWidth());
 
 
@@ -381,6 +378,12 @@ void FigureView::PlotArea::paint (Graphics& g)
     {
         p->paint (g, *this);
     }
+
+
+    // Draw border
+    // ========================================================================
+    g.setColour (figure.findColour (borderColourId));
+    g.drawRect (getLocalBounds(), figure.model.borderWidth);
 }
 
 void FigureView::PlotArea::resized()

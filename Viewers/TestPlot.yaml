@@ -1,0 +1,24 @@
+
+name: Test Plot
+
+environment:
+  cmap: (mapping 0.0 1.5 stops)
+
+figures:
+
+- title: Test Plot
+  xlabel: X
+  ylabel: Y
+  xmin: $xmin
+  xmax: $xmax
+  ymin: $ymin
+  ymax: $ymax
+  margin: $margin
+  border-width: 2
+
+  capture:
+    margin: margin
+    xmin: xmin
+    xmax: xmax
+    ymin: ymin
+    ymax: ymax

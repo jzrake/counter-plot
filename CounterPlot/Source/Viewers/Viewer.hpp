@@ -93,6 +93,8 @@ public:
      */
     virtual const Runtime::Kernel* getKernel() const { return nullptr; }
 
+    virtual void setMessageSink (MessageSink* explicitMessageSink) { messageSink = explicitMessageSink; }
+
     /**
      * Derived classes can call these method to send a message to the sink. This
      * is either the private messageSink instance if it is not null, or the
@@ -104,10 +106,6 @@ public:
     void sendIndicateSuccess() const;
     void sendEnvironmentChanged() const;
 
-    void setMessageSink (MessageSink* explicitMessageSink)
-    {
-        messageSink = explicitMessageSink;
-    }
 private:
     MessageSink* messageSink = nullptr;
 };
