@@ -32,7 +32,6 @@ public:
     const Runtime::Kernel* getKernel() const override;
 
     //=========================================================================
-    void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) override;
     void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
     void figureViewSetDomain (FigureView*, const Rectangle<double>&) override;
     void figureViewSetXlabel (FigureView*, const String&) override;
@@ -47,14 +46,11 @@ public:
 private:
 
     //=========================================================================
+    void applyLayout();
     void resolveKernel();
     void loadFromKernelIfFigure (const std::string& id);
     void loadExpressionsFromListIntoKernel (Runtime::Kernel& kernel, const var& list, const std::string& basename) const;
     void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const;
-    Rectangle<double> computeDomainForResize (const FigureModel& model,
-                                              const Rectangle<int>& oldBounds,
-                                              const Rectangle<int>& newBounds) const;
-    Array<Rectangle<int>> getBoundsOfAllfigures() const;
 
     //=========================================================================
     String viewerName;

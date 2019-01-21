@@ -164,16 +164,94 @@ public:
     };
 
     //=========================================================================
+
+
+    /**
+     * Construct a figure view with a default model.
+     */
     FigureView();
+
+
+    /**
+     * Constructor a figure view with the given model.
+     */
     FigureView (const FigureModel& model);
+
+
+    /**
+     * Set a hardware rendering surface for this figure to use. You should do
+     * this if any of the plot artists in the model override the render
+     * method, otherwise those artists will not be drawn. However note that
+     * there may be some overhead in the creation of the rendering surface,
+     * and in the responsiveness of the app if your figures have one when it's
+     * not needed.
+     */
     void setRenderingSurface (std::unique_ptr<RenderingSurface> surfaceToRenderInto);
+
+
+    /**
+     * Set the model to use. This will trigger resizing of the plot area and
+     * repaints as needed.
+     */
     void setModel (const FigureModel&);
-    void addListener (Listener* listener);
-    void removeListener (Listener* listener);
+
+
+    /**
+     * Return the current figure model.
+     */
     const FigureModel& getModel() const { return model; }
+
+
+    /**
+     * This method should be used instead of Component::setBounds if the model
+     * might have canDeformDomain = false. In that case, the resize will also
+     * require a change to the plot domain. This method will notify listeners
+     * via Listener::figureViewSetDomain, passing the recommended domain size.
+     */
+    void setBoundsAndSendDomainResizeIfNeeded (const Rectangle<int>& newBounds);
+
+
+    /**
+     * If this figure might have canDeformDomain = false, and a new margin
+     * value will be given to the figure, this method should first be called
+     * to request that a new recommended domain size be sent to the listeners.
+     */
+    bool sendDomainResizeForNewMargin (const BorderSize<int>& newMargin);
+
+
+    /**
+     * Add a listener. Note that this is really a controller pattern, as there
+     * should probably only be a single listener. That listener should update
+     * the figure model as it sees fit in response to the messages it receives,
+     * and then call setModel when it's ready to update the figure.
+     */
+    void addListener (Listener* listener);
+
+
+    /**
+     * Remove a listener.
+     */
+    void removeListener (Listener* listener);
+
+
+    /**
+     * Return the subset of the figure bounds containing the plot area itself.
+     */
     Rectangle<int> getPlotAreaBounds() const { return plotArea.getBounds(); }
+
+
+    /**
+     * Return the rendering surface currently in use.
+     */
     RenderingSurface* getRenderingSurface() { return surface.get(); }
+
+
+    /**
+     * Return an image of the figure, including a frame capture of the rendering
+     * surface, if there is one.
+     */
     Image createSnapshot();
+
 
     //=========================================================================
     void paint (Graphics&) override;
@@ -188,6 +266,7 @@ private:
     void layout();
     void refreshModes (bool alsoRepaint=true);
     PlotGeometry computeGeometry() const;
+    Rectangle<double> undeformedDomain (const Rectangle<int>& newPlotAreaBounds) const;
     void labelTextChanged (Label* labelThatHasChanged) override;
 
     //=========================================================================

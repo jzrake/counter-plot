@@ -15,6 +15,7 @@ figures:
   ymax: $ymax
   margin: $margin
   border-width: 2
+  can-deform-domain: false
 
   capture:
     margin: margin

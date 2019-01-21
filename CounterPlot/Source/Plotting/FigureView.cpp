@@ -619,6 +619,29 @@ void FigureView::setModel (const FigureModel& newModel)
     repaint();
 }
 
+void FigureView::setBoundsAndSendDomainResizeIfNeeded (const Rectangle<int>& newBounds)
+{
+    auto newPlotAreaBounds = model.margin.subtractedFrom (newBounds);
+
+    if (! model.canDeformDomain && plotArea.getBounds() != newPlotAreaBounds && ! getBounds().isEmpty())
+    {
+        plotArea.sendSetDomain (undeformedDomain (newPlotAreaBounds));
+    }
+    setBounds (newBounds);
+}
+
+bool FigureView::sendDomainResizeForNewMargin (const BorderSize<int>& newMargin)
+{
+    auto newPlotAreaBounds = newMargin.subtractedFrom (getLocalBounds());
+
+    if (! model.canDeformDomain && plotArea.getBounds() != newPlotAreaBounds)
+    {
+        plotArea.sendSetDomain (undeformedDomain (newPlotAreaBounds));
+        return true;
+    }
+    return false;
+}
+
 void FigureView::addListener (Listener* listener)
 {
     listeners.add (listener);
@@ -818,6 +841,19 @@ PlotGeometry FigureView::computeGeometry() const
     return PlotGeometry::compute (getLocalBounds(), model.margin,
                                   model.tickLabelWidth, model.tickLabelHeight,
                                   model.tickLabelPadding, model.tickLength);
+}
+
+Rectangle<double> FigureView::undeformedDomain (const Rectangle<int> &newPlotAreaBounds) const
+{
+    auto newW = newPlotAreaBounds.getWidth();
+    auto newH = newPlotAreaBounds.getHeight();
+    auto domainLengthPerPixelX = (model.xmax - model.xmin) / plotArea.getWidth();
+    auto domainLengthPerPixelY = (model.ymax - model.ymin) / plotArea.getHeight();
+    auto newx0 = 0.5 * (model.xmin + model.xmax - domainLengthPerPixelX * newW);
+    auto newx1 = 0.5 * (model.xmin + model.xmax + domainLengthPerPixelX * newW);
+    auto newy0 = 0.5 * (model.ymin + model.ymax - domainLengthPerPixelY * newH);
+    auto newy1 = 0.5 * (model.ymin + model.ymax + domainLengthPerPixelY * newH);
+    return Rectangle<double>::leftTopRightBottom (newx0, newy0, newx1, newy1);
 }
 
 void FigureView::labelTextChanged (Label* label)
