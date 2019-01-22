@@ -417,6 +417,11 @@ const ViewerCollection& MainComponent::getViewerCollection() const
     return viewers;
 }
 
+DirectoryTree& MainComponent::getDirectoryTree()
+{
+    return directoryTree;
+}
+
 void MainComponent::setCurrentViewer (const String& viewerName)
 {
     if (auto viewer = viewers.findViewerWithName (viewerName))

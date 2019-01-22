@@ -25,7 +25,12 @@ public:
     Item (DirectoryTree& directory, File file) : directory (directory), file (file)
     {
         setDrawsInLeftMargin (true);
-        glyphs.addLineOfText (Font().withHeight (11), file.getFileName(), 8, 16);
+
+        auto font = directory.font;
+        auto text = file.getFileName();
+
+        glyphs.addLineOfText (font, text, 8, 0);
+        glyphs.justifyGlyphs (0, text.length(), 8, 0, 1e10, getItemHeight(), Justification::centredLeft);
     }
 
     void paintItem (Graphics& g, int width, int height) override
@@ -37,6 +42,7 @@ public:
         if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeSymbolicLink);
 
         g.setColour (isMouseOver() ? textColour.brighter (0.8f) : textColour);
+
         glyphs.draw (g);
     }
 
@@ -50,7 +56,15 @@ public:
         return true;
     }
 
-    int getItemHeight() const override { return 24; }
+    int getItemHeight() const override
+    {
+        return directory.font.getHeight() * 11 / 4;
+    }
+
+    String getUniqueName() const override
+    {
+        return file.getFullPathName();
+    }
 
     void itemSelectionChanged (bool isNowSelected) override
     {
@@ -103,6 +117,7 @@ private:
 //=============================================================================
 DirectoryTree::DirectoryTree()
 {
+    font = Font().withHeight (11);
     tree.setIndentSize (12);
     tree.setRootItemVisible (true);
     tree.addMouseListener (this, true);
@@ -137,16 +152,27 @@ void DirectoryTree::setDirectoryToShow (File directoryToShow)
 
 void DirectoryTree::reloadAll()
 {
+    auto state = std::unique_ptr<XmlElement> (root ? root->getOpennessState() : nullptr);
     setMouseOverItem (nullptr);
     tree.setRootItem (nullptr);
     root = std::make_unique<Item> (*this, currentDirectory);
     tree.setRootItem (root.get());
-    root->setOpen (true);
+
+    if (state)
+        root->restoreOpennessState (*state);
+    else
+        root->setOpen (true);
 }
 
 File DirectoryTree::getCurrentDirectory() const
 {
     return currentDirectory;
+}
+
+void DirectoryTree::increaseFontSize (int amount)
+{
+    font.setHeight (font.getHeight() + amount);
+    reloadAll();
 }
 
 

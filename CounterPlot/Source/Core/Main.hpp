@@ -25,6 +25,8 @@ public:
         toggleDirectoryView   = 103,
         reloadDirectoryView   = 104,
         toggleEnvironmentView = 105,
+        increaseFontSize      = 106,
+        decreaseFontSize      = 107,
     };
 
 

@@ -94,6 +94,9 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
         menu.addCommandItem (manager, Commands::toggleDirectoryView);
         menu.addCommandItem (manager, Commands::reloadDirectoryView);
         menu.addSeparator();
+        menu.addCommandItem (manager, Commands::increaseFontSize);
+        menu.addCommandItem (manager, Commands::decreaseFontSize);
+        menu.addSeparator();
         menu.addCommandItem (manager, Viewer::Commands::nextColourMap);
         menu.addCommandItem (manager, Viewer::Commands::prevColourMap);
         menu.addCommandItem (manager, Viewer::Commands::resetScalarRange);
@@ -189,6 +192,8 @@ void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
         Commands::toggleDirectoryView,
         Commands::reloadDirectoryView,
         Commands::toggleEnvironmentView,
+        Commands::increaseFontSize,
+        Commands::decreaseFontSize,
     };
     commands.addArray (ids, numElementsInArray (ids));
 }
@@ -219,6 +224,14 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
                             mainWindow && mainWindow->content->isEnvironmentViewShowing() ? ApplicationCommandInfo::isTicked : 0);
             result.defaultKeypresses.add (KeyPress ('B', ModifierKeys::commandModifier, 0));
             break;
+        case Commands::increaseFontSize:
+            result.setInfo ("Increase Font Size", "", "View", 0);
+            result.defaultKeypresses.add (KeyPress ('+', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0));
+            break;
+        case Commands::decreaseFontSize:
+            result.setInfo ("Decrease Font Size", "", "View", 0);
+            result.defaultKeypresses.add (KeyPress ('-', ModifierKeys::commandModifier, 0));
+            break;
         default:
             JUCEApplication::getCommandInfo (commandID, result);
             break;
@@ -234,6 +247,8 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
         case Commands::toggleDirectoryView:       mainWindow->content->toggleDirectoryTreeShown(); return true;
         case Commands::reloadDirectoryView:       mainWindow->content->reloadDirectoryTree(); return true;
         case Commands::toggleEnvironmentView:     mainWindow->content->toggleEnvironmentViewShown(); return true;
+        case Commands::increaseFontSize:          mainWindow->content->getDirectoryTree().increaseFontSize (+1); return true;
+        case Commands::decreaseFontSize:          mainWindow->content->getDirectoryTree().increaseFontSize (-1); return true;
         default:                                  return JUCEApplication::perform (info);
     }
 }

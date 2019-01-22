@@ -138,6 +138,7 @@ public:
     File getCurrentFile() const;
     const Viewer* getCurrentViewer() const;
     const ViewerCollection& getViewerCollection() const;
+    DirectoryTree& getDirectoryTree();
     void setCurrentViewer (const String& viewerName);
     void makeViewerCurrent (Viewer* viewer);
     void refreshCurrentViewerName();
