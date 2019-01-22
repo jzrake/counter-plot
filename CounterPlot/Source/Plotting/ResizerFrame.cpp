@@ -49,17 +49,10 @@ void ResizerFrame::mouseMove (const MouseEvent& e)
     setMouseCursor (mouseCursors[getZoneForPoint (e.getPosition())]);
 }
 
-void ResizerFrame::mouseDown (const MouseEvent& e)
-{
-    boundsOnMouseDown = getParentComponent()->getBounds();
-    zoneOnMouseDown = getZoneForPoint (e.getPosition());
-    setMouseCursor (mouseCursors[zoneOnMouseDown]);
-}
-
 void ResizerFrame::mouseDrag (const MouseEvent& e)
 {
     auto b = boundsOnMouseDown;
-    auto z = zoneOnMouseDown;
+    auto z = zoneCurrentlyDragging;
 
     if (z == 0 || z == 3 || z == 6) b.setLeft   (boundsOnMouseDown.getX()      + e.getDistanceFromDragStartX());
     if (z == 2 || z == 5 || z == 8) b.setRight  (boundsOnMouseDown.getRight()  + e.getDistanceFromDragStartX());
@@ -68,6 +61,18 @@ void ResizerFrame::mouseDrag (const MouseEvent& e)
 
     if (callback)
         callback (b);
+}
+
+void ResizerFrame::mouseDown (const MouseEvent& e)
+{
+    boundsOnMouseDown = getParentComponent()->getBounds();
+    zoneCurrentlyDragging = getZoneForPoint (e.getPosition());
+    setMouseCursor (mouseCursors[zoneCurrentlyDragging]);
+}
+
+void ResizerFrame::mouseUp (const MouseEvent&)
+{
+    zoneCurrentlyDragging = 4;
 }
 
 bool ResizerFrame::hitTest (int x, int y)

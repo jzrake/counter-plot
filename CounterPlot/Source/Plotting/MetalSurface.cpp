@@ -6,14 +6,14 @@
 //=============================================================================
 MetalRenderingSurface::MetalRenderingSurface()
 {
-    DBG("MetalRenderingSurface::MetalRenderingSurface()");
+    // DBG("MetalRenderingSurface::MetalRenderingSurface()");
     setInterceptsMouseClicks (false, false);
     addAndMakeVisible (metal);
 }
 
 MetalRenderingSurface::~MetalRenderingSurface()
 {
-    DBG("MetalRenderingSurface::~MetalRenderingSurface()");
+    // DBG("MetalRenderingSurface::~MetalRenderingSurface()");
 }
 
 void MetalRenderingSurface::setContent (std::vector<std::shared_ptr<PlotArtist>> artists, const PlotTransformer& trans)

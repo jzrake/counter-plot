@@ -2,7 +2,7 @@ name: Binary Torques Time Series
 rows: [1]
 cols: [1]
 
-file-patterns: ['*.h5']
+file-patterns:
 hdf5-required-datasets: [{name: primitive/sigma, rank: 2}]
 hdf5-required-groups: [time_series]
 

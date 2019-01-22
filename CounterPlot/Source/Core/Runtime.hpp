@@ -161,6 +161,16 @@ public:
                                   + (index == -1 ? "" : " at index " + std::to_string (index)));
     }
 
+    template<typename T>
+    static T* opt_data (const var& value)
+    {
+        if (auto data = dynamic_cast<Data<T>*> (value.getObject()))
+        {
+            return &data->value;
+        }
+        return nullptr;
+    }
+
     static String represent (const var& value)
     {
         if (auto result = dynamic_cast<GenericData*> (value.getObject()))

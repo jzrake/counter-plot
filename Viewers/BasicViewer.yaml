@@ -26,12 +26,14 @@ figures:
   ymin: $ymin
   ymax: $ymax
   can-edit-title: false
-  can-deform-domain: true
-  margin: {top: 80, bottom: 60, left: 80, right: 40}
+  can-deform-domain: false
+  margin: $margin
+  border-width: 2
   content:
   - (plot x u lw=1 ls='dash'  lc='magenta' mew=3 ms='circle'  mw=20 mfc='orange' mec='black')
   - (plot x v lw=3 ls='solid' lc='orange'  mew=3 ms='diamond' mw=25 mfc='brown'  mec='red')
   capture:
+    margin: margin
     xmin: xmin
     xmax: xmax
     ymin: ymin

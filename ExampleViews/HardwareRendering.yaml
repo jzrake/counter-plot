@@ -4,11 +4,11 @@ name: Test Plot 2
 environment:
   x: (linspace -1 1 10)
   y: (linspace -1 1 10)
-  field: (linspace 0.0 1.0 81)
+  field: (log10 (linspace 0.01 10.0 81))
   grid: (cartprod x y)
   triangles: (to-gpu-triangulate grid)
   scalars: (to-gpu-replicate field 6)
-  cmap: (mapping 0.0 1.0 stops)
+  cmap: (mapping -2.0 1.0 stops)
 
 figures:
 
@@ -21,7 +21,7 @@ figures:
   ymax: $ymax
   margin: $margin
   border-width: 2
-  can-deform-domain: false
+  can-deform-domain: true
   capture:
     margin: margin
     xmin: xmin

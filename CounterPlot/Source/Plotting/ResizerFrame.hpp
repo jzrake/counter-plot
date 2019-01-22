@@ -16,10 +16,11 @@ public:
     //=========================================================================
     void resized() override;
     void mouseMove (const MouseEvent&) override;
-    void mouseDown (const MouseEvent&) override;
     void mouseDrag (const MouseEvent&) override;
+    void mouseDown (const MouseEvent&) override;
+    void mouseUp (const MouseEvent&) override;
     bool hitTest (int x, int y) override;
-//    MouseCursor getMouseCursor() override;
+    // MouseCursor getMouseCursor() override;
 
 private:
     //=========================================================================
@@ -28,7 +29,7 @@ private:
     MouseCursor mouseCursors[9];
     Rectangle<int> zoneRectangles[9];
     Rectangle<int> boundsOnMouseDown;
-    int zoneOnMouseDown = 4;
+    int zoneCurrentlyDragging = 1;
     int width = 10;
 };
 

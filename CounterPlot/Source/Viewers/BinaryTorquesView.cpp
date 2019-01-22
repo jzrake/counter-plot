@@ -412,8 +412,8 @@ BinaryTorquesView::~BinaryTorquesView()
 
 void BinaryTorquesView::update (const State &newState)
 {
-    if (mainFigure.getRenderingSurface() == nullptr && state.file.exists()) // this is delayed to speed app initialization
-        mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+//    if (mainFigure.getRenderingSurface() == nullptr && state.file.exists()) // this is delayed to speed app initialization
+//        mainFigure.setRenderingSurface (std::make_unique<MetalRenderingSurface>());
 
     state = newState;
     mainFigure.setModel (state.mainModel);

@@ -454,7 +454,6 @@ FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultMo
             else if (item.name == Identifier ("xmax")) convert (item.value, model.xmax);
             else if (item.name == Identifier ("ymin")) convert (item.value, model.ymin);
             else if (item.name == Identifier ("ymax")) convert (item.value, model.ymax);
-            else if (item.name == Identifier ("id")) convert (item.value, model.id);
             else if (item.name == Identifier ("title")) convert (item.value, model.title);
             else if (item.name == Identifier ("xlabel")) convert (item.value, model.xlabel);
             else if (item.name == Identifier ("ylabel")) convert (item.value, model.ylabel);
@@ -497,7 +496,6 @@ var FigureModel::toVar() const
     if (xmax != ref.xmax) obj->setProperty ("xmax", xmax);
     if (ymin != ref.ymin) obj->setProperty ("ymin", ymin);
     if (ymax != ref.ymax) obj->setProperty ("ymax", ymax);
-    if (title != ref.id) obj->setProperty ("id", id);
     if (title != ref.title) obj->setProperty ("title", title);
     if (xlabel != ref.xlabel) obj->setProperty ("xlabel", xlabel);
     if (ylabel != ref.ylabel) obj->setProperty ("ylabel", ylabel);

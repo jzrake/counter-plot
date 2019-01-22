@@ -58,7 +58,7 @@ public:
 
     int getItemHeight() const override
     {
-        return directory.font.getHeight() * 11 / 4;
+        return directory.font.getHeight() * 5 / 2;
     }
 
     String getUniqueName() const override

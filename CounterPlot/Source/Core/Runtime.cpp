@@ -25,7 +25,7 @@ namespace builtin
     }
 
     //=========================================================================
-    template<typename T>
+    template<typename T=var>
     T checkArg (const char* caller, var::NativeFunctionArgs args, int index)
     {
         checkIndexValid (caller, args, index);
@@ -53,8 +53,7 @@ namespace builtin
 
     nd::array<double, 1> checkFlatten (const char* caller, var::NativeFunctionArgs args, int index)
     {
-        checkIndexValid (caller, args, index);
-        auto value = args.arguments[index];
+        auto value = checkArg (caller, args, index);
 
         if (auto result = dynamic_cast<Runtime::Data<nd::array<double, 1>>*> (value.getObject()))
             return result->value;
@@ -118,6 +117,25 @@ namespace builtin
         return DataHelpers::stringArrayFromVar (argsArray).joinIntoString (sep);
     }
 
+    var basename (var::NativeFunctionArgs args)
+    {
+        auto path = checkArg<String> ("basename", args, 0);
+
+        if (File::isAbsolutePath (path))
+            return File (path).getFileName();
+        throw std::runtime_error ("must be an absolute path");
+    }
+
+    var format (var::NativeFunctionArgs args)
+    {
+        char result[256];
+        auto format = checkArg<String> ("format", args, 0).toStdString();
+        auto arg    = checkArg ("format", args, 1);
+        if      (arg.isInt())    std::snprintf (result, 256, format.data(), int (arg));
+        else if (arg.isDouble()) std::snprintf (result, 256, format.data(), double (arg));
+        return String (result);
+    }
+
 
     //=========================================================================
     var linspace (var::NativeFunctionArgs args)
@@ -126,6 +144,55 @@ namespace builtin
         auto x1  = checkArg<double> ("linspace", args, 1);
         auto num = checkArg<int>    ("linspace", args, 2);
         return Runtime::make_data (nd::linspace<double> (x0, x1, num));
+    }
+
+
+    //=========================================================================
+    var log10 (var::NativeFunctionArgs args)
+    {
+        auto value = checkArg ("log10", args, 0);
+
+        if (auto A = Runtime::opt_data<nd::array<double, 1>> (value))
+        {
+            auto res = A->copy();
+            for (auto& x : res) x = std::log10(x);
+            return Runtime::make_data (res);
+        }
+        if (auto A = Runtime::opt_data<nd::array<double, 2>> (value))
+        {
+            auto res = A->copy();
+            for (auto& x : res) x = std::log10(x);
+            return Runtime::make_data (res);
+        }
+        if (auto A = Runtime::opt_data<nd::array<double, 3>> (value))
+        {
+            auto res = A->copy();
+            for (auto& x : res) x = std::log10(x);
+            return Runtime::make_data (res);
+        }
+        throw std::runtime_error ("log10 requires an array of type double");
+    }
+
+
+    //=========================================================================
+    var min (var::NativeFunctionArgs args)
+    {
+        auto value = checkArg ("min", args, 0);
+        if (auto A = Runtime::opt_data<nd::array<double, 1>> (value)) return *std::min_element (A->begin(), A->end());
+        if (auto A = Runtime::opt_data<nd::array<double, 2>> (value)) return *std::min_element (A->begin(), A->end());
+        if (auto A = Runtime::opt_data<nd::array<double, 3>> (value)) return *std::min_element (A->begin(), A->end());
+        throw std::runtime_error ("min requires an array of type double");
+    }
+
+
+    //=========================================================================
+    var max (var::NativeFunctionArgs args)
+    {
+        auto value = checkArg ("max", args, 0);
+        if (auto A = Runtime::opt_data<nd::array<double, 1>> (value)) return *std::max_element (A->begin(), A->end());
+        if (auto A = Runtime::opt_data<nd::array<double, 2>> (value)) return *std::max_element (A->begin(), A->end());
+        if (auto A = Runtime::opt_data<nd::array<double, 3>> (value)) return *std::max_element (A->begin(), A->end());
+        throw std::runtime_error ("max requires an array of type double");
     }
 
 
@@ -184,12 +251,12 @@ namespace builtin
 
 
     //=========================================================================
-    var mapping (var::NativeFunctionArgs args)
+    var scalar_mapping (var::NativeFunctionArgs args)
     {
         auto m  = ScalarMapping();
-        m.vmin  = checkArg<float> ("mapping", args, 0);
-        m.vmax  = checkArg<float> ("mapping", args, 1);
-        m.stops = checkArgData<Array<Colour>> ("mapping", args, 2);
+        m.vmin  = checkArg<float> ("scalar-mapping", args, 0);
+        m.vmax  = checkArg<float> ("scalar-mapping", args, 1);
+        m.stops = checkArgData<Array<Colour>> ("scalar-mapping", args, 2);
         return Runtime::make_data(m);
     }
 
@@ -245,6 +312,10 @@ namespace builtin
         auto scalars  = checkArgData<DeviceBufferFloat1> ("trimesh", args, 1);
         auto mapping  = checkArgData<ScalarMapping> ("trimesh", args, 2);
         auto trimesh  = std::make_shared<TriangleMeshArtist> (vertices, scalars, mapping);
+
+        if (vertices.size != scalars.size)
+            throw std::runtime_error("vertices and scalars have different sizes");
+
         return Runtime::make_data (std::dynamic_pointer_cast<PlotArtist> (trimesh));
     }
 
@@ -289,7 +360,12 @@ namespace builtin
             auto arr = h5f.read<nd::array<double, 1>> (dname);
             return Runtime::make_data (arr.select (_|0|int(arr.size())|skip));
         }
-        throw std::runtime_error ("HDF5 dataset rank not 0 or 1: " + dname);
+        if (h5d.get_space().rank() == 2)
+        {
+            auto arr = h5f.read<nd::array<double, 2>> (dname);
+            return Runtime::make_data (arr);
+        }
+        throw std::runtime_error ("HDF5 dataset rank not 0, 1, or 2: " + dname);
     }
 }
 
@@ -299,18 +375,23 @@ namespace builtin
 // ============================================================================
 void Runtime::load_builtins (Kernel& kernel)
 {
-    kernel.insert ("list",      var::NativeFunction (builtin::list),      Flags::builtin);
-    kernel.insert ("dict",      var::NativeFunction (builtin::dict),      Flags::builtin);
-    kernel.insert ("attr",      var::NativeFunction (builtin::attr),      Flags::builtin);
-    kernel.insert ("item",      var::NativeFunction (builtin::item),      Flags::builtin);
-    kernel.insert ("join",      var::NativeFunction (builtin::join),      Flags::builtin);
-    kernel.insert ("linspace",  var::NativeFunction (builtin::linspace),  Flags::builtin);
-    kernel.insert ("cartprod",  var::NativeFunction (builtin::cartprod),  Flags::builtin);
-    kernel.insert ("mapping",   var::NativeFunction (builtin::mapping),   Flags::builtin);
-    kernel.insert ("plot",      var::NativeFunction (builtin::plot),      Flags::builtin);
-    kernel.insert ("trimesh",   var::NativeFunction (builtin::trimesh),   Flags::builtin);
-    kernel.insert ("gradient",  var::NativeFunction (builtin::gradient),  Flags::builtin);
-    kernel.insert ("load-hdf5", var::NativeFunction (builtin::load_hdf5), Flags::builtin);
+    kernel.insert ("list",           var::NativeFunction (builtin::list),           Flags::builtin);
+    kernel.insert ("dict",           var::NativeFunction (builtin::dict),           Flags::builtin);
+    kernel.insert ("attr",           var::NativeFunction (builtin::attr),           Flags::builtin);
+    kernel.insert ("item",           var::NativeFunction (builtin::item),           Flags::builtin);
+    kernel.insert ("join",           var::NativeFunction (builtin::join),           Flags::builtin);
+    kernel.insert ("basename",       var::NativeFunction (builtin::basename),       Flags::builtin);
+    kernel.insert ("format",         var::NativeFunction (builtin::format),         Flags::builtin);
+    kernel.insert ("log10",          var::NativeFunction (builtin::log10),          Flags::builtin);
+    kernel.insert ("min",            var::NativeFunction (builtin::min),            Flags::builtin);
+    kernel.insert ("max",            var::NativeFunction (builtin::max),            Flags::builtin);
+    kernel.insert ("linspace",       var::NativeFunction (builtin::linspace),       Flags::builtin);
+    kernel.insert ("cartprod",       var::NativeFunction (builtin::cartprod),       Flags::builtin);
+    kernel.insert ("scalar-mapping", var::NativeFunction (builtin::scalar_mapping), Flags::builtin);
+    kernel.insert ("plot",           var::NativeFunction (builtin::plot),           Flags::builtin);
+    kernel.insert ("trimesh",        var::NativeFunction (builtin::trimesh),        Flags::builtin);
+    kernel.insert ("gradient",       var::NativeFunction (builtin::gradient),       Flags::builtin);
+    kernel.insert ("load-hdf5",      var::NativeFunction (builtin::load_hdf5),      Flags::builtin);
 
     kernel.insert ("to-gpu-triangulate", var::NativeFunction (builtin::to_gpu_triangulate), Flags::builtin);
     kernel.insert ("to-gpu-replicate",   var::NativeFunction (builtin::to_gpu_replicate),   Flags::builtin);

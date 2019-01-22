@@ -171,15 +171,13 @@ struct FigureModel
     //=========================================================================
     std::vector<std::shared_ptr<PlotArtist>> content;
     std::map<std::string, std::string>       capture;
-
+    String                  title;
+    String                  xlabel;
+    String                  ylabel;
     double                  xmin             = 0.0;
     double                  xmax             = 1.0;
     double                  ymin             = 0.0;
     double                  ymax             = 1.0;
-    String                  id               = "";
-    String                  title            = "Figure";
-    String                  xlabel           = "X Axis";
-    String                  ylabel           = "Y Axis";
     bool                    titleShowing     = true;
     bool                    xlabelShowing    = true;
     bool                    ylabelShowing    = true;

@@ -178,4 +178,5 @@ private:
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
     FilePoller filePoller;
+    // ResizerFrameTestComponent resizerTestComponent;
 };
