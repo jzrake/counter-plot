@@ -12,6 +12,8 @@ public:
 
     //=========================================================================
     MetalRenderingSurface();
+    ~MetalRenderingSurface();
+
     void setContent (std::vector<std::shared_ptr<PlotArtist>> artists,
                      const PlotTransformer& trans) override;
     void renderTriangles (const std::vector<simd::float2>& vertices,

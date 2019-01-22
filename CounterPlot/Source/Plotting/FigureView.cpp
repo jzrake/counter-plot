@@ -1,4 +1,5 @@
 #include "FigureView.hpp"
+#include "MetalSurface.hpp"
 
 
 
@@ -608,16 +609,15 @@ FigureView::FigureView (const FigureModel& model) : model (model), plotArea (*th
 
 void FigureView::setRenderingSurface (std::unique_ptr<RenderingSurface> surfaceToRenderInto)
 {
-    if (surface)
+    if (surfaceToRenderInto)
     {
-        removeChildComponent (surface.get());
-    }
-    surface = std::move (surfaceToRenderInto);
-
-    if (surface)
-    {
+        surface = std::move (surfaceToRenderInto);
         addAndMakeVisible (surface.get());
         surface->setContent (model.content, plotArea);
+    }
+    else if (surface)
+    {
+        surface.reset();
     }
 }
 
@@ -634,6 +634,8 @@ void FigureView::setModel (const FigureModel& newModel)
 
     setComponentColours (*this, model);
     refreshModes (false);
+    createOrDestroySurface();
+
     layout();
     repaint();
 }
@@ -768,7 +770,18 @@ void FigureView::paintOverChildren (Graphics& g)
 
 void FigureView::resized()
 {
+    createOrDestroySurface();
     layout();
+}
+
+void FigureView::visibilityChanged()
+{
+    createOrDestroySurface();
+}
+
+void FigureView::parentHierarchyChanged()
+{
+    createOrDestroySurface();
 }
 
 void FigureView::mouseEnter (const MouseEvent& e)
@@ -853,6 +866,35 @@ void FigureView::refreshModes (bool alsoRepaint)
 
     if (alsoRepaint)
         repaint();
+}
+
+void FigureView::createOrDestroySurface()
+{
+    if (! isShowing())
+    {
+        setRenderingSurface (nullptr);
+        return;
+    }
+
+    bool wantsSurface = false;
+
+    for (const auto& artist : model.content)
+    {
+        if (artist->wantsSurface())
+        {
+            wantsSurface = true;
+            break;
+        }
+    }
+
+    if (wantsSurface && surface == nullptr)
+    {
+        setRenderingSurface (std::make_unique<MetalRenderingSurface>());
+    }
+    else if (! wantsSurface && surface != nullptr)
+    {
+        setRenderingSurface (nullptr);
+    }
 }
 
 PlotGeometry FigureView::computeGeometry() const

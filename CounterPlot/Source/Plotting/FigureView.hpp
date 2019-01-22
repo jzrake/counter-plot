@@ -265,6 +265,8 @@ public:
     void paint (Graphics&) override;
     void paintOverChildren (Graphics&) override;
     void resized() override;
+    void visibilityChanged() override;
+    void parentHierarchyChanged() override;
     void mouseEnter (const MouseEvent&) override;
     void mouseExit (const MouseEvent&) override;
     void mouseDown (const MouseEvent&) override;
@@ -273,6 +275,7 @@ private:
     //=========================================================================
     void layout();
     void refreshModes (bool alsoRepaint=true);
+    void createOrDestroySurface();
     PlotGeometry computeGeometry() const;
     Rectangle<double> undeformedDomain (const Rectangle<int>& newPlotAreaBounds) const;
     void labelTextChanged (Label* labelThatHasChanged) override;
