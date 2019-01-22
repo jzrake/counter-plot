@@ -59,6 +59,11 @@ void UserExtensionView::configure (const var& config)
     asyncRules = DataHelpers::stringArrayFromVar (config["expensive"]);
 
 
+    // Load commands
+    // -----------------------------------------------------------------------
+    extensionCommands = config["commands"];
+
+
     // Load viewer environment and figure defs into the kernel
     // -----------------------------------------------------------------------
     loadExpressionsFromDictIntoKernel (kernel, config["environment"]);
@@ -239,6 +244,43 @@ void UserExtensionView::taskCompleted (const String& taskName, const var& result
 void UserExtensionView::taskWasCancelled (const String& taskName)
 {
     sendAsyncTaskFinished();
+}
+
+
+
+
+//=============================================================================
+void UserExtensionView::getAllCommands (Array<CommandID>& commands)
+{
+    Viewer::getAllCommands (commands);
+    commands.removeAllInstancesOf (Viewer::Commands::makeSnapshotAndOpen);
+    commands.removeAllInstancesOf (Viewer::Commands::saveSnapshotAs);
+}
+
+void UserExtensionView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
+{
+    Viewer::getCommandInfo (commandID, result);
+}
+
+bool UserExtensionView::perform (const InvocationInfo& info)
+{
+    switch (info.commandID)
+    {
+//        case Commands::makeSnapshotAndOpen: saveSnapshot (true); break;
+//        case Commands::saveSnapshotAs: saveSnapshot (false); break;
+        case Commands::nextColourMap: kernel.insert ("stops", Runtime::make_data (colourMaps.next())); resolveKernel(); break;
+        case Commands::prevColourMap: kernel.insert ("stops", Runtime::make_data (colourMaps.prev())); resolveKernel(); break;
+        case Commands::resetScalarRange:
+            loadExpressionsFromDictIntoKernel (kernel, extensionCommands["reset-scalar-range"]);
+            resolveKernel();
+            break;
+    }
+    return true;
+}
+
+ApplicationCommandTarget* UserExtensionView::getNextCommandTarget()
+{
+    return nullptr;
 }
 
 

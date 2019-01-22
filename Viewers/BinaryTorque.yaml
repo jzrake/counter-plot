@@ -1,26 +1,43 @@
+# =============================================================================
+# Binary torques problem viewer
+# =============================================================================
+
+
 name: Binary Torques
 rows: [1]
 cols: [1, 100px]
+
 
 file-patterns: ['*.h5']
 hdf5-required-datasets:
 - name: primitive/sigma
   rank: 2
 
-environment:
-  time: (load-hdf5 file 'status/simulationTime')
-  sigma: (load-hdf5 file 'primitive/sigma')
-  field: (log10 sigma)
-  vmin: (min field)
-  vmax: (max field)
 
-  x: (linspace -6 6 129)
-  y: (linspace -6 6 129)
+environment:
+  time  : (load-hdf5 file 'status/simulationTime')
+  sigma : (load-hdf5 file 'primitive/sigma')
+  field : (log10 sigma)
+  vmin  : (min field)
+  vmax  : (max field)
+
+  x   : (load-hdf5 file 'mesh/points/x')
+  y   : (load-hdf5 file 'mesh/points/y')
   grid: (cartprod x y)
 
   vertices: (to-gpu-triangulate grid)
   scalars: (to-gpu-replicate field 6)
   mapping: (scalar-mapping vmin vmax stops)
+
+
+expensive: [sigma, field, vertices, scalars]
+
+
+commands:
+  reset-scalar-range:
+    vmin: (min field)
+    vmax: (max field)
+
 
 figures:
 

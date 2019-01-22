@@ -29,7 +29,9 @@ public:
 
     //=========================================================================
     VarCallAdapter() {}
-    VarCallAdapter (std::function<bool()> callback) : bailout (new BailoutChecker (callback)) {}
+    VarCallAdapter (std::function<bool()> callback)
+    : bailout (callback)
+    , bailoutVar (new BailoutChecker (callback)) {}
 
 
     //=========================================================================
@@ -41,9 +43,13 @@ public:
         auto args = Array<var>();
         auto first = true;
 
-        if (! bailout.isVoid())
+        if (! bailoutVar.isVoid())
         {
-            self.getDynamicObject()->setProperty (BailoutChecker::argkey, bailout);
+            if (bailout())
+            {
+                return var();
+            }
+            self.getDynamicObject()->setProperty (BailoutChecker::argkey, bailoutVar);
         }
 
         for (const auto& part : expr)
@@ -63,8 +69,9 @@ public:
         auto a = var::NativeFunctionArgs (self, args.begin(), args.size());
 
         if (f == nullptr)
-            throw std::runtime_error("expression head is not a function");
-
+        {
+            throw std::runtime_error ("expression head is not a function");
+        }
         return f(a);
     }
 
@@ -87,7 +94,8 @@ public:
     ObjectType convert (const double& value) const { return value; }
     ObjectType convert (const std::string& value) const { return String (value); }
 
-    var bailout;
+    std::function<bool()> bailout;
+    var bailoutVar;
 };
 
 

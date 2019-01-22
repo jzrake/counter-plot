@@ -13,6 +13,7 @@ class UserExtensionView
 : public Viewer
 , public FigureView::Listener
 , public TaskPool::Listener
+, public ApplicationCommandTarget
 {
 public:
 
@@ -43,6 +44,12 @@ public:
     void taskCompleted (const String& taskName, const var& result, const std::string& error) override;
     void taskWasCancelled (const String& taskName) override;
 
+    //=========================================================================
+    void getAllCommands (Array<CommandID>& commands) override;
+    void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
+    bool perform (const InvocationInfo& info) override;
+    ApplicationCommandTarget* getNextCommandTarget() override;
+
 private:
 
     //=========================================================================
@@ -62,4 +69,5 @@ private:
     File currentFile;
     TaskPool taskPool;
     StringArray asyncRules;
+    var extensionCommands;
 };
