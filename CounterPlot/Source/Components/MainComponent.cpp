@@ -4,6 +4,7 @@
 #include "../Viewers/JetInCloudView.hpp"
 #include "../Viewers/BinaryTorquesView.hpp"
 #include "../Viewers/Viewer.hpp"
+#include "../Viewers/PDFViewerMacOS.hpp"
 #include "../Viewers/ColourMapViewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
 
@@ -339,6 +340,7 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
+    viewers.add (std::make_unique<PDFViewer>());
     viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
 

@@ -64,6 +64,14 @@
             file="Source/Plotting/ResizerFrame.hpp"/>
     </GROUP>
     <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers">
+      <FILE id="d4cOpT" name="PDFViewerImplementation.m" compile="1" resource="0"
+            file="Source/Viewers/PDFViewerImplementation.m"/>
+      <FILE id="hSoKEf" name="PDFViewerImplementation.h" compile="0" resource="0"
+            file="Source/Viewers/PDFViewerImplementation.h"/>
+      <FILE id="CqxGXn" name="PDFViewerMacOS.mm" compile="1" resource="0"
+            file="Source/Viewers/PDFViewerMacOS.mm"/>
+      <FILE id="jyU4Q3" name="PDFViewerMacOS.hpp" compile="0" resource="0"
+            file="Source/Viewers/PDFViewerMacOS.hpp"/>
       <FILE id="ZmxzWh" name="BinaryTorquesView.cpp" compile="1" resource="0"
             file="Source/Viewers/BinaryTorquesView.cpp"/>
       <FILE id="okfExZ" name="BinaryTorquesView.hpp" compile="0" resource="0"
@@ -87,7 +95,7 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5&#10;yaml-cpp&#10;"
                customXcodeResourceFolders="../third_party/embed-hdf5-macos/lib/libhdf5.dylib&#10;../third_party/embed-yaml-macos/lib/libyaml-cpp.dylib"
-               smallIcon="XA8lBl" bigIcon="XA8lBl">
+               smallIcon="XA8lBl" bigIcon="XA8lBl" extraFrameworks="Quartz">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/embed-hdf5-macos/include&#10;../../../third_party/embed-yaml-macos/include"
                        libraryPath="../../../third_party/embed-hdf5-macos/lib&#10;../../../third_party/embed-yaml-macos/lib"/>
