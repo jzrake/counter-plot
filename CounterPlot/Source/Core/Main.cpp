@@ -226,11 +226,11 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
             break;
         case Commands::increaseFontSize:
             result.setInfo ("Increase Font Size", "", "View", 0);
-            result.defaultKeypresses.add (KeyPress ('+', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0));
+            result.defaultKeypresses.add (KeyPress ('=', ModifierKeys::commandModifier, '+'));
             break;
         case Commands::decreaseFontSize:
             result.setInfo ("Decrease Font Size", "", "View", 0);
-            result.defaultKeypresses.add (KeyPress ('-', ModifierKeys::commandModifier, 0));
+            result.defaultKeypresses.add (KeyPress ('-', ModifierKeys::commandModifier, '-'));
             break;
         default:
             JUCEApplication::getCommandInfo (commandID, result);
