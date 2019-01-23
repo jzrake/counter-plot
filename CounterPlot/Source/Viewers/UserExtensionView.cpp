@@ -51,6 +51,10 @@ void UserExtensionView::configure (const var& config)
         if (auto arr = config["hdf5-required-datasets"].getArray())
             for (auto item : *arr)
                 fileFilter.requireHDF5Dataset (item["name"], item.getProperty ("rank", -1));
+
+        if (auto arr = config["patches2d-required-fields"].getArray())
+            for (auto item : *arr)
+                fileFilter.requirePatches2dField (item.toString());
     }
 
 

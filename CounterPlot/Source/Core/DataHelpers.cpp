@@ -334,7 +334,9 @@ nd::array<double, 1> DataHelpers::ndarrayDouble1FromVar(const var &value)
         nd::array<double, 1> result (arr->size());
 
         for (int n = 0; n < result.size(); ++n)
+        {
             result(n) = arr->getUnchecked(n);
+        }
         return result;
     }
     return var();

@@ -15,20 +15,17 @@ hdf5-required-datasets:
 
 
 environment:
-  time  : (load-hdf5 file 'status/simulationTime')
-  sigma : (load-hdf5 file 'primitive/sigma')
-  field : (log10 sigma)
-  vmin  : (min field)
-  vmax  : (max field)
-
-  x   : (load-hdf5 file 'mesh/points/x')
-  y   : (load-hdf5 file 'mesh/points/y')
-  grid: (cartprod x y)
-
-  vertices: (to-gpu-triangulate grid)
-  scalars: (to-gpu-replicate field 6)
-  mapping: (scalar-mapping vmin vmax stops)
-
+  time     : (load-hdf5 file 'status/simulationTime')
+  sigma    : (load-hdf5 file 'primitive/sigma')
+  field    : (log10 sigma)
+  vmin     : (min field)
+  vmax     : (max field)
+  x        : (load-hdf5 file 'mesh/points/x')
+  y        : (load-hdf5 file 'mesh/points/y')
+  grid     : (cartprod x y)
+  vertices : (to-gpu-triangulate grid)
+  scalars  : (to-gpu field replicate=6)
+  mapping  : (scalar-mapping vmin vmax stops)
 
 expensive: [sigma, field, vertices, scalars]
 
@@ -44,7 +41,6 @@ figures:
 - title: (join (basename file) (format '%.3f' time) sep=' @ ')
   xlabel: X
   ylabel: Y
-  can-edit-title: false
   can-deform-domain: false
   border-width: 0
   xmin: $xmin

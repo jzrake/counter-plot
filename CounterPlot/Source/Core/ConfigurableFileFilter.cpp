@@ -14,6 +14,7 @@ void ConfigurableFileFilter::clear()
     rejectAllFiles = false;
     wildcardFilter = WildcardFileFilter ("", "", "");
     hdf5Requirements.clear();
+    pathches2dFieldRequirements.clear();
 }
 
 void ConfigurableFileFilter::setRejectsAllFiles (bool shouldRejectAllFiles)
@@ -41,18 +42,33 @@ void ConfigurableFileFilter::requireHDF5Dataset (const String& datasetThatMustEx
     hdf5Requirements.add ({ datasetThatMustExist, 'd', rank });
 }
 
+void ConfigurableFileFilter::requirePatches2dField (const String &fieldThatMustExist)
+{
+    pathches2dFieldRequirements.add (fieldThatMustExist);
+}
+
 
 
 
 //=============================================================================
 bool ConfigurableFileFilter::isFileSuitable (const File& file) const
 {
+    return isPathSuitable (file) && wildcardFilter.isFileSuitable (file);
+}
+
+bool ConfigurableFileFilter::isDirectorySuitable (const File& file) const
+{
+    return isPathSuitable (file) && wildcardFilter.isDirectorySuitable (file);
+}
+
+bool ConfigurableFileFilter::isPathSuitable (const File& file) const
+{
     if (rejectAllFiles)
     {
         return false;
     }
 
-    for (auto requirement : hdf5Requirements)
+    for (const auto& requirement : hdf5Requirements)
     {
         ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
 
@@ -88,10 +104,24 @@ bool ConfigurableFileFilter::isFileSuitable (const File& file) const
             }
         }
     }
-    return wildcardFilter.isFileSuitable (file);
-}
 
-bool ConfigurableFileFilter::isDirectorySuitable (const File& file) const
-{
-    return wildcardFilter.isDirectorySuitable (file);
+    for (const auto& requiredField : pathches2dFieldRequirements)
+    {
+        FileSystemSerializer ser (file);
+
+        try {
+            auto field = patches2d::parse_field (requiredField.toStdString());
+            auto header = ser.read_header();
+
+            if (header.count (field) == 0)
+            {
+                return false;
+            }
+        }
+        catch (...)
+        {
+            return false;
+        }
+    }
+    return true;
 }

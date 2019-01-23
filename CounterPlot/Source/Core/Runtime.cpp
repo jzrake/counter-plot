@@ -35,20 +35,52 @@ namespace builtin
     template<>
     std::string checkArg<std::string> (const char* caller, var::NativeFunctionArgs args, int index)
     {
-        checkIndexValid (caller, args, index);
-        return args.arguments[index].toString().toStdString();
+        return checkArg (caller, args, index).toString().toStdString();
+    }
+
+    template<>
+    File checkArg<File> (const char* caller, var::NativeFunctionArgs args, int index)
+    {
+        auto path = checkArg<String> (caller, args, index);
+
+        if (File::isAbsolutePath (path))
+        {
+            return File (path);
+        }
+        throw std::runtime_error ("must be an absolute path");
     }
 
     template<>
     nd::array<double, 1> checkArg<nd::array<double, 1>> (const char* caller, var::NativeFunctionArgs args, int index)
     {
-        checkIndexValid (caller, args, index);
-        auto value = args.arguments[index];
+        auto value = checkArg (caller, args, index);
 
         if (value.isArray())
             return DataHelpers::ndarrayDouble1FromVar (value);
 
         return Runtime::check_data<nd::array<double, 1>> (value);
+    }
+
+    template<>
+    Array<var> checkArg<Array<var>> (const char* caller, var::NativeFunctionArgs args, int index)
+    {
+        auto value = checkArg (caller, args, index);
+
+        if (value.isArray())
+            return *value.getArray();
+
+        throw Runtime::make_type_error (Runtime::type_name (Array<var>()), value, caller, index);
+    }
+
+    template<>
+    var::NativeFunction checkArg<var::NativeFunction> (const char* caller, var::NativeFunctionArgs args, int index)
+    {
+        auto value = checkArg (caller, args, index);
+
+        if (value.isMethod())
+            return value.getNativeFunction();
+
+        throw Runtime::make_type_error (Runtime::type_name (var::NativeFunction()), value, caller, index);
     }
 
     nd::array<double, 1> checkFlatten (const char* caller, var::NativeFunctionArgs args, int index)
@@ -94,22 +126,70 @@ namespace builtin
     {
         return Array<var> (args.arguments, args.numArguments);
     }
-
     var dict (var::NativeFunctionArgs args)
     {
         return args.thisObject;
     }
-
     var item (var::NativeFunctionArgs args)
     {
         return checkArg<var> ("item", args, 0)[checkArg<int> ("item", args, 1)];
     }
-
     var attr (var::NativeFunctionArgs args)
     {
         return checkArg<var> ("attr", args, 0)[Identifier (checkArg<String> ("attr", args, 1))];
     }
+    var len (var::NativeFunctionArgs args)
+    {
+        return args.numArguments >= 1 ? args.arguments[0].size() : 0;
+    }
 
+
+    //=========================================================================
+    var map (var::NativeFunctionArgs args)
+    {
+        auto bailout = optBailout (args);
+        auto op = checkArg<var::NativeFunction> ("map", args, 0);
+        auto res = Array<var>();
+
+        auto argSlice = [args] (int argNumber)
+        {
+            Array<var> result;
+
+            for (int s = 1; s < args.numArguments; ++s)
+            {
+                if (auto arr = args.arguments[s].getArray())
+                    result.add (argNumber < arr->size() ? arr->getUnchecked (argNumber) : var());
+                else
+                    result.add (args.arguments[s]);
+            }
+            return result;
+        };
+
+        int arrayArgLength = 0;
+
+        for (int n = 1; n < args.numArguments; ++n)
+        {
+            if (args.arguments[n].size() > 0)
+            {
+                arrayArgLength = args.arguments[n].size();
+                break;
+            }
+        }
+
+        for (int n = 0; n < arrayArgLength; ++n)
+        {
+            if (bailout && bailout())
+            {
+                return var();
+            }
+            auto slice = argSlice(n);
+            res.add (op (var::NativeFunctionArgs (args.thisObject, slice.begin(), slice.size())));
+        }
+        return res;
+    }
+
+
+    //=========================================================================
     var join (var::NativeFunctionArgs args)
     {
         auto argsArray = Array<var> (args.arguments, args.numArguments);
@@ -119,11 +199,7 @@ namespace builtin
 
     var basename (var::NativeFunctionArgs args)
     {
-        auto path = checkArg<String> ("basename", args, 0);
-
-        if (File::isAbsolutePath (path))
-            return File (path).getFileName();
-        throw std::runtime_error ("must be an absolute path");
+        return checkArg<File> ("basename", args, 0).getFileName();
     }
 
     var format (var::NativeFunctionArgs args)
@@ -152,6 +228,10 @@ namespace builtin
     {
         auto value = checkArg ("log10", args, 0);
 
+        if (value.isDouble())
+        {
+            return std::log10 (double (value));
+        }
         if (auto A = Runtime::opt_data<nd::array<double, 1>> (value))
         {
             auto res = A->copy();
@@ -178,6 +258,7 @@ namespace builtin
     var min (var::NativeFunctionArgs args)
     {
         auto value = checkArg ("min", args, 0);
+        if (value.isArray()) value = Runtime::make_data (DataHelpers::ndarrayDouble1FromVar (value));
         if (auto A = Runtime::opt_data<nd::array<double, 1>> (value)) return *std::min_element (A->begin(), A->end());
         if (auto A = Runtime::opt_data<nd::array<double, 2>> (value)) return *std::min_element (A->begin(), A->end());
         if (auto A = Runtime::opt_data<nd::array<double, 3>> (value)) return *std::min_element (A->begin(), A->end());
@@ -189,6 +270,7 @@ namespace builtin
     var max (var::NativeFunctionArgs args)
     {
         auto value = checkArg ("max", args, 0);
+        if (value.isArray()) value = Runtime::make_data (DataHelpers::ndarrayDouble1FromVar (value));
         if (auto A = Runtime::opt_data<nd::array<double, 1>> (value)) return *std::max_element (A->begin(), A->end());
         if (auto A = Runtime::opt_data<nd::array<double, 2>> (value)) return *std::max_element (A->begin(), A->end());
         if (auto A = Runtime::opt_data<nd::array<double, 3>> (value)) return *std::max_element (A->begin(), A->end());
@@ -220,6 +302,33 @@ namespace builtin
 
 
     //=========================================================================
+    var sph_to_cart (var::NativeFunctionArgs args)
+    {
+        auto bailout = optBailout (args);
+        auto a = checkArgData<nd::array<double, 3>> ("sph-to-cart", args, 0);
+        auto b = nd::array<double, 3> (a.shape());
+
+        for (int i = 0; i < a.shape(0); ++i)
+        {
+            for (int j = 0; j < a.shape(1); ++j)
+            {
+                const auto r = a(i, j, 0);
+                const auto q = a(i, j, 1);
+                const auto x = r * std::sin(q);
+                const auto z = r * std::cos(q);
+                b(i, j, 0) = x;
+                b(i, j, 1) = z;
+            }
+            if (bailout && bailout())
+            {
+                break;
+            }
+        }
+        return Runtime::make_data(b);
+    }
+
+
+    //=========================================================================
     var to_gpu_triangulate (var::NativeFunctionArgs args)
     {
         auto bailout = optBailout (args);
@@ -227,23 +336,24 @@ namespace builtin
         auto triverts = MeshHelpers::triangulateQuadMesh (vertices, bailout);
 
         if (bailout && bailout())
+        {
             return var();
-
+        }
         return Runtime::make_data (DeviceBufferFloat2 (triverts));
     }
 
 
     //=========================================================================
-    var to_gpu_replicate (var::NativeFunctionArgs args)
+    var to_gpu (var::NativeFunctionArgs args)
     {
-        auto data  = checkFlatten  ("to_gpu_replicate", args, 0);
-        auto count = checkArg<int> ("to_gpu_replicate", args, 1);
+        auto data = checkFlatten  ("to_gpu_replicate", args, 0);
+        auto reps = optKeywordArg<int> (args, "replicate", 1);
 
         std::vector<simd::float1> result;
-        result.reserve (data.size() * count);
+        result.reserve (data.size() * reps);
 
         for (const auto& x : data)
-            for (int n = 0; n < count; ++n)
+            for (int n = 0; n < reps; ++n)
                 result.push_back(x);
 
         return Runtime::make_data (DeviceBufferFloat1 (result));
@@ -314,8 +424,9 @@ namespace builtin
         auto trimesh  = std::make_shared<TriangleMeshArtist> (vertices, scalars, mapping);
 
         if (vertices.size != scalars.size)
+        {
             throw std::runtime_error("vertices and scalars have different sizes");
-
+        }
         return Runtime::make_data (std::dynamic_pointer_cast<PlotArtist> (trimesh));
     }
 
@@ -367,6 +478,32 @@ namespace builtin
         }
         throw std::runtime_error ("HDF5 dataset rank not 0, 1, or 2: " + dname);
     }
+
+
+    //=========================================================================
+    var load_patches2d (var::NativeFunctionArgs args)
+    {
+        auto _ = nd::axis::all();
+        auto bailout = optBailout (args);
+        auto file = checkArg<File> ("load-patches2d", args, 0);
+        auto field = checkArg<std::string> ("load-patches2d", args, 1);
+        auto component = optKeywordArg (args, "component", -1);
+        auto fields = std::set<patches2d::Field> { patches2d::parse_field (field) };
+        auto ser = FileSystemSerializer (file);
+        auto db = patches2d::Database::load (ser, fields, bailout);
+        auto res = Array<var>();
+
+        for (auto patch : db)
+        {
+            if (component == -1)
+                res.add (Runtime::make_data (patch.second));
+            else if (component >= 0 && component < patch.second.shape(2))
+                res.add (Runtime::make_data (patch.second.select (_, _, component).copy()));
+            else
+                throw std::runtime_error ("out-of-range component");
+        }
+        return res;
+    }
 }
 
 
@@ -379,6 +516,8 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("dict",           var::NativeFunction (builtin::dict),           Flags::builtin);
     kernel.insert ("attr",           var::NativeFunction (builtin::attr),           Flags::builtin);
     kernel.insert ("item",           var::NativeFunction (builtin::item),           Flags::builtin);
+    kernel.insert ("len",            var::NativeFunction (builtin::len),            Flags::builtin);
+    kernel.insert ("map",            var::NativeFunction (builtin::map),            Flags::builtin);
     kernel.insert ("join",           var::NativeFunction (builtin::join),           Flags::builtin);
     kernel.insert ("basename",       var::NativeFunction (builtin::basename),       Flags::builtin);
     kernel.insert ("format",         var::NativeFunction (builtin::format),         Flags::builtin);
@@ -387,12 +526,14 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("max",            var::NativeFunction (builtin::max),            Flags::builtin);
     kernel.insert ("linspace",       var::NativeFunction (builtin::linspace),       Flags::builtin);
     kernel.insert ("cartprod",       var::NativeFunction (builtin::cartprod),       Flags::builtin);
+    kernel.insert ("sph-to-cart",    var::NativeFunction (builtin::sph_to_cart),    Flags::builtin);
     kernel.insert ("scalar-mapping", var::NativeFunction (builtin::scalar_mapping), Flags::builtin);
     kernel.insert ("plot",           var::NativeFunction (builtin::plot),           Flags::builtin);
     kernel.insert ("trimesh",        var::NativeFunction (builtin::trimesh),        Flags::builtin);
     kernel.insert ("gradient",       var::NativeFunction (builtin::gradient),       Flags::builtin);
     kernel.insert ("load-hdf5",      var::NativeFunction (builtin::load_hdf5),      Flags::builtin);
+    kernel.insert ("load-patches2d", var::NativeFunction (builtin::load_patches2d), Flags::builtin);
 
     kernel.insert ("to-gpu-triangulate", var::NativeFunction (builtin::to_gpu_triangulate), Flags::builtin);
-    kernel.insert ("to-gpu-replicate",   var::NativeFunction (builtin::to_gpu_replicate),   Flags::builtin);
+    kernel.insert ("to-gpu",             var::NativeFunction (builtin::to_gpu),             Flags::builtin);
 }

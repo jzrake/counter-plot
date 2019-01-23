@@ -1,0 +1,68 @@
+# =============================================================================
+# Jet in cloud problem viewer
+# =============================================================================
+
+
+name: Jet in Cloud
+rows: [1]
+cols: [1, 100px]
+
+
+file-patterns: ['chkpt.*']
+patches2d-required-fields: [conserved, vert_coords]
+
+
+environment:
+   mapping     : (scalar-mapping vmin vmax stops)
+   vert_coords : (map sph-to-cart (load-patches2d file 'vert_coords'))
+   density     : (load-patches2d file 'conserved' component=0)
+   field       : (map log10 density)
+   vmin        : (min (map min field))
+   vmax        : (max (map max field))
+   scalars     : (map to-gpu field replicate=6)
+   vertices    : (map to-gpu-triangulate vert_coords)
+
+
+# expensive: [sigma, field, vertices, scalars]
+
+
+commands:
+  reset-scalar-range:
+    vmin: (min field)
+    vmax: (max field)
+
+
+figures:
+- title: "Density"
+  margin: [80, 20, 60, 70]
+  xlabel: X
+  ylabel: Z
+  can-deform-domain: false
+  border-width: 0
+  xmin: $xmin
+  xmax: $xmax
+  ymin: $ymin
+  ymax: $ymax
+  capture:
+    xmin: xmin
+    xmax: xmax
+    ymin: ymin
+    ymax: ymax
+  content:
+    - (map trimesh vertices scalars mapping)
+
+- title: ""
+  margin: [80, 20, 60, 45]
+  xlabel: ""
+  ylabel: ""
+  gridlines-color: [0, 0, 0, 0]
+  border-width: 0
+  xtick-count: 0
+  ytick-count: 10
+  ymin: $vmin
+  ymax: $vmax
+  content:
+    - (gradient stops vmin vmax)
+  capture:
+    ymin: vmin
+    ymax: vmax

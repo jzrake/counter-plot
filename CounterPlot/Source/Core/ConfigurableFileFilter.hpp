@@ -46,11 +46,21 @@ public:
     void requireHDF5Dataset (const String& datasetThatMustExist, int rank);
 
 
+    /**
+     * Add a requirement that the file is a patches2d database, and that the database
+     * header has a field of the given name.
+     */
+    void requirePatches2dField (const String& fieldThatMustExist);
+
+
     //=========================================================================
     bool isFileSuitable (const File&) const override;
     bool isDirectorySuitable (const File&) const override;
 
 private:
+
+    //=========================================================================
+    bool isPathSuitable (const File&) const;
 
     //=========================================================================
     struct HDF5Requirements
@@ -62,5 +72,6 @@ private:
 
     WildcardFileFilter wildcardFilter;
     Array<HDF5Requirements> hdf5Requirements;
+    StringArray pathches2dFieldRequirements;
     bool rejectAllFiles = false;
 };

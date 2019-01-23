@@ -298,17 +298,33 @@ std::vector<simd::float2> MeshHelpers::triangulateQuadMesh (const nd::array<doub
 
         for (int j = 0; j < nj; ++j)
         {
-            const float x0 = vertices (i, j, 0);
-            const float y0 = vertices (i, j, 1);
-            const float x1 = vertices (i + 1, j, 0);
-            const float y1 = vertices (i, j + 1, 1);
+            const float x00 = vertices (i + 0, j + 0, 0);
+            const float x01 = vertices (i + 0, j + 1, 0);
+            const float x10 = vertices (i + 1, j + 0, 0);
+            const float x11 = vertices (i + 1, j + 1, 0);
+            const float y00 = vertices (i + 0, j + 0, 1);
+            const float y01 = vertices (i + 0, j + 1, 1);
+            const float y10 = vertices (i + 1, j + 0, 1);
+            const float y11 = vertices (i + 1, j + 1, 1);
 
-            verts.push_back (simd::float2 {x0, y0});
-            verts.push_back (simd::float2 {x0, y1});
-            verts.push_back (simd::float2 {x1, y0});
-            verts.push_back (simd::float2 {x0, y1});
-            verts.push_back (simd::float2 {x1, y0});
-            verts.push_back (simd::float2 {x1, y1});
+            verts.push_back (simd::float2 {x00, y00});
+            verts.push_back (simd::float2 {x01, y01});
+            verts.push_back (simd::float2 {x10, y10});
+            verts.push_back (simd::float2 {x01, y01});
+            verts.push_back (simd::float2 {x10, y10});
+            verts.push_back (simd::float2 {x11, y11});
+
+//            const float x0 = vertices (i, j, 0);
+//            const float y0 = vertices (i, j, 1);
+//            const float x1 = vertices (i + 1, j, 0);
+//            const float y1 = vertices (i, j + 1, 1);
+//
+//            verts.push_back (simd::float2 {x0, y0});
+//            verts.push_back (simd::float2 {x0, y1});
+//            verts.push_back (simd::float2 {x1, y0});
+//            verts.push_back (simd::float2 {x0, y1});
+//            verts.push_back (simd::float2 {x1, y0});
+//            verts.push_back (simd::float2 {x1, y1});
         }
     }
     return verts;
@@ -424,8 +440,15 @@ static void convert (const var& source, std::vector<std::shared_ptr<PlotArtist>>
     {
         for (auto element : *content)
         {
-            auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (element);
-            value.push_back (artist);
+            if (element.isArray())
+            {
+                convert (element, value);
+            }
+            else
+            {
+                auto artist = Runtime::check_data<std::shared_ptr<PlotArtist>> (element);
+                value.push_back (artist);
+            }
         }
     }
 }

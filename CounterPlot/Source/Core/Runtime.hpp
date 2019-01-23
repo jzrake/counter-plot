@@ -126,6 +126,7 @@ public:
         virtual std::string summary() = 0;
     };
 
+
     //=========================================================================
     template<typename T>
     struct Data : public GenericData
@@ -138,6 +139,24 @@ public:
         T value;
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Data)
     };
+
+
+    //=========================================================================
+    static std::runtime_error make_type_error (const std::string& expected, const var& value, const char* caller=nullptr, int index=-1)
+    {
+        return std::runtime_error ((caller ? std::string (caller) + ": " : "")
+                                   + "wrong data type "
+                                   + expected
+                                   + ", got "
+                                   + type_name (value)
+                                   + (index == -1 ? "" : " at index " + std::to_string (index)));
+    }
+
+    template<typename T>
+    static std::runtime_error make_type_error (const var& value, const char* caller=nullptr, int index=-1)
+    {
+        return make_type_error (DataTypeInfo<T>::name(), value, caller, index);
+    }
 
     template<typename T>
     static var make_data (const T& value)
@@ -161,12 +180,7 @@ public:
         {
             return result->value;
         }
-        throw std::runtime_error ((caller ? std::string (caller) + ": " : "")
-                                  + "wrong data type "
-                                  + DataTypeInfo<T>::name()
-                                  + ", got "
-                                  + type_name (value)
-                                  + (index == -1 ? "" : " at index " + std::to_string (index)));
+        throw make_type_error<T> (value, caller, index);
     }
 
     template<typename T>
