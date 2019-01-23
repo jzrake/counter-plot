@@ -113,7 +113,8 @@ void VariantTree::colourChanged()
 
 void VariantTree::lookAndFeelChanged()
 {
-    root->treeHasChanged();
+    if (root)
+        root->treeHasChanged();
     setColours();
     repaint();
 }
