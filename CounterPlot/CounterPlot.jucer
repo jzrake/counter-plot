@@ -4,11 +4,14 @@
               projectLineFeed="&#10;">
   <MAINGROUP id="Iv1B3G" name="Counter Plot">
     <GROUP id="{20D2690F-9E07-C6A9-1EA6-2EF9B1D6C816}" name="Resources">
+      <FILE id="hdGJ4C" name="BinaryTorque.yaml" compile="0" resource="1"
+            file="../Viewers/BinaryTorque.yaml"/>
       <FILE id="snk8h0" name="cividis.cmap" compile="0" resource="1" file="../Resources/cividis.cmap"/>
       <FILE id="q3gzrE" name="dawn.cmap" compile="0" resource="1" file="../resources/dawn.cmap"/>
       <FILE id="XA8lBl" name="Durian-512.png" compile="0" resource="0" file="../Resources/Durian-512.png"/>
       <FILE id="y1t0Kg" name="fire.cmap" compile="0" resource="1" file="../resources/fire.cmap"/>
       <FILE id="Vnm15D" name="inferno.cmap" compile="0" resource="1" file="../Resources/inferno.cmap"/>
+      <FILE id="jmWxyK" name="JetInCloud.yaml" compile="0" resource="1" file="../Viewers/JetInCloud.yaml"/>
       <FILE id="j0Y4Sw" name="magma.cmap" compile="0" resource="1" file="../Resources/magma.cmap"/>
       <FILE id="s2L352" name="plasma.cmap" compile="0" resource="1" file="../Resources/plasma.cmap"/>
       <FILE id="eyIT1E" name="seashore.cmap" compile="0" resource="1" file="../resources/seashore.cmap"/>

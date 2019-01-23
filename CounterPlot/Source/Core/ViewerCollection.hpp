@@ -51,6 +51,9 @@ public:
     void loadAllInDirectory (File directory, Viewer::MessageSink* messageSink=nullptr);
 
 
+    void loadFromYamlString (const String& source, Viewer::MessageSink* messageSink=nullptr);
+
+
     /**
      * Return the first viewer that is interested in the given file, or nullptr
      * if none exists.

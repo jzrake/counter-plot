@@ -17,24 +17,26 @@ environment:
    vert_coords : (map sph-to-cart (load-patches2d file 'vert_coords'))
    density     : (load-patches2d file 'conserved' component=0)
    field       : (map log10 density)
-   vmin        : (min (map min field))
-   vmax        : (max (map max field))
+   # vmin        : (min (map min field))
+   # vmax        : (max (map max field))
    scalars     : (map to-gpu field replicate=6)
    vertices    : (map to-gpu-triangulate vert_coords)
 
 
-# expensive: [sigma, field, vertices, scalars]
+expensive: [vert_coords, density, field, vmin, vmax, scalars, vertices]
 
 
 commands:
   reset-scalar-range:
-    vmin: (min field)
-    vmax: (max field)
+    vmin: (min (map min field))
+    vmax: (max (map max field))
 
 
 figures:
 - title: "Density"
   margin: [80, 20, 60, 70]
+  gridlines-color: [0, 0, 0, 0]
+  background-color: [40, 40, 40, 255]
   xlabel: X
   ylabel: Z
   can-deform-domain: false
@@ -48,21 +50,16 @@ figures:
     xmax: xmax
     ymin: ymin
     ymax: ymax
-  content:
-    - (map trimesh vertices scalars mapping)
+  content: (map trimesh vertices scalars mapping)
 
-- title: ""
-  margin: [80, 20, 60, 45]
-  xlabel: ""
-  ylabel: ""
+- margin: [80, 20, 60, 45]
   gridlines-color: [0, 0, 0, 0]
   border-width: 0
   xtick-count: 0
   ytick-count: 10
   ymin: $vmin
   ymax: $vmax
-  content:
-    - (gradient stops vmin vmax)
+  content: [(gradient stops vmin vmax)]
   capture:
     ymin: vmin
     ymax: vmax

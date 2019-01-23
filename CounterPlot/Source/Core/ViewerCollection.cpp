@@ -1,5 +1,7 @@
 #include "ViewerCollection.hpp"
+#include "DataHelpers.hpp"
 #include "../Viewers/UserExtensionView.hpp"
+#include "yaml-cpp/yaml.h"
 
 
 
@@ -43,6 +45,16 @@ void ViewerCollection::loadAllInDirectory (File directory, Viewer::MessageSink* 
             items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });
         }
     }
+}
+
+void ViewerCollection::loadFromYamlString (const String& source, Viewer::MessageSink* messageSink)
+{
+    auto viewer = std::make_unique<UserExtensionView>();
+    auto yroot = YAML::Load (source.toStdString());
+    auto jroot = DataHelpers::varFromYamlNode (yroot);
+    viewer->configure (jroot);
+    viewer->setMessageSink (messageSink);
+    add (std::move (viewer));
 }
 
 Viewer* ViewerCollection::findViewerForFile (File file) const

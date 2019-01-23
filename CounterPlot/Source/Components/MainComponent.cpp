@@ -339,9 +339,10 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
-    // viewers.add (std::unique_ptr<Viewer> (BinaryTorques::create()));
-    // viewers.add (std::unique_ptr<Viewer> (JetInCloud::create()));
-    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
+    viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
+    viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
+
+    // viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
 
     addAndMakeVisible (directoryTree);
 
@@ -350,11 +351,6 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
-
-
-    ////////
-    // addAndMakeVisible (resizerTestComponent);
-
     setSize (1024, 768 - 64);
 }
 
@@ -579,7 +575,4 @@ void MainComponent::layout (bool animated)
     setBounds (directoryTree, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
     viewers.setBounds (area, animated);
-
-    ////////
-    // resizerTestComponent.setBounds (area);
 }
