@@ -95,3 +95,23 @@ int LookAndFeelHelpers::colourIdFromString (const String& name)
     if (name == "status_bar.background")        return statusBarBackground;
     return -1;
 }
+
+
+
+
+//=============================================================================
+Font AppLookAndFeel::getDefaultFont() const
+{
+    return defaultFont;
+}
+
+void AppLookAndFeel::setDefaultFont (Font newDefaultFont)
+{
+    defaultFont = newDefaultFont;
+}
+
+void AppLookAndFeel::incrementFontSize (int amount)
+{
+    setDefaultFont (defaultFont.withHeight (defaultFont.getHeight() + amount));
+}
+

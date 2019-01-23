@@ -22,7 +22,6 @@ public:
     void removeListener (Listener*);
     void setDirectoryToShow (File directoryToShow);
     void reloadAll();
-    void increaseFontSize (int amount);
     File getCurrentDirectory() const;
     TreeView& getTreeView() { return tree; }
 
@@ -41,7 +40,6 @@ private:
     void setColours();
     class Item;
     friend class Item;
-    Font font;
     TreeView tree;
     std::unique_ptr<Item> root;
     TreeViewItem* mouseOverItem = nullptr;

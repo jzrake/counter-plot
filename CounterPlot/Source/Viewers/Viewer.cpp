@@ -1,5 +1,5 @@
 #include "Viewer.hpp"
-#include "../Components/VariantView.hpp"
+#include "../Components/VariantTree.hpp"
 #include "../Core/DataHelpers.hpp"
 #include "yaml-cpp/yaml.h"
 

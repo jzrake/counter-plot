@@ -50,3 +50,18 @@ public:
     static Colour findColourForPropertyText (const Component&, int index);
     static int colourIdFromString (const String&);
 };
+
+
+
+
+//=============================================================================
+class AppLookAndFeel : public LookAndFeel_V4
+{
+public:
+    Font getDefaultFont() const;
+    void setDefaultFont (Font newDefaultFont);
+    void incrementFontSize (int amount);
+
+private:
+    Font defaultFont;
+};

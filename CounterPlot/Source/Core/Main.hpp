@@ -1,5 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
+#include "LookAndFeel.hpp"
 #include "../Viewers/UserExtensionView.hpp"
 
 
@@ -88,5 +89,6 @@ private:
     std::unique_ptr<MainMenu> menu;
     std::unique_ptr<MainWindow> mainWindow;
     // TooltipWindow tooltipWindow;
+    AppLookAndFeel lookAndFeel;
     ApplicationProperties applicationProperties;
 };

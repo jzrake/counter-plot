@@ -1,6 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
-#include "../Components/VariantView.hpp"
+#include "../Components/VariantTree.hpp"
 #include "../Core/Runtime.hpp"
 
 
@@ -130,7 +130,7 @@ public:
 
 private:
     File currentFile;
-    VariantView view;
+    VariantTree view;
 };
 
 

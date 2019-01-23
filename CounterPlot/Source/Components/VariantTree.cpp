@@ -1,11 +1,11 @@
-#include "VariantView.hpp"
+#include "VariantTree.hpp"
 #include "../Core/LookAndFeel.hpp"
 
 
 
 
 //=============================================================================
-VariantView::Item::Item (const var& key, const var& data) : key (key), data (data)
+VariantTree::Item::Item (const var& key, const var& data) : key (key), data (data)
 {
     if (data.isArray())
     {
@@ -26,10 +26,17 @@ VariantView::Item::Item (const var& key, const var& data) : key (key), data (dat
     setDrawsInLeftMargin (true);
 }
 
-void VariantView::Item::paintItem (Graphics& g, int width, int height)
+void VariantTree::Item::paintItem (Graphics& g, int width, int height)
 {
+    Font font;
+
+    if (auto laf = dynamic_cast<AppLookAndFeel*> (&getOwnerView()->getLookAndFeel()))
+    {
+        font = laf->getDefaultFont();
+    }
+
     g.setColour (LookAndFeelHelpers::findColourForPropertyText (*getOwnerView(), depth()));
-    g.setFont (Font().withHeight (11));
+    g.setFont (font);
 
     if (mightContainSubItems())
     {
@@ -41,17 +48,26 @@ void VariantView::Item::paintItem (Graphics& g, int width, int height)
     }
 }
 
-bool VariantView::Item::mightContainSubItems()
+bool VariantTree::Item::mightContainSubItems()
 {
     return data.isArray() || data.getDynamicObject() != nullptr;
 }
 
-bool VariantView::Item::canBeSelected() const
+bool VariantTree::Item::canBeSelected() const
 {
     return true;
 }
 
-int VariantView::Item::depth()
+int VariantTree::Item::getItemHeight() const
+{
+    if (auto laf = dynamic_cast<AppLookAndFeel*> (&getOwnerView()->getLookAndFeel()))
+    {
+        return laf->getDefaultFont().getHeight() * 5 / 2;
+    }
+    return 24;
+}
+
+int VariantTree::Item::depth()
 {
     int n = 0;
     TreeViewItem* item = this;
@@ -63,7 +79,7 @@ int VariantView::Item::depth()
 
 
 //=========================================================================
-VariantView::VariantView()
+VariantTree::VariantTree()
 {
     tree.setIndentSize (12);
     tree.setColour (TreeView::backgroundColourId, Colours::darkgrey);
@@ -72,36 +88,37 @@ VariantView::VariantView()
     addAndMakeVisible (tree);
 }
 
-VariantView::~VariantView()
+VariantTree::~VariantTree()
 {
     tree.setRootItem (nullptr);
 }
 
-void VariantView::setData (const var &data)
+void VariantTree::setData (const var &data)
 {
     tree.setRootItem (nullptr);
     root = std::make_unique<Item> ("root", data);
     tree.setRootItem (root.get());
 }
 
-void VariantView::resized()
+void VariantTree::resized()
 {
     tree.setBounds (getLocalBounds());
 }
 
-void VariantView::colourChanged()
+void VariantTree::colourChanged()
 {
     setColours();
     repaint();
 }
 
-void VariantView::lookAndFeelChanged()
+void VariantTree::lookAndFeelChanged()
 {
+    root->treeHasChanged();
     setColours();
     repaint();
 }
 
-void VariantView::setColours()
+void VariantTree::setColours()
 {
     tree.setColour (TreeView::backgroundColourId, findColour (LookAndFeelHelpers::propertyViewBackground));
     tree.setColour (TreeView::selectedItemBackgroundColourId, findColour (LookAndFeelHelpers::propertyViewSelectedItem));

@@ -1,5 +1,4 @@
 #include "Main.hpp"
-#include "LookAndFeel.hpp"
 #include "DataHelpers.hpp"
 #include "../Components/MainComponent.hpp"
 #include "../Plotting/FigureView.hpp"
@@ -154,6 +153,7 @@ void PatchViewApplication::initialise (const String& commandLine)
     auto cwd = settings.getValue ("LastCurrentDirectory", File::getSpecialLocation (File::userHomeDirectory).getFullPathName());
 
     configureLookAndFeel();
+    LookAndFeel::setDefaultLookAndFeel (&lookAndFeel);
 
     commandManager = std::make_unique<ApplicationCommandManager>();
     menu           = std::make_unique<MainMenu>();
@@ -247,8 +247,8 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
         case Commands::toggleDirectoryView:       mainWindow->content->toggleDirectoryTreeShown(); return true;
         case Commands::reloadDirectoryView:       mainWindow->content->reloadDirectoryTree(); return true;
         case Commands::toggleEnvironmentView:     mainWindow->content->toggleEnvironmentViewShown(); return true;
-        case Commands::increaseFontSize:          mainWindow->content->getDirectoryTree().increaseFontSize (+1); return true;
-        case Commands::decreaseFontSize:          mainWindow->content->getDirectoryTree().increaseFontSize (-1); return true;
+        case Commands::increaseFontSize:          lookAndFeel.incrementFontSize (+1); mainWindow->sendLookAndFeelChange(); return true;
+        case Commands::decreaseFontSize:          lookAndFeel.incrementFontSize (-1); mainWindow->sendLookAndFeelChange(); return true;
         default:                                  return JUCEApplication::perform (info);
     }
 }
@@ -259,7 +259,7 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
 //=============================================================================
 void PatchViewApplication::configureLookAndFeel()
 {
-    auto& laf = Desktop::getInstance().getDefaultLookAndFeel();
+    auto& laf = lookAndFeel;
     laf.setColour (TextEditor::backgroundColourId, Colours::white);
     laf.setColour (TextEditor::textColourId, Colours::black);
     laf.setColour (TextEditor::highlightColourId, Colours::lightblue);

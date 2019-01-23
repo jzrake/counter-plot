@@ -25,12 +25,26 @@ public:
     Item (DirectoryTree& directory, File file) : directory (directory), file (file)
     {
         setDrawsInLeftMargin (true);
+        refreshLook (false);
+    }
 
-        auto font = directory.font;
+    void refreshLook (bool recursively)
+    {
+        Font font;
+
+        if (auto laf = dynamic_cast<AppLookAndFeel*> (&getOwnerView()->getLookAndFeel()))
+            font = laf->getDefaultFont();
+
         auto text = file.getFileName();
+        itemHeight = font.getHeight() * 5 / 2;
 
+        glyphs.clear();
         glyphs.addLineOfText (font, text, 8, 0);
-        glyphs.justifyGlyphs (0, text.length(), 8, 0, 1e10, getItemHeight(), Justification::centredLeft);
+        glyphs.justifyGlyphs (0, text.length(), 8, 0, 1e10, itemHeight, Justification::centredLeft);
+
+        if (recursively)
+            for (int n = 0; n < getNumSubItems(); ++n)
+                dynamic_cast<Item*> (getSubItem(n))->refreshLook (true);
     }
 
     void paintItem (Graphics& g, int width, int height) override
@@ -42,7 +56,6 @@ public:
         if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeSymbolicLink);
 
         g.setColour (isMouseOver() ? textColour.brighter (0.8f) : textColour);
-
         glyphs.draw (g);
     }
 
@@ -58,7 +71,7 @@ public:
 
     int getItemHeight() const override
     {
-        return directory.font.getHeight() * 5 / 2;
+        return itemHeight;
     }
 
     String getUniqueName() const override
@@ -105,6 +118,7 @@ private:
         return directory.mouseOverItem == this;
     }
 
+    int itemHeight = 24;
     GlyphArrangement glyphs;
     DirectoryTree& directory;
     File file;
@@ -117,7 +131,6 @@ private:
 //=============================================================================
 DirectoryTree::DirectoryTree()
 {
-    font = Font().withHeight (11);
     tree.setIndentSize (12);
     tree.setRootItemVisible (true);
     tree.addMouseListener (this, true);
@@ -169,12 +182,6 @@ File DirectoryTree::getCurrentDirectory() const
     return currentDirectory;
 }
 
-void DirectoryTree::increaseFontSize (int amount)
-{
-    font.setHeight (font.getHeight() + amount);
-    reloadAll();
-}
-
 
 
 
@@ -207,6 +214,8 @@ void DirectoryTree::colourChanged()
 
 void DirectoryTree::lookAndFeelChanged()
 {
+    root->refreshLook (true);
+    root->treeHasChanged();
     setColours();
     repaint();
 }

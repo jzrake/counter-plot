@@ -5,7 +5,7 @@
 
 
 //=============================================================================
-class VariantView : public Component
+class VariantTree : public Component
 {
 public:
 
@@ -17,6 +17,7 @@ public:
         void paintItem (Graphics& g, int width, int height) override;
         bool mightContainSubItems() override;
         bool canBeSelected() const override;
+        int getItemHeight() const override;
 
     private:
         //=====================================================================
@@ -25,8 +26,8 @@ public:
     };
 
     //=========================================================================
-    VariantView();
-    ~VariantView();
+    VariantTree();
+    ~VariantTree();
     void setData (const var &data);
     void resized() override;
     void colourChanged() override;

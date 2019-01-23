@@ -26,8 +26,8 @@
             file="Source/Components/MainComponent.cpp"/>
       <FILE id="JetBqA" name="MainComponent.hpp" compile="0" resource="0"
             file="Source/Components/MainComponent.hpp"/>
-      <FILE id="qmxHXh" name="VariantView.cpp" compile="1" resource="0" file="Source/Components/VariantView.cpp"/>
-      <FILE id="MKAbw1" name="VariantView.hpp" compile="0" resource="0" file="Source/Components/VariantView.hpp"/>
+      <FILE id="TcbaWy" name="VariantTree.cpp" compile="1" resource="0" file="Source/Components/VariantTree.cpp"/>
+      <FILE id="siOuWT" name="VariantTree.hpp" compile="0" resource="0" file="Source/Components/VariantTree.hpp"/>
     </GROUP>
     <GROUP id="{B598C4C2-9FA1-7CA8-758B-F1B244C19DD5}" name="Core">
       <FILE id="G4JAko" name="TaskPool.cpp" compile="1" resource="0" file="Source/Core/TaskPool.cpp"/>
