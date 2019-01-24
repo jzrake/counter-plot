@@ -59,10 +59,10 @@ void TaskPool::removeListener (Listener* listener)
 
 void TaskPool::enqueue (const String& name, Task task)
 {
+    listeners.call (&Listener::taskStarted, name);
     Selector jobsToRemove (name);
     threadPool.removeAllJobs (true, 0, &jobsToRemove);
     threadPool.addJob (new Job (*this, name, task), true);
-    listeners.call (&Listener::taskStarted, name);
 }
 
 void TaskPool::cancel (const String& name)

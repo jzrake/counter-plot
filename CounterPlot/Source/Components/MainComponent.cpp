@@ -341,10 +341,10 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::make_unique<PDFViewer>());
-    viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
+    // viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
 
-    // viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
+    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
 
     addAndMakeVisible (directoryTree);
 

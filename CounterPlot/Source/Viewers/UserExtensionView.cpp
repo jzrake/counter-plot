@@ -294,21 +294,45 @@ ApplicationCommandTarget* UserExtensionView::getNextCommandTarget()
 void UserExtensionView::resolveKernel()
 {
     auto synchronousDirtyRules = kernel.dirty_rules_excluding (Runtime::asynchronous);
-    kernel.update_all (synchronousDirtyRules);
 
-    for (const auto& rule : synchronousDirtyRules)
-        loadFromKernelIfFigure (rule);
+    while (! synchronousDirtyRules.empty())
+    {
+        int numUpdatedRules = 0;
+
+        for (const auto& rule : synchronousDirtyRules)
+        {
+            if (kernel.current (kernel.incoming (rule)))
+            {
+                kernel.update (rule);
+                loadFromKernelIfFigure (rule);
+                ++numUpdatedRules;
+                // DBG("update: " << rule);
+            }
+        }
+
+        if (numUpdatedRules == 0)
+        {
+            break;
+        }
+        synchronousDirtyRules = kernel.dirty_rules_excluding (Runtime::asynchronous);
+    }
 
     sendEnvironmentChanged();
+
 
     // After the synchronous updates are handled, we launch any
     // asynchronous ones. There's no need to recurse here, because new
     // rules will not become eligible until after the task is finished.
+    // Each rule that is eligible for update gets enqueued, which
+    // cancels ans earlier tasks with the same name. Rules that are
+    // asynchronous and dirty, but not eligible, are canceled.
     // --------------------------------------------------------------
     for (auto rule : kernel.dirty_rules_only (Runtime::asynchronous))
     {
         if (kernel.current (kernel.incoming (rule)))
         {
+            // DBG("enqueue " << rule);
+
             taskPool.enqueue (rule, [kernel=kernel, rule] (auto bailout)
             {
                 auto what = std::string();
@@ -318,8 +342,14 @@ void UserExtensionView::resolveKernel()
                 if (what.empty())
                     return result;
 
-                throw std::runtime_error(what);
+                throw std::runtime_error (what);
             });
+        }
+        else
+        {
+            // DBG("cancel " << rule);
+
+            taskPool.cancel (rule);
         }
     }
 }
@@ -357,10 +387,10 @@ void UserExtensionView::loadExpressionsFromListIntoKernel (Runtime::Kernel& kern
                 auto flag = asyncRules.contains (id.data()) ? Runtime::asynchronous : 0;
                 auto expr = DataHelpers::expressionFromVar (item);
 
-                if (! kernel.contains (id) || kernel.expr_at (id) != expr)
-                {
+                if (     !  kernel.contains (id) ||
+                    expr != kernel.expr_at (id) ||
+                    flag != kernel.flags_at (id))
                     kernel.insert (id, expr, flag);
-                }
             }
             catch (const std::exception& e)
             {
@@ -384,10 +414,10 @@ void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kern
                 auto flag = asyncRules.contains (key.data()) ? Runtime::asynchronous : 0;
                 auto expr = DataHelpers::expressionFromVar (item.value);
 
-                if (! kernel.contains (key) || expr != kernel.expr_at (key))
-                {
+                if (     !  kernel.contains (key) ||
+                    expr != kernel.expr_at (key) ||
+                    flag != kernel.flags_at (key))
                     kernel.insert (key, expr, flag);
-                }
             }
             catch (const std::exception& e)
             {
