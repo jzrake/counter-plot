@@ -121,12 +121,9 @@ void ViewerCollection::timerCallback()
     {
         if (item.isExtension && item.lastLoaded < item.source.getLastModificationTime())
         {
-            DBG("reloading viewer " << item.source.getFileName());
-
             auto& viewer = dynamic_cast<UserExtensionView&> (*item.viewer);
             viewer.configure (item.source);
             item.lastLoaded = Time::getCurrentTime();
-
             listeners.call (&Listener::extensionViewerReconfigured, &viewer);
         }
     }

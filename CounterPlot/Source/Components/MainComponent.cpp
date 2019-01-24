@@ -174,8 +174,13 @@ void StatusBar::setCurrentErrorMessage (const String& what)
     repaint();
 }
 
-void StatusBar::setCurrentInfoMessage (const String& info)
+void StatusBar::setCurrentInfoMessage (const String& info, int milliseconds)
 {
+    if (milliseconds > 0)
+    {
+        millisecondsToDisplayInfo = milliseconds;
+        startTimer (40);
+    }
     currentInfoMessage = info;
     repaint();
 }
@@ -205,11 +210,19 @@ void StatusBar::paint (Graphics& g)
     if (currentErrorMessage.isNotEmpty())
     {
         g.setColour (errorColour);
-        g.drawText (currentErrorMessage, geom.errorMessageArea, Justification::centredLeft);
+        g.drawText (currentErrorMessage, geom.messageArea, Justification::centredLeft);
     }
-    else if (numberOfAsyncTasks > 0 && currentInfoMessage.isNotEmpty())
+    else if (currentInfoMessage.isNotEmpty())
     {
-        g.drawText (currentInfoMessage, geom.errorMessageArea, Justification::centredLeft);
+        if (numberOfAsyncTasks > 0)
+        {
+            g.drawText (currentInfoMessage, geom.messageArea, Justification::centredLeft);
+        }
+        else if (millisecondsToDisplayInfo > 0)
+        {
+            g.setColour (fontColour.withAlpha (jmin (1.f, millisecondsToDisplayInfo / 400.f)));
+            g.drawText (currentInfoMessage, geom.messageArea, Justification::centredLeft);
+        }
     }
 }
 
@@ -224,6 +237,22 @@ void StatusBar::resized()
 
 
 //=============================================================================
+void StatusBar::timerCallback()
+{
+    millisecondsToDisplayInfo -= getTimerInterval();
+
+    if (millisecondsToDisplayInfo <= 0)
+    {
+        millisecondsToDisplayInfo = 0;
+        stopTimer();
+    }
+    repaint();
+}
+
+
+
+
+//=============================================================================
 StatusBar::Geometry StatusBar::computeGeometry() const
 {
     auto geom = Geometry();
@@ -232,7 +261,7 @@ StatusBar::Geometry StatusBar::computeGeometry() const
     geom.viewerNamePopupArea       = area.removeFromRight (200);
     geom.mousePositionArea         = area.removeFromRight (120);
     geom.environmentViewToggleArea = area.removeFromLeft  (150);
-    geom.errorMessageArea          = area;
+    geom.messageArea               = area;
     return geom;
 }
 
@@ -350,10 +379,14 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::make_unique<PDFViewer>());
-    // viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
-    // viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
 
+#if (JUCE_DEBUG == 0)
+     viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
+     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
+#warning("Loading hard-coded viewers")
+#else
     viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
+#endif
 
     addAndMakeVisible (directoryTree);
 
@@ -551,6 +584,8 @@ void MainComponent::viewerEnvironmentChanged()
 //=============================================================================
 void MainComponent::extensionViewerReconfigured (UserExtensionView* viewer)
 {
+    statusBar.setCurrentInfoMessage ("Reloaded " + viewer->getViewerName(), 3000);
+
     if (viewer == currentViewer)
     {
         if (viewer->isInterestedInFile (currentFile))

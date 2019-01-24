@@ -14,7 +14,7 @@
 
 
 //=============================================================================
-class StatusBar : public Component
+class StatusBar : public Component, public Timer
 {
 public:
 
@@ -44,7 +44,7 @@ public:
     struct Geometry
     {
         Rectangle<int> environmentViewToggleArea;
-        Rectangle<int> errorMessageArea;
+        Rectangle<int> messageArea;
         Rectangle<int> mousePositionArea;
         Rectangle<int> viewerNamePopupArea;
         Rectangle<int> busyIndicatorArea;
@@ -60,11 +60,14 @@ public:
     void setMousePositionInFigure (Point<double> position);
     void setCurrentViewerName (const String& viewerName);
     void setCurrentErrorMessage (const String& what);
-    void setCurrentInfoMessage (const String& info);
+    void setCurrentInfoMessage (const String& info, int millisecondsToDisplay=0);
 
     //=========================================================================
     void paint (Graphics& g) override;
     void resized() override;
+
+    //=========================================================================
+    void timerCallback() override;
 
 private:
 
@@ -77,6 +80,7 @@ private:
     Point<double> mousePositionInFigure;
     String currentErrorMessage;
     String currentInfoMessage;
+    int millisecondsToDisplayInfo = 0;
     int numberOfAsyncTasks = 0;
 };
 
