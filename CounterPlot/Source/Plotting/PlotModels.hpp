@@ -118,16 +118,6 @@ class RenderingSurface : public Component
 public:
     virtual ~RenderingSurface() {}
     virtual void setContent (std::vector<std::shared_ptr<PlotArtist>> content, const PlotTransformer& trans) = 0;
-
-    /** DEP */
-    virtual void renderTriangles (const std::vector<simd::float2>& vertices,
-                                  const std::vector<simd::float4>& colors) = 0;
-
-    /** DEP */
-    virtual void renderTriangles (const std::vector<simd::float2>& vertices,
-                                  const std::vector<simd::float1>& scalars,
-                                  const ScalarMapping& mapping) = 0;
-
     virtual void renderTriangles (DeviceBufferFloat2 vertices, DeviceBufferFloat4 colors) = 0;
     virtual void renderTriangles (DeviceBufferFloat2 vertices, DeviceBufferFloat1 scalars, const ScalarMapping& mapping) = 0;
     virtual Image createSnapshot() const = 0;

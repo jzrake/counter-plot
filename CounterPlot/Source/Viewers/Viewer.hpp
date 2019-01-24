@@ -179,4 +179,3 @@ private:
     File currentFile;
     PDFViewComponent pdfView;
 };
-

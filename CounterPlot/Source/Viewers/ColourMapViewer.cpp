@@ -151,18 +151,6 @@ void ColourMapViewer::figureViewSetTitle (FigureView* figure, const String& titl
 
 
 //=============================================================================
-//Array<double> ColourMapViewer::linspace (double x0, double x1, int num)
-//{
-//    Array<double> res;
-//    res.ensureStorageAllocated (num);
-//
-//    for (int n = 0; n < num; ++n)
-//    {
-//        res.add (x0 + (x1 - x0) * n / (num - 1));
-//    }
-//    return res;
-//}
-
 nd::array<double, 1> ColourMapViewer::smooth (const nd::array<double, 1>& x)
 {
     auto res = x.copy();

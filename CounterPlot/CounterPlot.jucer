@@ -64,20 +64,12 @@
             file="Source/Plotting/ResizerFrame.hpp"/>
     </GROUP>
     <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers">
-      <FILE id="ZmxzWh" name="BinaryTorquesView.cpp" compile="1" resource="0"
-            file="Source/Viewers/BinaryTorquesView.cpp"/>
-      <FILE id="okfExZ" name="BinaryTorquesView.hpp" compile="0" resource="0"
-            file="Source/Viewers/BinaryTorquesView.hpp"/>
       <FILE id="AlD8AC" name="ColourMapViewer.cpp" compile="1" resource="0"
             file="Source/Viewers/ColourMapViewer.cpp"/>
       <FILE id="pbZzX4" name="ColourMapViewer.hpp" compile="0" resource="0"
             file="Source/Viewers/ColourMapViewer.hpp"/>
       <FILE id="Hv1u5F" name="Viewer.cpp" compile="1" resource="0" file="Source/Viewers/Viewer.cpp"/>
       <FILE id="rrtFGL" name="Viewer.hpp" compile="0" resource="0" file="Source/Viewers/Viewer.hpp"/>
-      <FILE id="OPDZ7f" name="JetInCloudView.cpp" compile="1" resource="0"
-            file="Source/Viewers/JetInCloudView.cpp"/>
-      <FILE id="VQm2Na" name="JetInCloudView.hpp" compile="0" resource="0"
-            file="Source/Viewers/JetInCloudView.hpp"/>
       <FILE id="o97Nc0" name="UserExtensionView.cpp" compile="1" resource="0"
             file="Source/Viewers/UserExtensionView.cpp"/>
       <FILE id="oyO9TP" name="UserExtensionView.hpp" compile="0" resource="0"

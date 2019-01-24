@@ -1,8 +1,6 @@
 #include "MainComponent.hpp"
 #include "../Core/LookAndFeel.hpp"
 #include "../Core/Main.hpp"
-#include "../Viewers/JetInCloudView.hpp"
-#include "../Viewers/BinaryTorquesView.hpp"
 #include "../Viewers/Viewer.hpp"
 #include "../Viewers/ColourMapViewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
