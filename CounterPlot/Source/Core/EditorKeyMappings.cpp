@@ -41,15 +41,23 @@ bool EditorKeyMappings::keyPressed (const KeyPress& key, Component* component)
         ed.deleteForwards (false);
         return true;
     }
-    if (key == KeyPress ('N', ModifierKeys::ctrlModifier, 0) && ed.isMultiLine())
+    if (key == KeyPress ('N', ModifierKeys::ctrlModifier, 0) || key == KeyPress::downKey)
     {
-        ed.moveCaretDown (key.getModifiers().isShiftDown());
-        return true;
+        if (ed.isMultiLine())
+        {
+            ed.moveCaretDown (key.getModifiers().isShiftDown());
+            return true;
+        }
+        return nextCallback && nextCallback();
     }
-    if (key == KeyPress ('P', ModifierKeys::ctrlModifier, 0) && ed.isMultiLine())
+    if (key == KeyPress ('P', ModifierKeys::ctrlModifier, 0) || key == KeyPress::upKey)
     {
-        ed.moveCaretUp (key.getModifiers().isShiftDown());
-        return true;
+        if (ed.isMultiLine())
+        {
+            ed.moveCaretUp (key.getModifiers().isShiftDown());
+            return true;
+        }
+        return prevCallback && prevCallback();
     }
     if (key == KeyPress (KeyPress::escapeKey, 0, 0))
     {

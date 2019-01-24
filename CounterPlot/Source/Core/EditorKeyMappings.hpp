@@ -11,4 +11,6 @@ public:
     bool keyPressed (const juce::KeyPress& key, juce::Component*) override;
     std::function<bool()> escapeKeyCallback = nullptr;
     std::function<bool()> returnKeyCallback = nullptr;
+    std::function<bool()> nextCallback = nullptr;
+    std::function<bool()> prevCallback = nullptr;
 };

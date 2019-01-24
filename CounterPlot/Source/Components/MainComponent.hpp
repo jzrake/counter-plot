@@ -107,6 +107,7 @@ public:
     //=========================================================================
     int getNumRows() override;
     void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
+    void selectedRowsChanged (int lastRowSelected) override;
 
 private:
     //=========================================================================
@@ -126,6 +127,7 @@ class KernelRuleEntry : public Component, public TextEditor::Listener
 {
 public:
     KernelRuleEntry();
+    void loadRule (const std::string& rule, const Runtime::Kernel& kernel);
 
     //=========================================================================
     void resized() override;
@@ -177,6 +179,7 @@ public:
     void refreshCurrentViewerName();
     void sendMessageToCurrentViewer (String& message);
     bool canSendMessagesToCurrentViewer() const;
+    void showKernelRule (const String& rule);
 
     //=========================================================================
     void resized() override;

@@ -364,6 +364,14 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
     }
 }
 
+void EnvironmentView::selectedRowsChanged (int lastRowSelected)
+{
+    if (auto main = findParentComponentOfClass<MainComponent>())
+    {
+        main->showKernelRule (keys[lastRowSelected]);
+    }
+}
+
 
 
 
@@ -380,7 +388,21 @@ KernelRuleEntry::KernelRuleEntry()
     editor.setFont (Font ("Monaco", 15, 0));
     editor.addListener (this);
     editor.addKeyListener (&keyMappings);
+    keyMappings.nextCallback = [this] () { return false; }; // navigate history here
+    keyMappings.prevCallback = [this] () { return false; };
     addAndMakeVisible (editor);
+}
+
+void KernelRuleEntry::loadRule (const std::string& rule, const Runtime::Kernel& kernel)
+{
+    if (! kernel.expr_at (rule).empty())
+    {
+        editor.setText (rule + ": " + kernel.expr_at (rule).str());
+    }
+    else
+    {
+        editor.setText (rule + ": " + kernel.at (rule).toString().toStdString());
+    }
 }
 
 
@@ -457,7 +479,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
-    addAndMakeVisible (kernelRuleEntry);
+    addChildComponent (kernelRuleEntry);
     setSize (1024, 768 - 64);
 }
 
@@ -490,10 +512,11 @@ void MainComponent::toggleDirectoryTreeShown (bool animated)
 
 void MainComponent::toggleEnvironmentViewShown (bool animated)
 {
-    if (isKernelRuleEntryShowing())
-    {
-        toggleKernelRuleEntryShown();
-    }
+//    if (isKernelRuleEntryShowing())
+//    {
+//        toggleKernelRuleEntryShown();
+//    }
+
     environmentViewShowing = ! environmentViewShowing;
     environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
     layout (animated);
@@ -501,10 +524,10 @@ void MainComponent::toggleEnvironmentViewShown (bool animated)
 
 void MainComponent::toggleKernelRuleEntryShown()
 {
-    if (isEnvironmentViewShowing())
-    {
-        toggleEnvironmentViewShown (false);
-    }
+//    if (isEnvironmentViewShowing())
+//    {
+//        toggleEnvironmentViewShown (false);
+//    }
 
     kernelRuleEntryShowing = ! kernelRuleEntryShowing;
     kernelRuleEntry.setVisible (kernelRuleEntryShowing);
@@ -630,6 +653,17 @@ bool MainComponent::canSendMessagesToCurrentViewer() const
     return false;
 }
 
+void MainComponent::showKernelRule (const String& rule)
+{
+    if (currentViewer)
+    {
+        if (auto kernel = currentViewer->getKernel())
+        {
+            kernelRuleEntry.loadRule (rule.toStdString(), *kernel);
+        }
+    }
+}
+
 
 
 
@@ -747,7 +781,7 @@ void MainComponent::layout (bool animated)
     auto area = getLocalBounds();
     auto statusBarArea = area.removeFromBottom (22);
     auto directoryTreeArea = directoryTreeShowing ? area.removeFromLeft (300) : area.withWidth (300).translated (-300, 0);
-    auto environmentViewArea = Rectangle<int> (0, 0, 400, 330)
+    auto environmentViewArea = Rectangle<int> (0, 0, 300, 330)
     .withBottomY (statusBarArea.getY())
     .translated (0, environmentViewShowing ? 0 : 330 + 22); // the 22 is to ensure it's offscreen, so not painted
 
