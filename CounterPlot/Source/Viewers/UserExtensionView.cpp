@@ -115,7 +115,7 @@ void UserExtensionView::configure (File file)
         auto jroot = DataHelpers::varFromYamlNode (yroot);
         configure (jroot);
     }
-    catch (YAML::ParserException& e)
+    catch (const std::exception& e)
     {
         return sendErrorMessage (e.what());
     }
@@ -179,6 +179,25 @@ String UserExtensionView::getViewerName() const
 const Runtime::Kernel* UserExtensionView::getKernel() const
 {
     return &kernel;
+}
+
+bool UserExtensionView::canReceiveMessages() const
+{
+    return true;
+}
+
+void UserExtensionView::receiveMessage (const String& message)
+{
+    try {
+        auto yroot = YAML::Load (message.toStdString());
+        auto jroot = DataHelpers::varFromYamlNode (yroot);
+        loadExpressionsFromDictIntoKernel (kernel, jroot, true);
+        resolveKernel();
+    }
+    catch (const std::exception& e)
+    {
+        sendErrorMessage (e.what());
+    }
 }
 
 
@@ -380,7 +399,7 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
     }
 }
 
-void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const
+void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict, bool rethrowExceptions) const
 {
     if (auto obj = dict.getDynamicObject())
     {
@@ -399,6 +418,10 @@ void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kern
             }
             catch (const std::exception& e)
             {
+                if (rethrowExceptions)
+                {
+                    throw std::runtime_error (e.what());
+                }
                 kernel.insert (key, var());
                 kernel.set_error (key, e.what());
             }

@@ -39,6 +39,15 @@ PatchViewApplication::MainWindow::~MainWindow()
     Desktop::getInstance().removeFocusChangeListener (this);
 }
 
+bool PatchViewApplication::MainWindow::keyPressed (const KeyPress& key)
+{
+    if (key == KeyPress::escapeKey)
+    {
+        return content->hideExtraComponents();
+    }
+    return false;
+}
+
 void PatchViewApplication::MainWindow::closeButtonPressed()
 {
     JUCEApplication::getInstance()->systemRequestedQuit();
@@ -90,6 +99,7 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
     if (menuName == "View")
     {
         menu.addCommandItem (manager, Commands::toggleEnvironmentView);
+        menu.addCommandItem (manager, Commands::toggleKernelRuleEntry);
         menu.addCommandItem (manager, Commands::toggleDirectoryView);
         menu.addCommandItem (manager, Commands::reloadDirectoryView);
         menu.addSeparator();
@@ -211,6 +221,7 @@ void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
         Commands::toggleDirectoryView,
         Commands::reloadDirectoryView,
         Commands::toggleEnvironmentView,
+        Commands::toggleKernelRuleEntry,
         Commands::increaseFontSize,
         Commands::decreaseFontSize,
     };
@@ -243,6 +254,12 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
                             mainWindow && mainWindow->content->isEnvironmentViewShowing() ? ApplicationCommandInfo::isTicked : 0);
             result.defaultKeypresses.add (KeyPress ('B', ModifierKeys::commandModifier, 0));
             break;
+        case Commands::toggleKernelRuleEntry:
+            result.setInfo ("Show Rule Entry", "", "View",
+                            (  mainWindow &&   mainWindow->content->isKernelRuleEntryShowing()       ? ApplicationCommandInfo::isTicked : 0 |
+                             ! mainWindow || ! mainWindow->content->canSendMessagesToCurrentViewer() ? ApplicationCommandInfo::isDisabled : 0));
+            result.defaultKeypresses.add (KeyPress ('G', ModifierKeys::commandModifier, 0));
+            break;
         case Commands::increaseFontSize:
             result.setInfo ("Increase Font Size", "", "View", 0);
             result.defaultKeypresses.add (KeyPress ('=', ModifierKeys::commandModifier, '+'));
@@ -262,10 +279,11 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
     switch (info.commandID)
     {
         case Commands::openDirectory:             return presentOpenDirectoryDialog();
-        case Commands::reloadCurrentFile:         mainWindow->content->reloadCurrentFile(); return true;
+        case Commands::toggleEnvironmentView:     mainWindow->content->toggleEnvironmentViewShown(); return true;
+        case Commands::toggleKernelRuleEntry:     mainWindow->content->toggleKernelRuleEntryShown(); return true;
         case Commands::toggleDirectoryView:       mainWindow->content->toggleDirectoryTreeShown(); return true;
         case Commands::reloadDirectoryView:       mainWindow->content->reloadDirectoryTree(); return true;
-        case Commands::toggleEnvironmentView:     mainWindow->content->toggleEnvironmentViewShown(); return true;
+        case Commands::reloadCurrentFile:         mainWindow->content->reloadCurrentFile(); return true;
         case Commands::increaseFontSize:          lookAndFeel.incrementFontSize (+1); mainWindow->sendLookAndFeelChange(); return true;
         case Commands::decreaseFontSize:          lookAndFeel.incrementFontSize (-1); mainWindow->sendLookAndFeelChange(); return true;
         default:                                  return JUCEApplication::perform (info);

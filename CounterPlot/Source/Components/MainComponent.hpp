@@ -8,6 +8,7 @@
 #include "../Core/Runtime.hpp"
 #include "../Core/TaskPool.hpp"
 #include "../Core/DataHelpers.hpp" // FilePoller
+#include "../Core/EditorKeyMappings.hpp"
 #include "../Plotting/ResizerFrame.hpp"
 
 
@@ -121,6 +122,29 @@ private:
 
 
 //=============================================================================
+class KernelRuleEntry : public Component, public TextEditor::Listener
+{
+public:
+    KernelRuleEntry();
+
+    //=========================================================================
+    void resized() override;
+
+    //=========================================================================
+    void textEditorTextChanged (TextEditor&) override;
+    void textEditorReturnKeyPressed (TextEditor&) override;
+    void textEditorEscapeKeyPressed (TextEditor&) override;
+    void textEditorFocusLost (TextEditor&) override;
+
+private:
+    TextEditor editor;
+    EditorKeyMappings keyMappings;
+};
+
+
+
+
+//=============================================================================
 class MainComponent
 : public Component
 , public DirectoryTree::Listener
@@ -136,10 +160,13 @@ public:
     void setCurrentDirectory (File newCurrentDirectory);
     void reloadCurrentFile();
     void reloadDirectoryTree();
-    void toggleDirectoryTreeShown();
-    void toggleEnvironmentViewShown();
+    void toggleDirectoryTreeShown (bool animated=true);
+    void toggleEnvironmentViewShown (bool animated=true);
+    void toggleKernelRuleEntryShown();
+    bool hideExtraComponents();
     bool isDirectoryTreeShowing() const;
     bool isEnvironmentViewShowing() const;
+    bool isKernelRuleEntryShowing() const;
     File getCurrentDirectory() const;
     File getCurrentFile() const;
     const Viewer* getCurrentViewer() const;
@@ -148,6 +175,8 @@ public:
     void setCurrentViewer (const String& viewerName);
     void makeViewerCurrent (Viewer* viewer);
     void refreshCurrentViewerName();
+    void sendMessageToCurrentViewer (String& message);
+    bool canSendMessagesToCurrentViewer() const;
 
     //=========================================================================
     void resized() override;
@@ -177,6 +206,7 @@ private:
     File currentFile;
     bool directoryTreeShowing = true;
     bool environmentViewShowing = false;
+    bool kernelRuleEntryShowing = false;
 
     //=========================================================================
     StatusBar statusBar;
@@ -184,5 +214,6 @@ private:
     ViewerCollection viewers;
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
+    KernelRuleEntry kernelRuleEntry;
     FilePoller filePoller;
 };

@@ -13,13 +13,13 @@ patches2d-required-fields: [conserved, vert_coords]
 
 
 environment:
-   mapping     : (scalar-mapping vmin vmax stops)
-   vert_coords : (map sph-to-cart (load-patches2d file 'vert_coords'))
-   density     : (load-patches2d file 'conserved' component=0)
-   field       : (map log10 density)
-   scalars     : (map to-gpu field replicate=6)
-   vertices    : (map to-gpu-triangulate vert_coords)
-
+  component   : 0
+  mapping     : (scalar-mapping vmin vmax stops)
+  density     : (load-patches2d file 'conserved' component=component)
+  vert_coords : (map sph-to-cart (load-patches2d file 'vert_coords'))
+  field       : (map log10 density)
+  scalars     : (map to-gpu field replicate=6)
+  vertices    : (map to-gpu-triangulate vert_coords)
 
 expensive: [vert_coords, density, field, scalars, vertices, vmin, vmax]
 

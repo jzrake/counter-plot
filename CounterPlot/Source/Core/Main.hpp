@@ -26,8 +26,9 @@ public:
         toggleDirectoryView   = 103,
         reloadDirectoryView   = 104,
         toggleEnvironmentView = 105,
-        increaseFontSize      = 106,
-        decreaseFontSize      = 107,
+        toggleKernelRuleEntry = 106,
+        increaseFontSize      = 107,
+        decreaseFontSize      = 108,
     };
 
 
@@ -60,6 +61,7 @@ public:
     public:
         MainWindow (String name);
         ~MainWindow();
+        bool keyPressed (const KeyPress& key) override;
         void closeButtonPressed() override;
         void paintOverChildren (Graphics& g) override;
         void globalFocusChanged (Component* focusedComponent) override;

@@ -171,6 +171,8 @@ void StatusBar::setCurrentViewerName (const String& viewerName)
 void StatusBar::setCurrentErrorMessage (const String& what)
 {
     currentErrorMessage = what;
+    millisecondsToDisplayInfo = 4000;
+    startTimer (40);
     repaint();
 }
 
@@ -209,7 +211,7 @@ void StatusBar::paint (Graphics& g)
 
     if (currentErrorMessage.isNotEmpty())
     {
-        g.setColour (errorColour);
+        g.setColour (errorColour.withAlpha (jmin (1.f, millisecondsToDisplayInfo / 400.f)));
         g.drawText (currentErrorMessage, geom.messageArea, Justification::centredLeft);
     }
     else if (currentInfoMessage.isNotEmpty())
@@ -365,6 +367,66 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
 
 
 
+//=========================================================================
+KernelRuleEntry::KernelRuleEntry()
+{
+    editor.setColour (TextEditor::ColourIds::textColourId, Colours::whitesmoke);
+    editor.setColour (TextEditor::ColourIds::backgroundColourId, Colours::black.withAlpha (0.10f));
+    editor.setColour (TextEditor::ColourIds::highlightColourId, Colours::black.withAlpha (0.15f));
+    editor.setColour (TextEditor::ColourIds::highlightedTextColourId, Colours::whitesmoke);
+    editor.setColour (TextEditor::ColourIds::focusedOutlineColourId, Colours::transparentBlack);
+    editor.setColour (TextEditor::ColourIds::outlineColourId, Colours::transparentBlack);
+    editor.setTextToShowWhenEmpty ("key: value", Colours::grey);
+    editor.setFont (Font ("Monaco", 15, 0));
+    editor.addListener (this);
+    editor.addKeyListener (&keyMappings);
+    addAndMakeVisible (editor);
+}
+
+
+
+
+//=========================================================================
+void KernelRuleEntry::resized()
+{
+    editor.setBounds (getLocalBounds());
+    editor.setIndents (2, (getHeight() - editor.getFont().getHeight()) / 2);
+}
+
+
+
+
+//=========================================================================
+void KernelRuleEntry::textEditorTextChanged (TextEditor&)
+{
+}
+
+void KernelRuleEntry::textEditorReturnKeyPressed (TextEditor&)
+{
+    if (auto main = findParentComponentOfClass<MainComponent>())
+    {
+        auto text = editor.getText();
+        main->sendMessageToCurrentViewer (text);
+    }
+    editor.clear();
+    editor.repaint();
+}
+
+void KernelRuleEntry::textEditorEscapeKeyPressed (TextEditor&)
+{
+    if (auto main = findParentComponentOfClass<MainComponent>())
+    {
+        main->toggleKernelRuleEntryShown();
+    }
+}
+
+void KernelRuleEntry::textEditorFocusLost (TextEditor&)
+{
+}
+
+
+
+
 //=============================================================================
 MainComponent::MainComponent()
 {
@@ -395,6 +457,7 @@ MainComponent::MainComponent()
 
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
+    addAndMakeVisible (kernelRuleEntry);
     setSize (1024, 768 - 64);
 }
 
@@ -418,18 +481,54 @@ void MainComponent::reloadDirectoryTree()
     directoryTree.reloadAll();
 }
 
-void MainComponent::toggleDirectoryTreeShown()
+void MainComponent::toggleDirectoryTreeShown (bool animated)
 {
     directoryTreeShowing = ! directoryTreeShowing;
     directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
-    layout (true);
+    layout (animated);
 }
 
-void MainComponent::toggleEnvironmentViewShown()
+void MainComponent::toggleEnvironmentViewShown (bool animated)
 {
+    if (isKernelRuleEntryShowing())
+    {
+        toggleKernelRuleEntryShown();
+    }
     environmentViewShowing = ! environmentViewShowing;
     environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
-    layout (true);
+    layout (animated);
+}
+
+void MainComponent::toggleKernelRuleEntryShown()
+{
+    if (isEnvironmentViewShowing())
+    {
+        toggleEnvironmentViewShown (false);
+    }
+
+    kernelRuleEntryShowing = ! kernelRuleEntryShowing;
+    kernelRuleEntry.setVisible (kernelRuleEntryShowing);
+    layout (false);
+
+    if (isKernelRuleEntryShowing())
+    {
+        kernelRuleEntry.grabKeyboardFocus();
+    }
+}
+
+bool MainComponent::hideExtraComponents()
+{
+    if (kernelRuleEntryShowing)
+    {
+        toggleKernelRuleEntryShown();
+        return true;
+    }
+    if (environmentViewShowing)
+    {
+        toggleEnvironmentViewShown (false);
+        return true;
+    }
+    return false;
 }
 
 bool MainComponent::isDirectoryTreeShowing() const
@@ -440,6 +539,11 @@ bool MainComponent::isDirectoryTreeShowing() const
 bool MainComponent::isEnvironmentViewShowing() const
 {
     return environmentViewShowing;
+}
+
+bool MainComponent::isKernelRuleEntryShowing() const
+{
+    return kernelRuleEntryShowing;
 }
 
 File MainComponent::getCurrentDirectory() const
@@ -492,7 +596,12 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
             environmentView.setKernel (nullptr);
             viewers.showOnly (nullptr);
         }
+        if (isKernelRuleEntryShowing() && ! viewer->canReceiveMessages())
+        {
+            toggleKernelRuleEntryShown();
+        }
         currentViewer = viewer;
+        PatchViewApplication::getApp().getCommandManager().commandStatusChanged();
     }
 }
 
@@ -502,6 +611,23 @@ void MainComponent::refreshCurrentViewerName()
     {
         statusBar.setCurrentViewerName (currentViewer->getViewerName());
     }
+}
+
+void MainComponent::sendMessageToCurrentViewer (String& message)
+{
+    if (currentViewer)
+    {
+        currentViewer->receiveMessage (message);
+    }
+}
+
+bool MainComponent::canSendMessagesToCurrentViewer() const
+{
+    if (currentViewer)
+    {
+        return currentViewer->canReceiveMessages();
+    }
+    return false;
 }
 
 
@@ -625,6 +751,10 @@ void MainComponent::layout (bool animated)
     .withBottomY (statusBarArea.getY())
     .translated (0, environmentViewShowing ? 0 : 330 + 22); // the 22 is to ensure it's offscreen, so not painted
 
+    if (kernelRuleEntryShowing)
+    {
+        kernelRuleEntry.setBounds (area.removeFromBottom (32));
+    }
     setBounds (statusBar, statusBarArea);
     setBounds (directoryTree, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);

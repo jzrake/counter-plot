@@ -94,6 +94,10 @@ public:
      */
     virtual const Runtime::Kernel* getKernel() const { return nullptr; }
 
+    virtual bool canReceiveMessages() const { return false; }
+
+    virtual void receiveMessage (const String& message) {}
+
     virtual void setMessageSink (MessageSink* explicitMessageSink) { messageSink = explicitMessageSink; }
 
     /**

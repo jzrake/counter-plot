@@ -31,6 +31,8 @@ public:
     void reloadFile() override;
     String getViewerName() const override;
     const Runtime::Kernel* getKernel() const override;
+    bool canReceiveMessages() const override;
+    void receiveMessage (const String& message) override;
 
     //=========================================================================
     void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;
@@ -56,7 +58,7 @@ private:
     void applyLayout();
     void resolveKernel();
     void loadFromKernelIfFigure (const std::string& id);
-    void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const;
+    void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict, bool rethrowExceptions=false) const;
 
     //=========================================================================
     String viewerName;
