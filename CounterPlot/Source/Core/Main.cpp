@@ -150,22 +150,41 @@ void PatchViewApplication::initialise (const String& commandLine)
     // Read app properties to restore last session
     applicationProperties.setStorageParameters (makePropertiesFileOptions());
     auto& settings = *applicationProperties.getUserSettings();
-    auto cwd = settings.getValue ("LastCurrentDirectory", File::getSpecialLocation (File::userHomeDirectory).getFullPathName());
+
+    currentDirectory = settings.getValue ("CurrentDirectory", File::getSpecialLocation (File::userHomeDirectory).getFullPathName());
+    auto defaultFont = settings.getValue ("Font", Font().toString());
+    auto directoryTreeState = std::unique_ptr<XmlElement> (settings.getXmlValue ("DirectoryTreeState"));
 
     configureLookAndFeel();
+    lookAndFeel.setDefaultFont (Font::fromString (defaultFont));
     LookAndFeel::setDefaultLookAndFeel (&lookAndFeel);
 
     commandManager = std::make_unique<ApplicationCommandManager>();
     menu           = std::make_unique<MainMenu>();
     mainWindow     = std::make_unique<MainWindow> (getApplicationName());
-    mainWindow->content->setCurrentDirectory (cwd);
+    mainWindow->content->setCurrentDirectory (currentDirectory);
+
+    if (directoryTreeState)
+    {
+        mainWindow->content->getDirectoryTree().restoreRootOpenness (*directoryTreeState);
+    }
+
     commandManager->registerAllCommandsForTarget (this);
     Viewer::registerCommands (*commandManager);
+
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
 }
 
 void PatchViewApplication::shutdown()
 {
+    assert(mainWindow != nullptr); // The main window should not be closed before shutdown
+
+    auto& settings = *applicationProperties.getUserSettings();
+
+    settings.setValue ("CurrentDirectory", currentDirectory.getFullPathName());
+    settings.setValue ("Font", lookAndFeel.getDefaultFont().toString());
+    settings.setValue ("DirectoryTreeState",  mainWindow->content->getDirectoryTree().getRootOpennessState().get());
+
     MenuBarModel::setMacMainMenu (nullptr, nullptr);
 }
 
@@ -282,9 +301,8 @@ bool PatchViewApplication::presentOpenDirectoryDialog()
 
     if (chooser.browseForDirectory())
     {
-        auto nwd = chooser.getResult();
-        mainWindow->content->setCurrentDirectory (nwd);
-        applicationProperties.getUserSettings()->setValue ("LastCurrentDirectory", nwd.getFullPathName());
+        currentDirectory = chooser.getResult();
+        mainWindow->content->setCurrentDirectory (currentDirectory);
     }
     return true;
 }

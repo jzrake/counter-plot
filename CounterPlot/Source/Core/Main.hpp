@@ -91,4 +91,5 @@ private:
     // TooltipWindow tooltipWindow;
     AppLookAndFeel lookAndFeel;
     ApplicationProperties applicationProperties;
+    File currentDirectory;
 };

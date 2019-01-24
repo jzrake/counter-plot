@@ -183,6 +183,16 @@ File DirectoryTree::getCurrentDirectory() const
     return currentDirectory;
 }
 
+std::unique_ptr<XmlElement> DirectoryTree::getRootOpennessState() const
+{
+    return std::unique_ptr<XmlElement> (root ? root->getOpennessState() : nullptr);
+}
+
+void DirectoryTree::restoreRootOpenness (const XmlElement& state)
+{
+    root->restoreOpennessState (state);
+}
+
 
 
 

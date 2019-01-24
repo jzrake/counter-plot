@@ -24,6 +24,8 @@ public:
     void reloadAll();
     File getCurrentDirectory() const;
     TreeView& getTreeView() { return tree; }
+    std::unique_ptr<XmlElement> getRootOpennessState() const;
+    void restoreRootOpenness (const XmlElement& state);
 
     //=========================================================================
     void resized() override;
