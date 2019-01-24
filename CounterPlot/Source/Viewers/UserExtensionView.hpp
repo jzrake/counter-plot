@@ -40,15 +40,15 @@ public:
     void figureViewSetTitle (FigureView*, const String&) override;
 
     //=========================================================================
-    void taskStarted (const String& taskName) override;
-    void taskCompleted (const String& taskName, const var& result, const std::string& error) override;
-    void taskWasCancelled (const String& taskName) override;
-
-    //=========================================================================
     void getAllCommands (Array<CommandID>& commands) override;
     void getCommandInfo (CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform (const InvocationInfo& info) override;
     ApplicationCommandTarget* getNextCommandTarget() override;
+
+    //=========================================================================
+    void taskStarted (const String& taskName) override;
+    void taskCompleted (const String& taskName, const var& result, const std::string& error) override;
+    void taskCancelled (const String& taskName) override;
 
 private:
 

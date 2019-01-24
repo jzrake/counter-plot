@@ -52,3 +52,16 @@ Anyway, as the code base begins growing it seems right to decide on terminology 
     + BinaryTorquesViewer
     + JetInCloudViewer
     + ExtensionViewer
+
+
+## Jan 23, 2019: Async kernel resolves
+
+I wrote a draft of the async kernel resolve strategy last weekend. However it needs to be improved. It cancels tasks unnecessarily:
+
+1. x is enqueued
+2. y is enqueued
+3. x completes, triggers resolve
+4. y is enqueued (thus cancelled) because it's still dirty
+
+The simplest solution I could find was to unmark rules as soon as they are queued. This way they don't get cancelled and resubmitted unnecessarily. The side-effect is of course that rules downstream of an async rule may get started prematurely. The synchronous downstream rules are cheap anyway. And, in a busy situation, the asynchronous ones are likely to remain queued for a little bit, so they'll get superceded before they even consume any resources.
+

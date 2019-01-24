@@ -36,7 +36,7 @@ public:
             font = laf->getDefaultFont();
 
         auto text = file.getFileName();
-        itemHeight = font.getHeight() * 5 / 2;
+        itemHeight = font.getHeight() * 11 / 5;
 
         glyphs.clear();
         glyphs.addLineOfText (font, text, 0, 0);

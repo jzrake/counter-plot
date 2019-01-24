@@ -125,5 +125,5 @@ void AppLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<floa
     Path p;
     p.addTriangle (0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
     g.setColour (backgroundColour.contrasting().withAlpha (isMouseOver ? 0.4f : 0.2f));
-    g.fillPath (p, p.getTransformToScaleToFit (area.reduced (5), true));
+    g.fillPath (p, p.getTransformToScaleToFit (area.reduced (6), true));
 }

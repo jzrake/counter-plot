@@ -17,13 +17,11 @@ environment:
    vert_coords : (map sph-to-cart (load-patches2d file 'vert_coords'))
    density     : (load-patches2d file 'conserved' component=0)
    field       : (map log10 density)
-   # vmin        : (min (map min field))
-   # vmax        : (max (map max field))
    scalars     : (map to-gpu field replicate=6)
    vertices    : (map to-gpu-triangulate vert_coords)
 
 
-expensive: [vert_coords, density, field, vmin, vmax, scalars, vertices]
+expensive: [vert_coords, density, field, scalars, vertices, vmin, vmax]
 
 
 commands:

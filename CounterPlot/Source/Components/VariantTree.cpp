@@ -62,7 +62,7 @@ int VariantTree::Item::getItemHeight() const
 {
     if (auto laf = dynamic_cast<AppLookAndFeel*> (&getOwnerView()->getLookAndFeel()))
     {
-        return laf->getDefaultFont().getHeight() * 5 / 2;
+        return laf->getDefaultFont().getHeight() * 11 / 5;
     }
     return 24;
 }

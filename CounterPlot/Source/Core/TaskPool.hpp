@@ -35,7 +35,7 @@ public:
         virtual ~Listener() {}
         virtual void taskStarted (const String& taskName) = 0;
         virtual void taskCompleted (const String& taskName, const var& result, const std::string& error) = 0;
-        virtual void taskWasCancelled (const String& taskName) = 0;
+        virtual void taskCancelled (const String& taskName) = 0;
     };
 
 
@@ -45,11 +45,13 @@ public:
     void addListener (Listener* listener);
     void removeListener (Listener* listener);
 
+
     /**
      * Add a task to the queue with the given name. Cancels any earlier tasks
      * with the same name.
      */
     void enqueue (const String& name, Task task);
+
 
     /**
      * Cancel any tasks with the given name. Returns immediately. taskWasCancelled
@@ -57,18 +59,13 @@ public:
      */
     void cancel (const String& name);
 
+
     /**
-     * Cancel all tasks. Returns immediately.  taskWasCancelled be called when the
+     * Cancel all tasks. Returns immediately. taskWasCancelled will be called when the
      * thread actually exits.
      */
     void cancelAll();
 
-
-    /**
-     * Return the names of all tasks that are queued, running, or cancelled but not
-     * yet removed.
-     */
-    StringArray getActiveTaskNames() const;
 
 private:
 
@@ -96,6 +93,8 @@ private:
 
     //=========================================================================
     ThreadPoolJob::JobStatus notify (String name, var result, std::string error, bool completed);
+    void indicateJobStarted (String name);
+
     ThreadPool threadPool;
     ListenerList<Listener> listeners;
 };
@@ -113,7 +112,7 @@ public:
     TaskPoolTestComponent();
     void taskStarted (const String& taskName) override {}
     void taskCompleted (const String& taskName, const var& result, const std::string& error) override;
-    void taskWasCancelled (const String& taskName) override;
+    void taskCancelled (const String& taskName) override;
 
 
     //=========================================================================

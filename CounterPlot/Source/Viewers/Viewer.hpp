@@ -16,8 +16,9 @@ public:
     {
     public:
         virtual ~MessageSink() {}
-        virtual void viewerAsyncTaskStarted() = 0;
-        virtual void viewerAsyncTaskFinished() = 0;
+        virtual void viewerAsyncTaskStarted (const String& name) = 0;
+        virtual void viewerAsyncTaskCompleted (const String& name) = 0;
+        virtual void viewerAsyncTaskCancelled (const String& name) = 0;
         virtual void viewerLogErrorMessage (const String& what) = 0;
         virtual void viewerIndicateSuccess() = 0;
         virtual void viewerEnvironmentChanged() = 0;
@@ -100,8 +101,9 @@ public:
      * is either the private messageSink instance if it is not null, or the
      * nearest parent that is a message sink, if it exists.
      */
-    void sendAsyncTaskStarted() const;
-    void sendAsyncTaskFinished() const;
+    void sendAsyncTaskStarted (const String& name) const;
+    void sendAsyncTaskCompleted (const String& name) const;
+    void sendAsyncTaskCancelled (const String& name) const;
     void sendErrorMessage (const String& what) const;
     void sendIndicateSuccess() const;
     void sendEnvironmentChanged() const;

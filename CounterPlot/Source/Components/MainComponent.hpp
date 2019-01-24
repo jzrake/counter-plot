@@ -60,6 +60,7 @@ public:
     void setMousePositionInFigure (Point<double> position);
     void setCurrentViewerName (const String& viewerName);
     void setCurrentErrorMessage (const String& what);
+    void setCurrentInfoMessage (const String& info);
 
     //=========================================================================
     void paint (Graphics& g) override;
@@ -75,6 +76,7 @@ private:
     ViewerNamePopupButton viewerNamePopupButton;
     Point<double> mousePositionInFigure;
     String currentErrorMessage;
+    String currentInfoMessage;
     int numberOfAsyncTasks = 0;
 };
 
@@ -153,8 +155,9 @@ public:
     void figureMousePosition (Point<double> position) override;
 
     //=========================================================================
-    void viewerAsyncTaskStarted() override;
-    void viewerAsyncTaskFinished() override;
+    void viewerAsyncTaskStarted (const String& name) override;
+    void viewerAsyncTaskCompleted (const String& name) override;
+    void viewerAsyncTaskCancelled (const String& name) override;
     void viewerLogErrorMessage (const String&) override;
     void viewerIndicateSuccess() override;
     void viewerEnvironmentChanged() override;

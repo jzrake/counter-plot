@@ -174,6 +174,12 @@ void StatusBar::setCurrentErrorMessage (const String& what)
     repaint();
 }
 
+void StatusBar::setCurrentInfoMessage (const String& info)
+{
+    currentInfoMessage = info;
+    repaint();
+}
+
 
 
 
@@ -194,11 +200,17 @@ void StatusBar::paint (Graphics& g)
 
     g.setColour (fontColour);
     g.setFont (Font().withHeight (11));
-
     g.drawText (mousePositionInFigure.isOrigin() ? "" : mousePositionInFigure.toString(), geom.mousePositionArea, Justification::centredLeft);
 
-    g.setColour (errorColour);
-    g.drawText (currentErrorMessage, geom.errorMessageArea, Justification::centredLeft);
+    if (currentErrorMessage.isNotEmpty())
+    {
+        g.setColour (errorColour);
+        g.drawText (currentErrorMessage, geom.errorMessageArea, Justification::centredLeft);
+    }
+    else if (numberOfAsyncTasks > 0 && currentInfoMessage.isNotEmpty())
+    {
+        g.drawText (currentInfoMessage, geom.errorMessageArea, Justification::centredLeft);
+    }
 }
 
 void StatusBar::resized()
@@ -339,7 +351,7 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::make_unique<PDFViewer>());
     // viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
-    viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
+    // viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
 
     viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
 
@@ -500,14 +512,22 @@ void MainComponent::figureMousePosition (Point<double> position)
 
 
 //=============================================================================
-void MainComponent::viewerAsyncTaskStarted()
+void MainComponent::viewerAsyncTaskStarted (const String& name)
 {
     statusBar.incrementAsyncTaskCount();
+    statusBar.setCurrentInfoMessage ("Started " + name);
 }
 
-void MainComponent::viewerAsyncTaskFinished()
+void MainComponent::viewerAsyncTaskCompleted (const String& name)
 {
     statusBar.decrementAsyncTaskCount();
+    statusBar.setCurrentInfoMessage ("Completed " + name);
+}
+
+void MainComponent::viewerAsyncTaskCancelled (const String& name)
+{
+    statusBar.decrementAsyncTaskCount();
+    statusBar.setCurrentInfoMessage ("Cancelled " + name);
 }
 
 void MainComponent::viewerLogErrorMessage (const String& what)

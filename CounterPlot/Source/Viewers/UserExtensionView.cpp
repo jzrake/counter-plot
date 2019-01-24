@@ -231,30 +231,6 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 
 
 
-//=========================================================================
-void UserExtensionView::taskStarted (const String& taskName)
-{
-    sendAsyncTaskStarted();
-}
-
-void UserExtensionView::taskCompleted (const String& taskName, const var& result, const std::string& error)
-{
-    auto key = taskName.toStdString();
-    kernel.update_directly (key, result, error);
-    kernel.mark (kernel.downstream (key));
-    loadFromKernelIfFigure (key);
-    resolveKernel();
-    sendAsyncTaskFinished();
-}
-
-void UserExtensionView::taskWasCancelled (const String& taskName)
-{
-    sendAsyncTaskFinished();
-}
-
-
-
-
 //=============================================================================
 void UserExtensionView::getAllCommands (Array<CommandID>& commands)
 {
@@ -287,6 +263,30 @@ bool UserExtensionView::perform (const InvocationInfo& info)
 ApplicationCommandTarget* UserExtensionView::getNextCommandTarget()
 {
     return nullptr;
+}
+
+
+
+
+//=========================================================================
+void UserExtensionView::taskStarted (const String& taskName)
+{
+    sendAsyncTaskStarted (taskName);
+}
+
+void UserExtensionView::taskCompleted (const String& taskName, const var& result, const std::string& error)
+{
+    auto key = taskName.toStdString();
+    kernel.update_directly (key, result, error);
+    kernel.mark (kernel.downstream (key));
+    loadFromKernelIfFigure (key);
+    resolveKernel();
+    sendAsyncTaskCompleted (taskName);
+}
+
+void UserExtensionView::taskCancelled (const String& taskName)
+{
+    sendAsyncTaskCancelled (taskName);
 }
 
 
@@ -332,7 +332,7 @@ void UserExtensionView::resolveKernel()
     // asynchronous ones. There's no need to recurse here, because new
     // rules will not become eligible until after the task is finished.
     // Each rule that is eligible for update gets enqueued, which
-    // cancels ans earlier tasks with the same name. Rules that are
+    // cancels any earlier tasks with the same name. Rules that are
     // asynchronous and dirty, but not eligible, are canceled.
     // --------------------------------------------------------------
     for (auto rule : kernel.dirty_rules_only (Runtime::asynchronous))
@@ -348,8 +348,9 @@ void UserExtensionView::resolveKernel()
                 auto result = kernel.resolve (rule, what, adapter);
 
                 if (what.empty())
+                {
                     return result;
-
+                }
                 throw std::runtime_error (what);
             });
         }

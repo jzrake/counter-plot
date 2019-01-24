@@ -14,6 +14,7 @@ TaskPool::Job::Job (TaskPool& taskPool, const String& name, Task task)
 ThreadPoolJob::JobStatus TaskPool::Job::runJob()
 {
     try {
+        taskPool.indicateJobStarted (getJobName());
         auto result = task ([this] { return shouldExit(); });
         return taskPool.notify (getJobName(), result, std::string(), ! shouldExit());
     }
@@ -59,7 +60,6 @@ void TaskPool::removeListener (Listener* listener)
 
 void TaskPool::enqueue (const String& name, Task task)
 {
-    listeners.call (&Listener::taskStarted, name);
     Selector jobsToRemove (name);
     threadPool.removeAllJobs (true, 0, &jobsToRemove);
     threadPool.addJob (new Job (*this, name, task), true);
@@ -76,11 +76,6 @@ void TaskPool::cancelAll()
     threadPool.removeAllJobs (true, 0);
 }
 
-StringArray TaskPool::getActiveTaskNames() const
-{
-    return threadPool.getNamesOfAllJobs (false);
-}
-
 
 
 
@@ -92,9 +87,17 @@ ThreadPoolJob::JobStatus TaskPool::notify (String name, var result, std::string 
         if (completed)
             listeners.call (&Listener::taskCompleted, name, result, error);
         else
-            listeners.call (&Listener::taskWasCancelled, name);
+            listeners.call (&Listener::taskCancelled, name);
     });
     return ThreadPoolJob::jobHasFinished;
+}
+
+void TaskPool::indicateJobStarted (String name)
+{
+    MessageManager::callAsync ([this, name]
+    {
+        listeners.call (&Listener::taskStarted, name);
+    });
 }
 
 
@@ -164,7 +167,7 @@ void TaskPoolTestComponent::taskCompleted (const String& taskName, const var& re
         resultLabel3.setText (result.toString(), NotificationType::dontSendNotification);
 }
 
-void TaskPoolTestComponent::taskWasCancelled (const String& taskName)
+void TaskPoolTestComponent::taskCancelled (const String& taskName)
 {
     if (taskName == "Task 1")
         resultLabel1.setText ("cancelled", NotificationType::dontSendNotification);

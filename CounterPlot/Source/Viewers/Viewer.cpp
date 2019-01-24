@@ -59,19 +59,27 @@ void Viewer::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result
     }
 }
 
-void Viewer::sendAsyncTaskStarted() const
+void Viewer::sendAsyncTaskStarted (const String& name) const
 {
     if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
     {
-        sink->viewerAsyncTaskStarted();
+        sink->viewerAsyncTaskStarted (name);
     }
 }
 
-void Viewer::sendAsyncTaskFinished() const
+void Viewer::sendAsyncTaskCompleted (const String& name) const
 {
     if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
     {
-        sink->viewerAsyncTaskFinished();
+        sink->viewerAsyncTaskCompleted (name);
+    }
+}
+
+void Viewer::sendAsyncTaskCancelled (const String& name) const
+{
+    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
+    {
+        sink->viewerAsyncTaskCancelled (name);
     }
 }
 
