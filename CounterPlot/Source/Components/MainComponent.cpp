@@ -4,7 +4,6 @@
 #include "../Viewers/JetInCloudView.hpp"
 #include "../Viewers/BinaryTorquesView.hpp"
 #include "../Viewers/Viewer.hpp"
-#include "../Viewers/PDFViewerMacOS.hpp"
 #include "../Viewers/ColourMapViewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
 

@@ -121,7 +121,7 @@ public:
     //=========================================================================
     JsonFileViewer();
     bool isInterestedInFile (File file) const override;
-    void loadFile (File fileToDisplay) override;
+    void loadFile (File file) override;
     void reloadFile() override;
     String getViewerName() const override { return "JSON / YAML Viewer"; }
 
@@ -155,3 +155,28 @@ private:
     File currentFile;
     ImageComponent view;
 };
+
+
+
+
+//=============================================================================
+class PDFViewer : public Viewer
+{
+public:
+
+    //=========================================================================
+    PDFViewer();
+    ~PDFViewer();
+    bool isInterestedInFile (File file) const override;
+    void loadFile (File file) override;
+    void reloadFile() override;
+    String getViewerName() const override { return "PDF Document"; }
+
+    //=========================================================================
+    void resized() override;
+
+private:
+    File currentFile;
+    PDFViewComponent pdfView;
+};
+

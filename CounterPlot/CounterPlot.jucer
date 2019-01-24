@@ -64,14 +64,6 @@
             file="Source/Plotting/ResizerFrame.hpp"/>
     </GROUP>
     <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers">
-      <FILE id="d4cOpT" name="PDFViewerImplementation.m" compile="1" resource="0"
-            file="Source/Viewers/PDFViewerImplementation.m"/>
-      <FILE id="hSoKEf" name="PDFViewerImplementation.h" compile="0" resource="0"
-            file="Source/Viewers/PDFViewerImplementation.h"/>
-      <FILE id="CqxGXn" name="PDFViewerMacOS.mm" compile="1" resource="0"
-            file="Source/Viewers/PDFViewerMacOS.mm"/>
-      <FILE id="jyU4Q3" name="PDFViewerMacOS.hpp" compile="0" resource="0"
-            file="Source/Viewers/PDFViewerMacOS.hpp"/>
       <FILE id="ZmxzWh" name="BinaryTorquesView.cpp" compile="1" resource="0"
             file="Source/Viewers/BinaryTorquesView.cpp"/>
       <FILE id="okfExZ" name="BinaryTorquesView.hpp" compile="0" resource="0"
@@ -114,6 +106,7 @@
         <MODULEPATH id="juce_ndh5" path="../third_party/ndh5"/>
         <MODULEPATH id="juce_metal" path=".."/>
         <MODULEPATH id="juce_crt" path="../third_party/crt-kernel"/>
+        <MODULEPATH id="juce_pdf" path=".."/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
@@ -129,6 +122,7 @@
     <MODULE id="juce_ndarray" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_ndh5" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
     <MODULE id="juce_patches" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_pdf" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
   </MODULES>
   <LIVE_SETTINGS>
     <OSX/>

@@ -113,10 +113,13 @@ bool JsonFileViewer::isInterestedInFile (File file) const
     return file.hasFileExtension (".json") || file.hasFileExtension (".yaml");
 }
 
-void JsonFileViewer::loadFile (File fileToDisplay)
+void JsonFileViewer::loadFile (File file)
 {
-    currentFile = fileToDisplay;
-    reloadFile();
+    if (currentFile != file)
+    {
+        currentFile = file;
+        reloadFile();
+    }
 }
 
 void JsonFileViewer::reloadFile()
@@ -153,8 +156,11 @@ bool ImageFileViewer::isInterestedInFile (File file) const
 
 void ImageFileViewer::loadFile (File file)
 {
-    currentFile = file;
-    reloadFile();
+    if (currentFile != file)
+    {
+        currentFile = file;
+        reloadFile();
+    }
 }
 
 void ImageFileViewer::reloadFile()
@@ -168,4 +174,45 @@ void ImageFileViewer::reloadFile()
 void ImageFileViewer::resized()
 {
     view.setBounds (getLocalBounds());
+}
+
+
+
+
+//=========================================================================
+PDFViewer::PDFViewer()
+{
+    addAndMakeVisible (pdfView);
+}
+
+PDFViewer::~PDFViewer()
+{
+}
+
+bool PDFViewer::isInterestedInFile (File file) const
+{
+    return file.hasFileExtension (".pdf");
+}
+
+void PDFViewer::loadFile (File file)
+{
+    if (currentFile != file)
+    {
+        currentFile = file;
+        reloadFile();
+    }
+}
+
+void PDFViewer::reloadFile()
+{
+    pdfView.setViewedFile (currentFile);
+}
+
+
+
+
+//=========================================================================
+void PDFViewer::resized()
+{
+    pdfView.setBounds (getLocalBounds());
 }
