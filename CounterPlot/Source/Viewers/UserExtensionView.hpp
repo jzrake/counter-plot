@@ -56,7 +56,6 @@ private:
     void applyLayout();
     void resolveKernel();
     void loadFromKernelIfFigure (const std::string& id);
-    void loadExpressionsFromListIntoKernel (Runtime::Kernel& kernel, const var& list, const std::string& basename) const;
     void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict) const;
 
     //=========================================================================

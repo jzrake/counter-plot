@@ -23,6 +23,26 @@ void DataHelpers::updateDict (var& dictToUpdate, const var& other)
 
 
 //=============================================================================
+var DataHelpers::makeDictFromList (const var& list, StringRef basename)
+{
+    auto obj = std::make_unique<DynamicObject>();
+    int n = 0;
+
+    if (auto arr = list.getArray())
+    {
+        for (const auto& element : *arr)
+        {
+            obj->setProperty (basename + String(n), element);
+            ++n;
+        }
+    }
+    return obj.release();
+}
+
+
+
+
+//=============================================================================
 var DataHelpers::varFromExpression (const crt::expression& expr)
 {
     // This method is not tested yet... I think that turning an expression back into

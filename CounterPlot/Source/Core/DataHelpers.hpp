@@ -11,6 +11,7 @@ class DataHelpers
 {
 public:
     static void updateDict (var& dictToUpdate, const var& other);
+    static var makeDictFromList (const var& list, StringRef basename);
 
     static var varFromExpression (const crt::expression& expr);
     static var varFromYamlScalar (const YAML::Node& scalar);

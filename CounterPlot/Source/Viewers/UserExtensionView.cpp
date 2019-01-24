@@ -71,7 +71,7 @@ void UserExtensionView::configure (const var& config)
     // Load viewer environment and figure defs into the kernel
     // -----------------------------------------------------------------------
     loadExpressionsFromDictIntoKernel (kernel, config["environment"]);
-    loadExpressionsFromListIntoKernel (kernel, config["figures"], "figure-");
+    loadExpressionsFromDictIntoKernel (kernel, DataHelpers::makeDictFromList (config["figures"], "figure-"));
 
 
     // Update kernel definitions (synchronously on config)
@@ -239,8 +239,10 @@ void UserExtensionView::taskStarted (const String& taskName)
 
 void UserExtensionView::taskCompleted (const String& taskName, const var& result, const std::string& error)
 {
-    kernel.update_directly (taskName.toStdString(), result, error);
-    loadFromKernelIfFigure (taskName.toStdString());
+    auto key = taskName.toStdString();
+    kernel.update_directly (key, result, error);
+    kernel.mark (kernel.downstream (key));
+    loadFromKernelIfFigure (key);
     resolveKernel();
     sendAsyncTaskFinished();
 }
@@ -293,6 +295,14 @@ ApplicationCommandTarget* UserExtensionView::getNextCommandTarget()
 //=========================================================================
 void UserExtensionView::resolveKernel()
 {
+
+    // Try to update all the rules that are dirty and not asynchronous.
+    // We don't use kernel::update_all here, because that recurses and
+    // can hit rules that become eligible, but are asynchronous. Not all
+    // of the rules will be updated, since some will have asynchronous
+    // depenencies. Below we record the number of rules that were updated
+    // in each pass, and break if none had become eligible.
+    // --------------------------------------------------------------
     auto synchronousDirtyRules = kernel.dirty_rules_excluding (Runtime::asynchronous);
 
     while (! synchronousDirtyRules.empty())
@@ -301,15 +311,13 @@ void UserExtensionView::resolveKernel()
 
         for (const auto& rule : synchronousDirtyRules)
         {
-            if (kernel.current (kernel.incoming (rule)))
+            if (kernel.eligible (rule))
             {
                 kernel.update (rule);
                 loadFromKernelIfFigure (rule);
                 ++numUpdatedRules;
-                // DBG("update: " << rule);
             }
         }
-
         if (numUpdatedRules == 0)
         {
             break;
@@ -329,9 +337,9 @@ void UserExtensionView::resolveKernel()
     // --------------------------------------------------------------
     for (auto rule : kernel.dirty_rules_only (Runtime::asynchronous))
     {
-        if (kernel.current (kernel.incoming (rule)))
+        if (kernel.eligible (rule))
         {
-            // DBG("enqueue " << rule);
+            kernel.unmark (rule);
 
             taskPool.enqueue (rule, [kernel=kernel, rule] (auto bailout)
             {
@@ -347,8 +355,6 @@ void UserExtensionView::resolveKernel()
         }
         else
         {
-            // DBG("cancel " << rule);
-
             taskPool.cancel (rule);
         }
     }
@@ -360,7 +366,7 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
     {
         try {
             auto model = FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent());
-            model.canEditTitle = model.capture.count ("title");
+            model.canEditTitle  = model.capture.count ("title");
             model.canEditXlabel = model.capture.count ("xlabel");
             model.canEditYlabel = model.capture.count ("ylabel");
             model.canEditMargin = model.capture.count ("margin");
@@ -369,35 +375,6 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
         catch (const std::exception& e)
         {
             kernel.set_error (id, e.what());
-        }
-    }
-}
-
-void UserExtensionView::loadExpressionsFromListIntoKernel (Runtime::Kernel& kernel, const var& list, const std::string& basename) const
-{
-    if (auto items = list.getArray())
-    {
-        int n = 0;
-
-        for (auto item : *items)
-        {
-            auto id = basename + std::to_string(n);
-
-            try {
-                auto flag = asyncRules.contains (id.data()) ? Runtime::asynchronous : 0;
-                auto expr = DataHelpers::expressionFromVar (item);
-
-                if (     !  kernel.contains (id) ||
-                    expr != kernel.expr_at (id) ||
-                    flag != kernel.flags_at (id))
-                    kernel.insert (id, expr, flag);
-            }
-            catch (const std::exception& e)
-            {
-                kernel.insert (id, var());
-                kernel.set_error (id, e.what());
-            }
-            ++n;
         }
     }
 }
