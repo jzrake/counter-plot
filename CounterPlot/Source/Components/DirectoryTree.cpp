@@ -39,8 +39,8 @@ public:
         itemHeight = font.getHeight() * 5 / 2;
 
         glyphs.clear();
-        glyphs.addLineOfText (font, text, 8, 0);
-        glyphs.justifyGlyphs (0, text.length(), 8, 0, 1e10, itemHeight, Justification::centredLeft);
+        glyphs.addLineOfText (font, text, 0, 0);
+        glyphs.justifyGlyphs (0, text.length(), 0, 0, 1e10, itemHeight, Justification::centredLeft);
 
         if (recursively)
             for (int n = 0; n < getNumSubItems(); ++n)
@@ -131,10 +131,11 @@ private:
 //=============================================================================
 DirectoryTree::DirectoryTree()
 {
-    tree.setIndentSize (12);
+    tree.setIndentSize (20);
     tree.setRootItemVisible (true);
     tree.addMouseListener (this, true);
     tree.getViewport()->setWantsKeyboardFocus (false);
+    tree.getViewport()->setScrollBarThickness (4);
     setColours();
     addAndMakeVisible (tree);
 }

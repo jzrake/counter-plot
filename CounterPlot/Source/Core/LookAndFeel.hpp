@@ -58,10 +58,15 @@ public:
 class AppLookAndFeel : public LookAndFeel_V4
 {
 public:
+
+    //=========================================================================
     Font getDefaultFont() const;
     void setDefaultFont (Font newDefaultFont);
     void incrementFontSize (int amount);
 
+    //=========================================================================
+    void drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float>& area,
+                                   Colour backgroundColour, bool isOpen, bool isMouseOver) override;
 private:
     Font defaultFont;
 };

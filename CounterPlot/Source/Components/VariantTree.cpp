@@ -40,11 +40,11 @@ void VariantTree::Item::paintItem (Graphics& g, int width, int height)
 
     if (mightContainSubItems())
     {
-        g.drawText (key.toString(), 8, 0, width, height, Justification::centredLeft);
+        g.drawText (key.toString(), 0, 0, width, height, Justification::centredLeft);
     }
     else
     {
-        g.drawText (key.toString() + " : " + data.toString(), 8, 0, width, height, Justification::centredLeft);
+        g.drawText (key.toString() + " : " + data.toString(), 0, 0, width, height, Justification::centredLeft);
     }
 }
 
@@ -81,7 +81,7 @@ int VariantTree::Item::depth()
 //=========================================================================
 VariantTree::VariantTree()
 {
-    tree.setIndentSize (12);
+    tree.setIndentSize (20);
     tree.setColour (TreeView::backgroundColourId, Colours::darkgrey);
     tree.setDefaultOpenness (true);
     setColours();
