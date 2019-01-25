@@ -96,7 +96,7 @@ public:
 
     virtual bool canReceiveMessages() const { return false; }
 
-    virtual void receiveMessage (const String& message) {}
+    virtual bool receiveMessage (const String& message) { return true; }
 
     virtual void setMessageSink (MessageSink* explicitMessageSink) { messageSink = explicitMessageSink; }
 

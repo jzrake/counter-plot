@@ -7,7 +7,7 @@
 #include "../Core/ViewerCollection.hpp"
 #include "../Core/Runtime.hpp"
 #include "../Core/TaskPool.hpp"
-#include "../Core/DataHelpers.hpp" // FilePoller
+#include "../Core/DataHelpers.hpp"
 #include "../Core/EditorKeyMappings.hpp"
 #include "../Plotting/ResizerFrame.hpp"
 
@@ -66,6 +66,8 @@ public:
     //=========================================================================
     void paint (Graphics& g) override;
     void resized() override;
+    void colourChanged() override;
+    void lookAndFeelChanged() override;
 
     //=========================================================================
     void timerCallback() override;
@@ -74,6 +76,7 @@ private:
 
     //=========================================================================
     Geometry computeGeometry() const;
+    void setColours();
 
     //=========================================================================
     EnvironmentViewToggleButton environmentViewToggleButton;
@@ -128,9 +131,14 @@ class KernelRuleEntry : public Component, public TextEditor::Listener
 public:
     KernelRuleEntry();
     void loadRule (const std::string& rule, const Runtime::Kernel& kernel);
+    void refresh (const Runtime::Kernel* kernel);
+    bool recallNext();
+    bool recallPrev();
 
     //=========================================================================
     void resized() override;
+    void colourChanged() override;
+    void lookAndFeelChanged() override;
 
     //=========================================================================
     void textEditorTextChanged (TextEditor&) override;
@@ -139,8 +147,15 @@ public:
     void textEditorFocusLost (TextEditor&) override;
 
 private:
+    //=========================================================================
+    void setColours();
+
     TextEditor editor;
     EditorKeyMappings keyMappings;
+    StringArray history;
+    String loadedRule;
+    String loadedText;
+    int indexInHistory = 0;
 };
 
 
@@ -177,7 +192,7 @@ public:
     void setCurrentViewer (const String& viewerName);
     void makeViewerCurrent (Viewer* viewer);
     void refreshCurrentViewerName();
-    void sendMessageToCurrentViewer (String& message);
+    bool sendMessageToCurrentViewer (String& message);
     bool canSendMessagesToCurrentViewer() const;
     void showKernelRule (const String& rule);
 

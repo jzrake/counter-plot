@@ -32,7 +32,7 @@ public:
     String getViewerName() const override;
     const Runtime::Kernel* getKernel() const override;
     bool canReceiveMessages() const override;
-    void receiveMessage (const String& message) override;
+    bool receiveMessage (const String& message) override;
 
     //=========================================================================
     void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;

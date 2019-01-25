@@ -193,7 +193,7 @@ void StatusBar::setCurrentInfoMessage (const String& info, int milliseconds)
 //=============================================================================
 void StatusBar::paint (Graphics& g)
 {
-    auto geom = computeGeometry();
+    auto geom                = computeGeometry();
     auto backgroundColour    = findColour (LookAndFeelHelpers::statusBarBackground);
     auto fontColour          = findColour (LookAndFeelHelpers::statusBarText);
     auto errorColour         = findColour (LookAndFeelHelpers::statusBarErrorText);
@@ -235,6 +235,18 @@ void StatusBar::resized()
     viewerNamePopupButton.setBounds (geom.viewerNamePopupArea);
 }
 
+void StatusBar::colourChanged()
+{
+    setColours();
+    repaint();
+}
+
+void StatusBar::lookAndFeelChanged()
+{
+    setColours();
+    repaint();
+}
+
 
 
 
@@ -265,6 +277,10 @@ StatusBar::Geometry StatusBar::computeGeometry() const
     geom.environmentViewToggleArea = area.removeFromLeft  (150);
     geom.messageArea               = area;
     return geom;
+}
+
+void StatusBar::setColours()
+{
 }
 
 
@@ -378,31 +394,56 @@ void EnvironmentView::selectedRowsChanged (int lastRowSelected)
 //=========================================================================
 KernelRuleEntry::KernelRuleEntry()
 {
-    editor.setColour (TextEditor::ColourIds::textColourId, Colours::whitesmoke);
-    editor.setColour (TextEditor::ColourIds::backgroundColourId, Colours::black.withAlpha (0.10f));
-    editor.setColour (TextEditor::ColourIds::highlightColourId, Colours::black.withAlpha (0.15f));
-    editor.setColour (TextEditor::ColourIds::highlightedTextColourId, Colours::whitesmoke);
-    editor.setColour (TextEditor::ColourIds::focusedOutlineColourId, Colours::transparentBlack);
-    editor.setColour (TextEditor::ColourIds::outlineColourId, Colours::transparentBlack);
     editor.setTextToShowWhenEmpty ("key: value", Colours::grey);
     editor.setFont (Font ("Monaco", 15, 0));
     editor.addListener (this);
     editor.addKeyListener (&keyMappings);
-    keyMappings.nextCallback = [this] () { return false; }; // navigate history here
-    keyMappings.prevCallback = [this] () { return false; };
+    keyMappings.nextCallback = [this] () { return recallNext(); };
+    keyMappings.prevCallback = [this] () { return recallPrev(); };
+    setColours();
     addAndMakeVisible (editor);
 }
 
 void KernelRuleEntry::loadRule (const std::string& rule, const Runtime::Kernel& kernel)
 {
-    if (! kernel.expr_at (rule).empty())
+    if (kernel.contains (rule))
     {
-        editor.setText (rule + ": " + kernel.expr_at (rule).str());
+        if (! kernel.expr_at (rule).empty())
+            editor.setText (rule + ": " + kernel.expr_at (rule).str());
+        else
+            editor.setText (rule + ": " + kernel.at (rule).toString().toStdString());
+
+        loadedRule = rule;
+        loadedText = editor.getText();
     }
-    else
+}
+
+void KernelRuleEntry::refresh (const Runtime::Kernel* kernel)
+{
+    if (kernel && editor.getText() == loadedText)
     {
-        editor.setText (rule + ": " + kernel.at (rule).toString().toStdString());
+        loadRule (loadedRule.toStdString(), *kernel);
     }
+}
+
+bool KernelRuleEntry::recallNext()
+{
+    if (indexInHistory < history.size())
+    {
+        editor.setText (history[++indexInHistory]);
+        return true;
+    }
+    return false;
+}
+
+bool KernelRuleEntry::recallPrev()
+{
+    if (indexInHistory > 0)
+    {
+        editor.setText (history[--indexInHistory]);
+        return true;
+    }
+    return false;
 }
 
 
@@ -412,7 +453,19 @@ void KernelRuleEntry::loadRule (const std::string& rule, const Runtime::Kernel& 
 void KernelRuleEntry::resized()
 {
     editor.setBounds (getLocalBounds());
-    editor.setIndents (2, (getHeight() - editor.getFont().getHeight()) / 2);
+    editor.setIndents (16, (getHeight() - editor.getFont().getHeight()) / 2);
+}
+
+void KernelRuleEntry::colourChanged()
+{
+    setColours();
+    repaint();
+}
+
+void KernelRuleEntry::lookAndFeelChanged()
+{
+    setColours();
+    repaint();
 }
 
 
@@ -427,11 +480,18 @@ void KernelRuleEntry::textEditorReturnKeyPressed (TextEditor&)
 {
     if (auto main = findParentComponentOfClass<MainComponent>())
     {
-        auto text = editor.getText();
-        main->sendMessageToCurrentViewer (text);
+        if (! editor.isEmpty())
+        {
+            auto text = editor.getText();
+
+            if (main->sendMessageToCurrentViewer (text))
+            {
+                editor.setText (String());
+                history.add (text);
+                indexInHistory = history.size();
+            }
+        }
     }
-    editor.clear();
-    editor.repaint();
 }
 
 void KernelRuleEntry::textEditorEscapeKeyPressed (TextEditor&)
@@ -444,6 +504,20 @@ void KernelRuleEntry::textEditorEscapeKeyPressed (TextEditor&)
 
 void KernelRuleEntry::textEditorFocusLost (TextEditor&)
 {
+}
+
+
+
+
+//=============================================================================
+void KernelRuleEntry::setColours()
+{
+    editor.setColour (TextEditor::textColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
+    editor.setColour (TextEditor::backgroundColourId, findColour (LookAndFeelHelpers::statusBarBackground));
+    editor.setColour (TextEditor::highlightColourId, Colours::black.withAlpha (0.15f));
+    editor.setColour (TextEditor::highlightedTextColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
+    editor.setColour (TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+    editor.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
 }
 
 
@@ -636,12 +710,13 @@ void MainComponent::refreshCurrentViewerName()
     }
 }
 
-void MainComponent::sendMessageToCurrentViewer (String& message)
+bool MainComponent::sendMessageToCurrentViewer (String& message)
 {
     if (currentViewer)
     {
-        currentViewer->receiveMessage (message);
+        return currentViewer->receiveMessage (message);
     }
+    return false;
 }
 
 bool MainComponent::canSendMessagesToCurrentViewer() const
@@ -735,7 +810,11 @@ void MainComponent::viewerIndicateSuccess()
 
 void MainComponent::viewerEnvironmentChanged()
 {
-    environmentView.refresh();
+    if (currentViewer)
+    {
+        environmentView.refresh();
+        kernelRuleEntry.refresh (currentViewer->getKernel());
+    }
 }
 
 

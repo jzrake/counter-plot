@@ -186,17 +186,19 @@ bool UserExtensionView::canReceiveMessages() const
     return true;
 }
 
-void UserExtensionView::receiveMessage (const String& message)
+bool UserExtensionView::receiveMessage (const String& message)
 {
     try {
         auto yroot = YAML::Load (message.toStdString());
         auto jroot = DataHelpers::varFromYamlNode (yroot);
         loadExpressionsFromDictIntoKernel (kernel, jroot, true);
         resolveKernel();
+        return true;
     }
     catch (const std::exception& e)
     {
         sendErrorMessage (e.what());
+        return false;
     }
 }
 
