@@ -24,27 +24,130 @@ void ViewerCollection::removeListener (Listener* listener)
 
 void ViewerCollection::add (std::unique_ptr<Viewer> viewerToAdd)
 {
+    listeners.call (&Listener::viewerCollectionViewerAdded, viewerToAdd.get());
     items.add ({ false, File(), Time(), std::move (viewerToAdd) });
 }
 
 void ViewerCollection::clear()
 {
+    for (const auto& item : items)
+        listeners.call (&Listener::viewerCollectionViewerRemoved, item.viewer.get());
+
     items.clear();
+    extensionDirectories.clear();
+}
+
+Array<File> ViewerCollection::getWatchedDirectories() const
+{
+    auto result = Array<File>();
+
+    for (auto ext : extensionDirectories)
+        result.add (ext.directory);
+    return result;
+}
+
+void ViewerCollection::setWatchedDirectories (const Array<File>& directoriesToWatch)
+{
+    Array<File> toStopWatching;
+
+    for (auto ext : extensionDirectories)
+        if (! directoriesToWatch.contains (ext.directory))
+            toStopWatching.add (ext.directory);
+
+    for (auto dir : toStopWatching)
+        stopWatchingDirectory (dir);
+
+    for (auto dir : directoriesToWatch)
+        startWatchingDirectory (dir);
+}
+
+bool ViewerCollection::isExtensionViewerLoaded (File source) const
+{
+    for (const auto& item : items)
+        if (item.source == source)
+            return true;
+    return false;
+}
+
+bool ViewerCollection::watchesDirectory (File directory) const
+{
+    for (const auto& ext : extensionDirectories)
+        if (ext.directory == directory)
+            return true;
+    return false;
+}
+
+void ViewerCollection::startWatchingDirectory (File directory)
+{
+    if (! watchesDirectory (directory))
+    {
+        extensionDirectories.add ({directory, Time::getCurrentTime()});
+        loadAllInDirectory (directory);
+    }
+}
+
+void ViewerCollection::stopWatchingDirectory (File directory)
+{
+    if (watchesDirectory (directory))
+    {
+        int index = 0;
+
+        for (const auto& ext : extensionDirectories)
+        {
+            if (ext.directory == directory)
+            {
+                unloadAllInDirectory (directory);
+                break;
+            }
+            ++index;
+        }
+        extensionDirectories.remove (index);
+    }
 }
 
 void ViewerCollection::loadAllInDirectory (File directory, Viewer::MessageSink* messageSink)
 {
     for (auto child : directory.findChildFiles (File::findFiles, false))
     {
-        if (child.hasFileExtension (".yaml"))
+        if (child.hasFileExtension (".yaml") && ! isExtensionViewerLoaded (child))
         {
             auto viewer = std::make_unique<UserExtensionView>();
+            auto v = viewer.get();
             viewer->setMessageSink (messageSink);
             viewer->configure (child);
-            listeners.call (&Listener::extensionViewerReconfigured, viewer.get());
             items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });
+            listeners.call (&Listener::viewerCollectionViewerAdded, v);
+            listeners.call (&Listener::viewerCollectionViewerReconfigured, v);
         }
     }
+}
+
+void ViewerCollection::unloadAllInDirectory (File directory)
+{
+    auto predicate = [directory] (const auto& item)
+    {
+        return item.source.isAChildOf (directory);
+    };
+
+    for (const auto& item : items)
+        if (predicate (item))
+            listeners.call (&Listener::viewerCollectionViewerRemoved, item.viewer.get());
+
+    items.removeIf (predicate);
+}
+
+void ViewerCollection::unloadAllNonexistentInDirectory (File directory)
+{
+    auto predicate = [directory] (const auto& item)
+    {
+        return item.source.isAChildOf (directory) && ! item.source.existsAsFile();
+    };
+
+    for (const auto& item : items)
+        if (predicate (item))
+            listeners.call (&Listener::viewerCollectionViewerRemoved, item.viewer.get());
+
+    items.removeIf (predicate);
 }
 
 void ViewerCollection::loadFromYamlString (const String& source, Viewer::MessageSink* messageSink)
@@ -91,13 +194,9 @@ void ViewerCollection::setBounds (const Rectangle<int>& newBounds, bool animated
         if (item.viewer->isVisible())
         {
             if (animated)
-            {
                 Desktop::getInstance().getAnimator().animateComponent (item.viewer.get(), bounds, 1.f, 200, false, 1.f, 1.f);
-            }
             else
-            {
                 item.viewer->setBounds (bounds);
-            }
         }
     }
 }
@@ -124,7 +223,16 @@ void ViewerCollection::timerCallback()
             auto& viewer = dynamic_cast<UserExtensionView&> (*item.viewer);
             viewer.configure (item.source);
             item.lastLoaded = Time::getCurrentTime();
-            listeners.call (&Listener::extensionViewerReconfigured, &viewer);
+            listeners.call (&Listener::viewerCollectionViewerReconfigured, &viewer);
+        }
+    }
+
+    for (auto& ext : extensionDirectories)
+    {
+        if (ext.lastLoaded < ext.directory.getLastModificationTime())
+        {
+            loadAllInDirectory (ext.directory);
+            unloadAllNonexistentInDirectory (ext.directory);
         }
     }
 }

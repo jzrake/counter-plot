@@ -74,6 +74,7 @@ UserExtensionsDirectoryEditor::UserExtensionsDirectoryEditor()
     editor.setMultiLine (true);
     editor.setTabKeyUsedAsCharacter (false);
     editor.setFont (Font ("Monaco", 12, 0));
+    mappings.returnKeyCallback = [this] () { return sendContentsToMainViewerCollection(); };
     setColours();
     addAndMakeVisible (editor);
 }
@@ -87,31 +88,13 @@ void UserExtensionsDirectoryEditor::setDirectories (const Array<File>& directori
     editor.setText (paths.joinIntoString ("\n"));
 }
 
-void UserExtensionsDirectoryEditor::setDirectories (const XmlElement& directories)
-{
-    auto paths = StringArray();
-
-    for (int n = 0; n < directories.getNumChildElements(); ++n)
-        paths.add (directories.getChildElement(n)->getText());
-    editor.setText (paths.joinIntoString ("\n"));
-}
-
 Array<File> UserExtensionsDirectoryEditor::getDirectories() const
 {
     auto directories = Array<File>();
 
     for (const auto& path : StringArray::fromLines (editor.getText()))
-        if (File::isAbsolutePath (path))
-            directories.add (path);
-    return directories;
-}
-
-std::unique_ptr<XmlElement> UserExtensionsDirectoryEditor::getDirectoriesAsXml() const
-{
-    auto directories = std::make_unique<XmlElement> ("Directories");
-
-    for (const auto& path : StringArray::fromLines (editor.getText()))
-        directories->addTextElement (path);
+        if (path.isNotEmpty())
+            directories.add (fromRelativePath (path));
     return directories;
 }
 
@@ -122,13 +105,12 @@ std::unique_ptr<XmlElement> UserExtensionsDirectoryEditor::getDirectoriesAsXml()
 void UserExtensionsDirectoryEditor::paint (Graphics& g)
 {
     auto instructionsArea = getLocalBounds().withTop (editor.getBottom());
-    
+    auto press = KeyPress (KeyPress::returnKey, ModifierKeys::commandModifier, 0);
+
     g.setColour (findColour (LookAndFeelHelpers::statusBarBackground));
     g.fillRect (instructionsArea);
 
-    auto press = KeyPress (KeyPress::returnKey, ModifierKeys::commandModifier, 0);
-
-    g.setFont (Font().withHeight (11)); // TODO: add status font to LAF
+    g.setFont (Font().withHeight (11)); // TODO: add font preference to LAF
     g.setColour (findColour (LookAndFeelHelpers::statusBarText));
     g.drawText ("Directories to watch for .yaml extensions - one per line.", instructionsArea.withTrimmedLeft(6), Justification::centredLeft);
     g.drawText (press.getTextDescriptionWithIcons(), instructionsArea.withTrimmedRight(6), Justification::centredRight);
@@ -137,6 +119,13 @@ void UserExtensionsDirectoryEditor::paint (Graphics& g)
 void UserExtensionsDirectoryEditor::resized()
 {
     editor.setBounds (getLocalBounds().withTrimmedBottom (22));
+}
+
+void UserExtensionsDirectoryEditor::visibilityChanged()
+{
+    if (isVisible())
+        if (auto main = findParentComponentOfClass<MainComponent>())
+            setDirectories (main->getViewerCollection().getWatchedDirectories());
 }
 
 void UserExtensionsDirectoryEditor::colourChanged()
@@ -157,7 +146,6 @@ void UserExtensionsDirectoryEditor::lookAndFeelChanged()
 //=========================================================================
 void UserExtensionsDirectoryEditor::textEditorTextChanged (TextEditor&)
 {
-
 }
 
 void UserExtensionsDirectoryEditor::textEditorReturnKeyPressed (TextEditor&)
@@ -187,6 +175,50 @@ void UserExtensionsDirectoryEditor::setColours()
     editor.setColour (TextEditor::highlightedTextColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
     editor.setColour (TextEditor::focusedOutlineColourId, Colours::transparentBlack);
     editor.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
+}
+
+bool UserExtensionsDirectoryEditor::areContentsValid() const
+{
+    for (auto dir : getDirectories())
+        if (dir == File())
+            return false;
+    return true;
+}
+
+bool UserExtensionsDirectoryEditor::sendContentsToMainViewerCollection()
+{
+    if (auto main = findParentComponentOfClass<MainComponent>())
+    {
+        if (areContentsValid())
+        {
+            main->getViewerCollection().setWatchedDirectories (getDirectories());
+            main->indicateSuccess ("Extension directories updated");
+            setVisible (false);
+            return true;
+        }
+        main->logErrorMessage ("Invalid directories");
+    }
+    return false;
+}
+
+String UserExtensionsDirectoryEditor::toRelativePath (const File& file) const
+{
+    auto home = File::getSpecialLocation (File::userHomeDirectory).getFullPathName();
+
+    if (file.getFullPathName().startsWith (home))
+        return file.getFullPathName().replaceFirstOccurrenceOf (home, "~");
+    return file.getFullPathName();
+}
+
+File UserExtensionsDirectoryEditor::fromRelativePath (const String& path) const
+{
+    auto home = File::getSpecialLocation (File::userHomeDirectory).getFullPathName();
+
+    if (path.startsWith ("~"))
+        return path.replaceFirstOccurrenceOf ("~", home);
+    else if (File::isAbsolutePath (path))
+        return path;
+    return File();
 }
 
 
@@ -652,9 +684,6 @@ void KernelRuleEntry::setColours()
 //=============================================================================
 MainComponent::MainComponent()
 {
-    DBG(File::getSpecialLocation(File::SpecialLocationType::hostApplicationPath).getFullPathName());
-    DBG(File::getSpecialLocation(File::SpecialLocationType::currentExecutableFile).getFullPathName());
-
     filePoller.setCallback ([this] (File) { reloadCurrentFile(); });
     directoryTree.addListener (this);
     directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
@@ -672,14 +701,13 @@ MainComponent::MainComponent()
      viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
 #warning("Loading hard-coded viewers")
 #else
-    viewers.loadAllInDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"), this);
+    viewers.startWatchingDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
 #endif
 
+//    for (auto view : viewers.getAllComponents())
+//        addChildComponent (view);
+
     addAndMakeVisible (directoryTree);
-
-    for (auto view : viewers.getAllComponents())
-        addChildComponent (view);
-
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
     addChildComponent (kernelRuleEntry);
@@ -716,11 +744,6 @@ void MainComponent::toggleDirectoryTreeShown (bool animated)
 
 void MainComponent::toggleEnvironmentViewShown (bool animated)
 {
-//    if (isKernelRuleEntryShowing())
-//    {
-//        toggleKernelRuleEntryShown();
-//    }
-
     environmentViewShowing = ! environmentViewShowing;
     environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
     layout (animated);
@@ -728,11 +751,6 @@ void MainComponent::toggleEnvironmentViewShown (bool animated)
 
 void MainComponent::toggleKernelRuleEntryShown()
 {
-//    if (isEnvironmentViewShowing())
-//    {
-//        toggleEnvironmentViewShown (false);
-//    }
-
     kernelRuleEntryShowing = ! kernelRuleEntryShowing;
     kernelRuleEntry.setVisible (kernelRuleEntryShowing);
     layout (false);
@@ -811,7 +829,7 @@ const Viewer* MainComponent::getCurrentViewer() const
     return currentViewer;
 }
 
-const ViewerCollection& MainComponent::getViewerCollection() const
+ViewerCollection& MainComponent::getViewerCollection()
 {
     return viewers;
 }
@@ -829,6 +847,15 @@ void MainComponent::setCurrentViewer (const String& viewerName)
     }
 }
 
+bool MainComponent::isViewerSuitable (Viewer* viewer) const
+{
+    if (viewer == nullptr)
+        return false;
+    if (viewer->isInterestedInFile (currentFile))
+        return true;
+    return false;
+}
+
 void MainComponent::makeViewerCurrent (Viewer* viewer)
 {
     if (viewer != currentViewer)
@@ -838,18 +865,17 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
             viewer->loadFile (currentFile);
             statusBar.setCurrentViewerName (viewer->getViewerName());
             environmentView.setKernel (viewer->getKernel());
-            viewers.showOnly (viewer);
         }
         else
         {
             statusBar.setCurrentViewerName (String());
             environmentView.setKernel (nullptr);
-            viewers.showOnly (nullptr);
         }
         if (isKernelRuleEntryShowing() && ! viewer->canReceiveMessages())
         {
             toggleKernelRuleEntryShown();
         }
+        viewers.showOnly (viewer);
         currentViewer = viewer;
         PatchViewApplication::getApp().getCommandManager().commandStatusChanged();
     }
@@ -858,9 +884,9 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
 void MainComponent::refreshCurrentViewerName()
 {
     if (currentViewer)
-    {
         statusBar.setCurrentViewerName (currentViewer->getViewerName());
-    }
+    else
+        statusBar.setCurrentViewerName (String());
 }
 
 bool MainComponent::sendMessageToCurrentViewer (String& message)
@@ -890,6 +916,17 @@ void MainComponent::showKernelRule (const String& rule)
             kernelRuleEntry.loadRule (rule.toStdString(), *kernel);
         }
     }
+}
+
+void MainComponent::indicateSuccess (const String& info)
+{
+    statusBar.setCurrentErrorMessage (String());
+    statusBar.setCurrentInfoMessage (info, 3000);
+}
+
+void MainComponent::logErrorMessage (const String& what)
+{
+    statusBar.setCurrentErrorMessage (what);
 }
 
 
@@ -974,26 +1011,29 @@ void MainComponent::viewerEnvironmentChanged()
 
 
 //=============================================================================
-void MainComponent::extensionViewerReconfigured (UserExtensionView* viewer)
+void MainComponent::viewerCollectionViewerReconfigured (Viewer *viewer)
 {
-    statusBar.setCurrentInfoMessage ("Reloaded " + viewer->getViewerName(), 3000);
+    statusBar.setCurrentInfoMessage ("Configure viewer " + viewer->getViewerName(), 3000);
 
     if (viewer == currentViewer)
-    {
-        if (viewer->isInterestedInFile (currentFile))
-        {
-            statusBar.setCurrentViewerName (viewer->getViewerName());
-            environmentView.setKernel (viewer->getKernel());
-        }
-        else // the viewer is no longer interested in the current file...
-        {
+        if (! isViewerSuitable (viewer))
             makeViewerCurrent (viewers.findViewerForFile (currentFile));
-        }
-    }
-    else if (currentViewer == nullptr && viewer->isInterestedInFile (currentFile))
-    {
+}
+
+void MainComponent::viewerCollectionViewerAdded (Viewer *viewer)
+{
+    statusBar.setCurrentInfoMessage ("Load viewer: " + viewer->getViewerName(), 3000);
+    addChildComponent (viewer, 0);
+    layout (false);
+
+    if (currentViewer == nullptr && isViewerSuitable (viewer))
         makeViewerCurrent (viewer);
-    }
+}
+
+void MainComponent::viewerCollectionViewerRemoved (Viewer *viewer)
+{
+    statusBar.setCurrentInfoMessage ("Unload viewer " + viewer->getViewerName(), 3000);
+    makeViewerCurrent (nullptr);
 }
 
 

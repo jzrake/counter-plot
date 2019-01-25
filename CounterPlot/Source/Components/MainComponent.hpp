@@ -22,13 +22,12 @@ public:
     //=========================================================================
     UserExtensionsDirectoryEditor();
     void setDirectories (const Array<File>& directories);
-    void setDirectories (const XmlElement& directories);
     Array<File> getDirectories() const;
-    std::unique_ptr<XmlElement> getDirectoriesAsXml() const;
 
     //=========================================================================
     void paint (Graphics& g) override;
     void resized() override;
+    void visibilityChanged() override;
     void colourChanged() override;
     void lookAndFeelChanged() override;
 
@@ -41,6 +40,10 @@ public:
 private:
     //=========================================================================
     void setColours();
+    bool areContentsValid() const;
+    bool sendContentsToMainViewerCollection();
+    String toRelativePath (const File& file) const;
+    File fromRelativePath (const String& path) const;
     TextEditor editor;
     EditorKeyMappings mappings;
 };
@@ -223,14 +226,17 @@ public:
     File getCurrentDirectory() const;
     File getCurrentFile() const;
     const Viewer* getCurrentViewer() const;
-    const ViewerCollection& getViewerCollection() const;
+    ViewerCollection& getViewerCollection();
     DirectoryTree& getDirectoryTree();
+    bool isViewerSuitable (Viewer*) const;
     void setCurrentViewer (const String& viewerName);
     void makeViewerCurrent (Viewer* viewer);
     void refreshCurrentViewerName();
     bool sendMessageToCurrentViewer (String& message);
     bool canSendMessagesToCurrentViewer() const;
     void showKernelRule (const String& rule);
+    void indicateSuccess (const String& info);
+    void logErrorMessage (const String& what);
 
     //=========================================================================
     void resized() override;
@@ -250,7 +256,9 @@ public:
     void viewerEnvironmentChanged() override;
 
     //=========================================================================
-    void extensionViewerReconfigured (UserExtensionView*) override;
+    void viewerCollectionViewerReconfigured (Viewer*) override;
+    void viewerCollectionViewerAdded (Viewer*) override;
+    void viewerCollectionViewerRemoved (Viewer*) override;
 
 private:
     //=========================================================================
