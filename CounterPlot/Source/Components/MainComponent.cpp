@@ -84,7 +84,7 @@ void UserExtensionsDirectoryEditor::setDirectories (const Array<File>& directori
     auto paths = StringArray();
 
     for (auto dir : directories)
-        paths.add (dir.getFullPathName());
+        paths.add (toRelativePath (dir.getFullPathName()));
     editor.setText (paths.joinIntoString ("\n"));
 }
 
@@ -171,7 +171,7 @@ void UserExtensionsDirectoryEditor::setColours()
 {
     editor.setColour (TextEditor::textColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
     editor.setColour (TextEditor::backgroundColourId, findColour (LookAndFeelHelpers::statusBarBackground));
-    editor.setColour (TextEditor::highlightColourId, Colours::black.withAlpha (0.15f));
+    editor.setColour (TextEditor::highlightColourId, findColour (LookAndFeelHelpers::statusBarBackground).brighter());
     editor.setColour (TextEditor::highlightedTextColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
     editor.setColour (TextEditor::focusedOutlineColourId, Colours::transparentBlack);
     editor.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
@@ -696,16 +696,13 @@ MainComponent::MainComponent()
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::make_unique<PDFViewer>());
 
-#if (JUCE_DEBUG == 0)
-     viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
-     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
-#warning("Loading hard-coded viewers")
-#else
-    viewers.startWatchingDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
-#endif
-
-//    for (auto view : viewers.getAllComponents())
-//        addChildComponent (view);
+//#if (JUCE_DEBUG == 0)
+//     viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
+//     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
+//#warning("Loading hard-coded viewers")
+//#else
+//    viewers.startWatchingDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
+//#endif
 
     addAndMakeVisible (directoryTree);
     addAndMakeVisible (environmentView);

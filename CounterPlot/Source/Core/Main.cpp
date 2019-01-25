@@ -165,6 +165,7 @@ void PatchViewApplication::initialise (const String& commandLine)
     currentDirectory = settings.getValue ("CurrentDirectory", File::getSpecialLocation (File::userHomeDirectory).getFullPathName());
     auto defaultFont = settings.getValue ("Font", Font().toString());
     auto directoryTreeState = std::unique_ptr<XmlElement> (settings.getXmlValue ("DirectoryTreeState"));
+    auto userExtensionDirectories = std::unique_ptr<XmlElement> (settings.getXmlValue ("UserExtensionDirectories"));
 
     configureLookAndFeel();
     lookAndFeel.setDefaultFont (Font::fromString (defaultFont));
@@ -176,9 +177,9 @@ void PatchViewApplication::initialise (const String& commandLine)
     mainWindow->content->setCurrentDirectory (currentDirectory);
 
     if (directoryTreeState)
-    {
         mainWindow->content->getDirectoryTree().restoreRootOpenness (*directoryTreeState);
-    }
+    if (userExtensionDirectories)
+        mainWindow->content->getViewerCollection().setWatchedDirectories (*userExtensionDirectories);
 
     commandManager->registerAllCommandsForTarget (this);
     Viewer::registerCommands (*commandManager);
@@ -195,6 +196,7 @@ void PatchViewApplication::shutdown()
     settings.setValue ("CurrentDirectory", currentDirectory.getFullPathName());
     settings.setValue ("Font", lookAndFeel.getDefaultFont().toString());
     settings.setValue ("DirectoryTreeState",  mainWindow->content->getDirectoryTree().getRootOpennessState().get());
+    settings.setValue ("UserExtensionDirectories",  mainWindow->content->getViewerCollection().getWatchedDirectoriesAsXml().get());
 
     MenuBarModel::setMacMainMenu (nullptr, nullptr);
 }

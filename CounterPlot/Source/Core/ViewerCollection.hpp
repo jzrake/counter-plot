@@ -49,7 +49,13 @@ public:
     Array<File> getWatchedDirectories() const;
 
 
+    std::unique_ptr<XmlElement> getWatchedDirectoriesAsXml() const;
+
+
     void setWatchedDirectories (const Array<File>& directoriesToWatch);
+
+
+    void setWatchedDirectories (const XmlElement& directoriesToWatch);
 
 
     bool isExtensionViewerLoaded (File source) const;

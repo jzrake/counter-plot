@@ -46,6 +46,19 @@ Array<File> ViewerCollection::getWatchedDirectories() const
     return result;
 }
 
+std::unique_ptr<XmlElement> ViewerCollection::getWatchedDirectoriesAsXml() const
+{
+    auto result = std::make_unique<XmlElement> ("FileList");
+
+    for (auto file : getWatchedDirectories())
+    {
+        auto child = new XmlElement ("File");
+        child->addTextElement (file.getFullPathName());
+        result->addChildElement (child);
+    }
+    return result;
+}
+
 void ViewerCollection::setWatchedDirectories (const Array<File>& directoriesToWatch)
 {
     Array<File> toStopWatching;
@@ -59,6 +72,20 @@ void ViewerCollection::setWatchedDirectories (const Array<File>& directoriesToWa
 
     for (auto dir : directoriesToWatch)
         startWatchingDirectory (dir);
+}
+
+void ViewerCollection::setWatchedDirectories (const XmlElement &directoriesToWatch)
+{
+    Array<File> directories;
+
+    for (int n = 0; n < directoriesToWatch.getNumChildElements(); ++n)
+    {
+        auto path = directoriesToWatch.getChildElement(n)->getAllSubText();
+
+        if (File::isAbsolutePath (path))
+            directories.add (path);
+    }
+    setWatchedDirectories (directories);
 }
 
 bool ViewerCollection::isExtensionViewerLoaded (File source) const
