@@ -15,6 +15,40 @@
 
 
 //=============================================================================
+class UserExtensionsDirectoryEditor : public Component, public TextEditor::Listener
+{
+public:
+    
+    //=========================================================================
+    UserExtensionsDirectoryEditor();
+    void setDirectories (const Array<File>& directories);
+    void setDirectories (const XmlElement& directories);
+    Array<File> getDirectories() const;
+    std::unique_ptr<XmlElement> getDirectoriesAsXml() const;
+
+    //=========================================================================
+    void paint (Graphics& g) override;
+    void resized() override;
+    void colourChanged() override;
+    void lookAndFeelChanged() override;
+
+    //=========================================================================
+    void textEditorTextChanged (TextEditor&) override;
+    void textEditorReturnKeyPressed (TextEditor&) override;
+    void textEditorEscapeKeyPressed (TextEditor&) override;
+    void textEditorFocusLost (TextEditor&) override;
+
+private:
+    //=========================================================================
+    void setColours();
+    TextEditor editor;
+    EditorKeyMappings mappings;
+};
+
+
+
+
+//=============================================================================
 class StatusBar : public Component, public Timer
 {
 public:
@@ -180,10 +214,12 @@ public:
     void toggleDirectoryTreeShown (bool animated=true);
     void toggleEnvironmentViewShown (bool animated=true);
     void toggleKernelRuleEntryShown();
+    void toggleUserExtensionsDirectoryEditor();
     bool hideExtraComponents();
     bool isDirectoryTreeShowing() const;
     bool isEnvironmentViewShowing() const;
     bool isKernelRuleEntryShowing() const;
+    bool isUserExtensionsDirectoryEditorShowing() const;
     File getCurrentDirectory() const;
     File getCurrentFile() const;
     const Viewer* getCurrentViewer() const;
@@ -233,5 +269,6 @@ private:
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
     KernelRuleEntry kernelRuleEntry;
+    UserExtensionsDirectoryEditor userExtensionsDirectoryEditor;
     FilePoller filePoller;
 };

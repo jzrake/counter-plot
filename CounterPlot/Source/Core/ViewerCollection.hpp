@@ -51,18 +51,25 @@ public:
     void loadAllInDirectory (File directory, Viewer::MessageSink* messageSink=nullptr);
 
 
+    /**
+     * Load a viewer configuration from a valid YAML string. Exceptions are not caught
+     * within the function, so be sure you are ready to catch them if the source isn't
+     * something you've already verified.
+     */
     void loadFromYamlString (const String& source, Viewer::MessageSink* messageSink=nullptr);
 
 
     /**
      * Return the first viewer that is interested in the given file, or nullptr
-     * if none exists.
+     * if none exists. If multiple viewers are interested, the one added most
+     * recently is returned.
      */
     Viewer* findViewerForFile (File file) const;
 
 
     /**
-     * Return the first viewer with the given name, or nullptr if none exists.
+     * Return the most recently added viewer with the given name, or nullptr if
+     * none exists.
      */
     Viewer* findViewerWithName (const String& viewerName) const;
 

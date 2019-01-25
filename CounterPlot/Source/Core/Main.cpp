@@ -98,6 +98,7 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
     }
     if (menuName == "View")
     {
+        menu.addCommandItem (manager, Commands::toggleUserExtensionsDirectoryEditor);
         menu.addCommandItem (manager, Commands::toggleEnvironmentView);
         menu.addCommandItem (manager, Commands::toggleKernelRuleEntry);
         menu.addCommandItem (manager, Commands::toggleDirectoryView);
@@ -218,6 +219,7 @@ void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
     const CommandID ids[] = {
         Commands::openDirectory,
         Commands::reloadCurrentFile,
+        Commands::toggleUserExtensionsDirectoryEditor,
         Commands::toggleDirectoryView,
         Commands::reloadDirectoryView,
         Commands::toggleEnvironmentView,
@@ -239,6 +241,11 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
         case Commands::reloadCurrentFile:
             result.setInfo ("Reload Current File", "", "File", 0);
             result.defaultKeypresses.add (KeyPress ('r', ModifierKeys::commandModifier, 0));
+            break;
+        case Commands::toggleUserExtensionsDirectoryEditor:
+            result.setInfo ("Edit Extensions Directories", "", "View",
+                            mainWindow && mainWindow->content->isUserExtensionsDirectoryEditorShowing() ? ApplicationCommandInfo::isTicked : 0);
+            result.defaultKeypresses.add (KeyPress ('<', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0));
             break;
         case Commands::toggleDirectoryView:
             result.setInfo ("Show Side Bar", "", "View",
@@ -276,14 +283,17 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
 
 bool PatchViewApplication::perform (const InvocationInfo& info)
 {
+    auto main = mainWindow->content.get();
+
     switch (info.commandID)
     {
         case Commands::openDirectory:             return presentOpenDirectoryDialog();
-        case Commands::toggleEnvironmentView:     mainWindow->content->toggleEnvironmentViewShown(); return true;
-        case Commands::toggleKernelRuleEntry:     mainWindow->content->toggleKernelRuleEntryShown(); return true;
-        case Commands::toggleDirectoryView:       mainWindow->content->toggleDirectoryTreeShown(); return true;
-        case Commands::reloadDirectoryView:       mainWindow->content->reloadDirectoryTree(); return true;
-        case Commands::reloadCurrentFile:         mainWindow->content->reloadCurrentFile(); return true;
+        case Commands::toggleUserExtensionsDirectoryEditor: main->toggleUserExtensionsDirectoryEditor(); return true;
+        case Commands::toggleEnvironmentView:     main->toggleEnvironmentViewShown(); return true;
+        case Commands::toggleKernelRuleEntry:     main->toggleKernelRuleEntryShown(); return true;
+        case Commands::toggleDirectoryView:       main->toggleDirectoryTreeShown(); return true;
+        case Commands::reloadDirectoryView:       main->reloadDirectoryTree(); return true;
+        case Commands::reloadCurrentFile:         main->reloadCurrentFile(); return true;
         case Commands::increaseFontSize:          lookAndFeel.incrementFontSize (+1); mainWindow->sendLookAndFeelChange(); return true;
         case Commands::decreaseFontSize:          lookAndFeel.incrementFontSize (-1); mainWindow->sendLookAndFeelChange(); return true;
         default:                                  return JUCEApplication::perform (info);

@@ -59,17 +59,17 @@ void ViewerCollection::loadFromYamlString (const String& source, Viewer::Message
 
 Viewer* ViewerCollection::findViewerForFile (File file) const
 {
-    for (const auto& item : items)
-        if (item.viewer->isInterestedInFile (file))
-            return item.viewer.get();
+    for (int n = items.size() - 1; n >= 0; --n)
+        if (items.getReference(n).viewer->isInterestedInFile (file))
+            return items.getReference(n).viewer.get();
     return nullptr;
 }
 
 Viewer* ViewerCollection::findViewerWithName (const String& viewerName) const
 {
-    for (const auto& item : items)
-        if (item.viewer->getViewerName() == viewerName)
-            return item.viewer.get();
+    for (int n = items.size() - 1; n >= 0; --n)
+        if (items.getReference(n).viewer->getViewerName() == viewerName)
+            return items.getReference(n).viewer.get();
     return nullptr;
 }
 

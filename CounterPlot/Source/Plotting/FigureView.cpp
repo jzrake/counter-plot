@@ -515,11 +515,6 @@ void FigureView::PlotArea::sendSetDomain (const Rectangle<double>& domain)
     figure.listeners.call (&Listener::figureViewSetDomain, &figure, domain);
 }
 
-void FigureView::PlotArea::sendSetDomainAndMargin (const Rectangle<double>& domain, const BorderSize<int>& margin)
-{
-    figure.listeners.call (&Listener::figureViewSetDomainAndMargin, &figure, domain, margin);
-}
-
 Rectangle<double> FigureView::PlotArea::computeZoomedDomain (const MouseEvent& e, float scaleFactor) const
 {
     const double xlim[2] = {figure.model.xmin, figure.model.xmax};

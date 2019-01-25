@@ -21,14 +21,15 @@ public:
     //=========================================================================
     enum Commands
     {
-        openDirectory         = 101,
-        reloadCurrentFile     = 102,
-        toggleDirectoryView   = 103,
-        reloadDirectoryView   = 104,
-        toggleEnvironmentView = 105,
-        toggleKernelRuleEntry = 106,
-        increaseFontSize      = 107,
-        decreaseFontSize      = 108,
+        openDirectory                       = 101,
+        reloadCurrentFile                   = 102,
+        toggleDirectoryView                 = 103,
+        reloadDirectoryView                 = 104,
+        toggleEnvironmentView               = 105,
+        toggleKernelRuleEntry               = 106,
+        toggleUserExtensionsDirectoryEditor = 107,
+        increaseFontSize                    = 108,
+        decreaseFontSize                    = 109,
     };
 
 

@@ -121,9 +121,6 @@ public:
         virtual void figureViewSetXlabel (FigureView*, const String&) = 0;
         virtual void figureViewSetYlabel (FigureView*, const String&) = 0;
         virtual void figureViewSetTitle  (FigureView*, const String&) = 0;
-
-        /* DEP */
-        virtual void figureViewSetDomainAndMargin (FigureView*, const Rectangle<double>&, const BorderSize<int>&) {}
     };
 
     //=========================================================================

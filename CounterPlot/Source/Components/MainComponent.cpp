@@ -66,6 +66,132 @@ private:
 
 
 
+//=========================================================================
+UserExtensionsDirectoryEditor::UserExtensionsDirectoryEditor()
+{
+    editor.addListener (this);
+    editor.addKeyListener (&mappings);
+    editor.setMultiLine (true);
+    editor.setTabKeyUsedAsCharacter (false);
+    editor.setFont (Font ("Monaco", 12, 0));
+    setColours();
+    addAndMakeVisible (editor);
+}
+
+void UserExtensionsDirectoryEditor::setDirectories (const Array<File>& directories)
+{
+    auto paths = StringArray();
+
+    for (auto dir : directories)
+        paths.add (dir.getFullPathName());
+    editor.setText (paths.joinIntoString ("\n"));
+}
+
+void UserExtensionsDirectoryEditor::setDirectories (const XmlElement& directories)
+{
+    auto paths = StringArray();
+
+    for (int n = 0; n < directories.getNumChildElements(); ++n)
+        paths.add (directories.getChildElement(n)->getText());
+    editor.setText (paths.joinIntoString ("\n"));
+}
+
+Array<File> UserExtensionsDirectoryEditor::getDirectories() const
+{
+    auto directories = Array<File>();
+
+    for (const auto& path : StringArray::fromLines (editor.getText()))
+        if (File::isAbsolutePath (path))
+            directories.add (path);
+    return directories;
+}
+
+std::unique_ptr<XmlElement> UserExtensionsDirectoryEditor::getDirectoriesAsXml() const
+{
+    auto directories = std::make_unique<XmlElement> ("Directories");
+
+    for (const auto& path : StringArray::fromLines (editor.getText()))
+        directories->addTextElement (path);
+    return directories;
+}
+
+
+
+
+//=========================================================================
+void UserExtensionsDirectoryEditor::paint (Graphics& g)
+{
+    auto instructionsArea = getLocalBounds().withTop (editor.getBottom());
+    
+    g.setColour (findColour (LookAndFeelHelpers::statusBarBackground));
+    g.fillRect (instructionsArea);
+
+    auto press = KeyPress (KeyPress::returnKey, ModifierKeys::commandModifier, 0);
+
+    g.setFont (Font().withHeight (11)); // TODO: add status font to LAF
+    g.setColour (findColour (LookAndFeelHelpers::statusBarText));
+    g.drawText ("Directories to watch for .yaml extensions - one per line.", instructionsArea.withTrimmedLeft(6), Justification::centredLeft);
+    g.drawText (press.getTextDescriptionWithIcons(), instructionsArea.withTrimmedRight(6), Justification::centredRight);
+}
+
+void UserExtensionsDirectoryEditor::resized()
+{
+    editor.setBounds (getLocalBounds().withTrimmedBottom (22));
+}
+
+void UserExtensionsDirectoryEditor::colourChanged()
+{
+    setColours();
+    repaint();
+}
+
+void UserExtensionsDirectoryEditor::lookAndFeelChanged()
+{
+    setColours();
+    repaint();
+}
+
+
+
+
+//=========================================================================
+void UserExtensionsDirectoryEditor::textEditorTextChanged (TextEditor&)
+{
+
+}
+
+void UserExtensionsDirectoryEditor::textEditorReturnKeyPressed (TextEditor&)
+{
+    editor.insertTextAtCaret ("\n");
+}
+
+void UserExtensionsDirectoryEditor::textEditorEscapeKeyPressed (TextEditor&)
+{
+    setVisible (false);
+}
+
+void UserExtensionsDirectoryEditor::textEditorFocusLost (TextEditor&)
+{
+    setVisible (false);
+}
+
+
+
+
+//=========================================================================
+void UserExtensionsDirectoryEditor::setColours()
+{
+    editor.setColour (TextEditor::textColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
+    editor.setColour (TextEditor::backgroundColourId, findColour (LookAndFeelHelpers::statusBarBackground));
+    editor.setColour (TextEditor::highlightColourId, Colours::black.withAlpha (0.15f));
+    editor.setColour (TextEditor::highlightedTextColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
+    editor.setColour (TextEditor::focusedOutlineColourId, Colours::transparentBlack);
+    editor.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
+}
+
+
+
+
 //=============================================================================
 StatusBar::EnvironmentViewToggleButton::EnvironmentViewToggleButton() : Button ("")
 {
@@ -526,6 +652,9 @@ void KernelRuleEntry::setColours()
 //=============================================================================
 MainComponent::MainComponent()
 {
+    DBG(File::getSpecialLocation(File::SpecialLocationType::hostApplicationPath).getFullPathName());
+    DBG(File::getSpecialLocation(File::SpecialLocationType::currentExecutableFile).getFullPathName());
+
     filePoller.setCallback ([this] (File) { reloadCurrentFile(); });
     directoryTree.addListener (this);
     directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
@@ -554,6 +683,7 @@ MainComponent::MainComponent()
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
     addChildComponent (kernelRuleEntry);
+    addChildComponent (userExtensionsDirectoryEditor);
     setSize (1024, 768 - 64);
 }
 
@@ -613,8 +743,26 @@ void MainComponent::toggleKernelRuleEntryShown()
     }
 }
 
+void MainComponent::toggleUserExtensionsDirectoryEditor()
+{
+    if (userExtensionsDirectoryEditor.isVisible())
+    {
+        userExtensionsDirectoryEditor.setVisible (false);
+    }
+    else
+    {
+        userExtensionsDirectoryEditor.setVisible (true);
+        userExtensionsDirectoryEditor.grabKeyboardFocus();
+    }
+}
+
 bool MainComponent::hideExtraComponents()
 {
+    if (userExtensionsDirectoryEditor.isVisible())
+    {
+        userExtensionsDirectoryEditor.setVisible (false);
+        return true;
+    }
     if (kernelRuleEntryShowing)
     {
         toggleKernelRuleEntryShown();
@@ -641,6 +789,11 @@ bool MainComponent::isEnvironmentViewShowing() const
 bool MainComponent::isKernelRuleEntryShowing() const
 {
     return kernelRuleEntryShowing;
+}
+
+bool MainComponent::isUserExtensionsDirectoryEditorShowing() const
+{
+    return userExtensionsDirectoryEditor.isVisible();
 }
 
 File MainComponent::getCurrentDirectory() const
@@ -872,4 +1025,6 @@ void MainComponent::layout (bool animated)
     setBounds (directoryTree, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
     viewers.setBounds (area, animated);
+
+    userExtensionsDirectoryEditor.setBounds (getLocalBounds().withSizeKeepingCentre (400, 300));
 }
