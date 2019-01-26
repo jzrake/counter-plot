@@ -123,6 +123,8 @@ void SourceList::setCaptureForSource (File source, Image capturedImage)
 {
     int n = sources.indexOf (source);
     assets.getReference(n).capture = capturedImage;
+    assets.getReference(n).thumbnail = capturedImage.rescaled (capturedImage.getWidth() / 4,
+                                                               capturedImage.getHeight() / 4);
     list.repaintRow(n);
 }
 
@@ -133,6 +135,17 @@ Array<Image> SourceList::getAllImageAssets() const
     for (const auto& item : assets)
         captures.add (item.capture);
     return captures;
+}
+
+Array<File> SourceList::getSelectedSources() const
+{
+    Array<File> selectedSources;
+    int n = 0;
+
+    for (const auto& source : sources)
+        if (list.isRowSelected (n++))
+            selectedSources.add (source);
+    return selectedSources;
 }
 
 
@@ -186,7 +199,7 @@ void SourceList::paintListBoxItem (int row, Graphics &g, int width, int height, 
     auto area = Rectangle<int> (0, 0, width, height);
     auto nameArea = area.removeFromTop (22);
     auto imageArea = area.reduced (8, 0).withTrimmedBottom(4);
-    auto image = assets.getReference (row).capture;
+    auto image = assets.getReference (row).thumbnail;
 
     g.setColour (findColour (AppLookAndFeel::directoryTreeFile));
     g.drawText (sources.getReference (row).getFileName(), nameArea.reduced (8, 0), Justification::centred);
@@ -1060,6 +1073,17 @@ void MainComponent::setCurrentDirectory (File newCurrentDirectory)
     directoryTree.setDirectoryToShow (newCurrentDirectory);
 }
 
+void MainComponent::setCurrentFile (File newCurrentFile)
+{
+    currentFile = newCurrentFile;
+    filePoller.setFileToPoll (currentFile);
+
+    if (currentViewer && currentViewer->isInterestedInFile (currentFile))
+        currentViewer->loadFile (currentFile);
+    else if (auto viewer = viewers.findViewerForFile (currentFile))
+        makeViewerCurrent (viewer);
+}
+
 void MainComponent::reloadCurrentFile()
 {
     if (currentViewer)
@@ -1307,13 +1331,7 @@ void MainComponent::resized()
 //=============================================================================
 void MainComponent::directoryTreeSelectedFileChanged (DirectoryTree*, File file)
 {
-    currentFile = file;
-    filePoller.setFileToPoll (currentFile);
-
-    if (currentViewer && currentViewer->isInterestedInFile (currentFile))
-        currentViewer->loadFile (currentFile);
-    else if (auto viewer = viewers.findViewerForFile (file))
-        makeViewerCurrent (viewer);
+    setCurrentFile (file);
 }
 
 void MainComponent::directoryTreeWantsFileToBeSource (DirectoryTree*, File file)
@@ -1341,15 +1359,20 @@ void MainComponent::sourceListSelectedSourceChanged (SourceList*, File file)
 
 void MainComponent::sourceListWantsCaptureOfCurrent (SourceList*)
 {
-    if (currentViewer && currentViewer->isRenderingComplete())
+    for (auto source : sourceList.getSelectedSources())
     {
-        auto capture = currentViewer->createViewerSnapshot();
-        sourceList.setCaptureForSource (currentFile, capture);
-        indicateSuccess ("Recorded snapshot");
-    }
-    else
-    {
-        logErrorMessage ("Cannot do a snapshot because viewer is still rendering...");
+        setCurrentFile (source);
+
+        if (currentViewer && currentViewer->isRenderingComplete())
+        {
+            auto capture = currentViewer->createViewerSnapshot();
+            sourceList.setCaptureForSource (currentFile, capture);
+            indicateSuccess ("Recorded snapshot for " + currentFile.getFileName());
+        }
+        else
+        {
+            logErrorMessage ("Cannot do a snapshot because viewer is still rendering...");
+        }
     }
 }
 
@@ -1402,10 +1425,6 @@ void MainComponent::viewerEnvironmentChanged()
         kernelRuleEntry.refresh (currentViewer->getKernel());
     }
 }
-
-//void MainComponent::viewerRenderingStateChanged (bool isCurrentlyRendering)
-//{
-//}
 
 
 

@@ -222,7 +222,7 @@ Image UserExtensionView::createViewerSnapshot()
         if (figure->isVisible())
             figure->captureRenderingSurfaceInNextPaint();
 
-    return createComponentSnapshot (getLocalBounds());
+    return createComponentSnapshot (getLocalBounds(), false, 2.f);
 }
 
 

@@ -74,6 +74,7 @@ public:
     void removeSourceAtRow (int row);
     void setCaptureForSource (File source, Image capturedImage);
     Array<Image> getAllImageAssets() const;
+    Array<File> getSelectedSources() const;
 
     //=========================================================================
     void resized() override;
@@ -94,6 +95,7 @@ private:
     struct SourceAssets
     {
         Image capture;
+        Image thumbnail;
     };
 
     void sendSelectedSourceChanged (int row);
@@ -306,6 +308,7 @@ public:
     MainComponent();
     ~MainComponent();
     void setCurrentDirectory (File newCurrentDirectory);
+    void setCurrentFile (File newCurrentFile);
     void reloadCurrentFile();
     void reloadDirectoryTree();
     void toggleDirectoryTreeShown (bool animated=true);
@@ -324,7 +327,6 @@ public:
     DirectoryTree& getDirectoryTree();
     bool isViewerSuitable (Viewer*) const;
     void setCurrentViewer (const String& viewerName);
-    void makeViewerCurrent (Viewer* viewer);
     void refreshCurrentViewerName();
     bool sendMessageToCurrentViewer (String& message);
     bool canSendMessagesToCurrentViewer() const;
@@ -364,6 +366,7 @@ public:
 private:
     //=========================================================================
     void layout (bool animated);
+    void makeViewerCurrent (Viewer* viewer);
 
     //=========================================================================
     File currentFile;

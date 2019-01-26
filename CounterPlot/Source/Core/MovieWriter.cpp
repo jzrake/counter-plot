@@ -19,6 +19,10 @@ void FFMpegMovieWriter::writeImagesToFile (const Array<Image>& images, File outp
 	auto temp = File::getSpecialLocation (File::tempDirectory);
     auto n = 0;
 
+    for (auto existing : temp.findChildFiles (File::findFiles, false))
+        if (existing.hasFileExtension (".png"))
+            existing.deleteFile();
+
     for (const auto& image : images)
     {
         char frameFileName[256];
