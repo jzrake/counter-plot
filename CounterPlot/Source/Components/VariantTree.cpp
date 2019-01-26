@@ -84,6 +84,7 @@ VariantTree::VariantTree()
     tree.setIndentSize (20);
     tree.setColour (TreeView::backgroundColourId, Colours::darkgrey);
     tree.setDefaultOpenness (true);
+    tree.getViewport()->setWantsKeyboardFocus (false);
     setColours();
     addAndMakeVisible (tree);
 }

@@ -67,6 +67,8 @@ public:
     //=========================================================================
     void drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float>& area,
                                    Colour backgroundColour, bool isOpen, bool isMouseOver) override;
+    int getDefaultScrollbarWidth() override;
+
 private:
     Font defaultFont;
 };

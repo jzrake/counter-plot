@@ -319,6 +319,7 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (Label::ColourIds::textColourId, Colours::lightgrey);
     laf.setColour (Label::ColourIds::textWhenEditingColourId, Colours::lightgrey);
     laf.setColour (Label::ColourIds::backgroundWhenEditingColourId, Colours::white);
+    laf.setColour (ScrollBar::ColourIds::thumbColourId, Colours::cornflowerblue.withAlpha (0.5f));
 
     LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::BackgroundScheme::dark);
     LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels1);

@@ -127,3 +127,8 @@ void AppLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<floa
     g.setColour (backgroundColour.contrasting().withAlpha (isMouseOver ? 0.4f : 0.2f));
     g.fillPath (p, p.getTransformToScaleToFit (area.reduced (6), true));
 }
+
+int AppLookAndFeel::getDefaultScrollbarWidth()
+{
+    return 6;
+}

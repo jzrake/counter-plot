@@ -133,9 +133,9 @@ DirectoryTree::DirectoryTree()
 {
     tree.setIndentSize (20);
     tree.setRootItemVisible (true);
+    tree.setMultiSelectEnabled (true);
     tree.addMouseListener (this, true);
     tree.getViewport()->setWantsKeyboardFocus (false);
-    tree.getViewport()->setScrollBarThickness (4);
     setColours();
     addAndMakeVisible (tree);
 }
@@ -167,6 +167,7 @@ void DirectoryTree::setDirectoryToShow (File directoryToShow)
 void DirectoryTree::reloadAll()
 {
     auto state = std::unique_ptr<XmlElement> (root ? root->getOpennessState() : nullptr);
+
     setMouseOverItem (nullptr);
     tree.setRootItem (nullptr);
     root = std::make_unique<Item> (*this, currentDirectory);
