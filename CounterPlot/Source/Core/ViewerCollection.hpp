@@ -29,58 +29,95 @@ public:
 
 
     //=========================================================================
+
+    /**
+     * Constructor.
+     */
     ViewerCollection();
+
+
+    /**
+     * Add a listener. Listeners are notified whenever new extension views are
+     * added and removed, or when their source code changes and their configure
+     * method is called.
+     */
     void addListener (Listener* listener);
+
+
+    /**
+     * Remove a listener.
+     */
     void removeListener (Listener* listener);
 
 
     /**
-     * Add a new viewer to the collection.
+     * Add a new viewer to the collection. Calls viewerCollectionViewerAdded
+     * after the extension is actually loaded.
      */
     void add (std::unique_ptr<Viewer> viewerToAdd);
 
 
     /**
-     * Remove all viewers from the collection.
+     * Remove all viewers from the collection. viewerCollectionViewerRemoved
+     * is called for each extension before it is actually deleted.
      */
     void clear();
 
 
+    /**
+     * Return an array of the files which are being watched.
+     */
     Array<File> getWatchedDirectories() const;
 
 
+    /**
+     * Return an XML element of the watched extension directories. Helpful for
+     * persistence.
+     */
     std::unique_ptr<XmlElement> getWatchedDirectoriesAsXml() const;
 
 
+    /**
+     * Set the directories that should be monitored for user extension views.
+     * This method diffs the given list of directories with those already
+     * watched, calling startWatchingDirectory and stopWatchingDirectory
+     * appropriately.
+     */
     void setWatchedDirectories (const Array<File>& directoriesToWatch);
 
 
+    /**
+     * Same as above, but can be called with an XML element like that returned
+     * from getWatchedDirectoriesAsXml. 
+     */
     void setWatchedDirectories (const XmlElement& directoriesToWatch);
 
 
+    /**
+     * Return true if the given file is currently loaded as an extension.
+     */
     bool isExtensionViewerLoaded (File source) const;
 
 
+    /**
+     * Return true if the given directory is currently watched for extensions.
+     */
     bool watchesDirectory (File directory) const;
 
 
+    /**
+     * Load all the extensions in the given directory, and keep them in sync.
+     * Removing a file from that directory will trigger the extension to be
+     * unloaded, and if a new one is added, it will be loaded.
+     */
     void startWatchingDirectory (File directory);
 
 
-    void stopWatchingDirectory (File directory);
-
-
     /**
-     * Create a UserExtensionView for each of the .yaml files in the given
-     * directory.
+     * Stop watching the given directory if it is currently watched, and
+     * unload any extensions it contained.
      */
-    void loadAllInDirectory (File directory, Viewer::MessageSink* messageSink=nullptr);
-
-
-    void unloadAllInDirectory (File directory);
-
-
-    void unloadAllNonexistentInDirectory (File directory);
+    void stopWatchingDirectory (File directory);
 
 
     /**
@@ -88,7 +125,7 @@ public:
      * within the function, so be sure you are ready to catch them if the source isn't
      * something you've already verified.
      */
-    void loadFromYamlString (const String& source, Viewer::MessageSink* messageSink=nullptr);
+    void loadFromYamlString (const String& source);
 
     /**
      * Return the first viewer that is interested in the given file, or nullptr
@@ -127,6 +164,11 @@ public:
 
 
 private:
+
+    //=========================================================================
+    void loadAllInDirectory (File directory);
+    void unloadAllInDirectory (File directory);
+    void unloadAllNonexistentInDirectory (File directory);
 
     //=========================================================================
     void timerCallback() override;

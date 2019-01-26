@@ -28,8 +28,12 @@ public:
 
     void loadFile (File file) override
     {
-        currentFile = file;
-        reloadFile();
+        if (file != currentFile)
+        {
+            currentFile = file;
+            viewer.reset();
+            reloadFile();
+        }
     }
 
     void reloadFile() override
@@ -50,6 +54,16 @@ public:
     const Runtime::Kernel* getKernel() const override
     {
         return viewer.getKernel();
+    }
+
+    bool canReceiveMessages() const override
+    {
+        return viewer.canReceiveMessages();
+    }
+
+    bool receiveMessage (const String& message) override
+    {
+        return viewer.receiveMessage (message);
     }
 
     //=========================================================================
@@ -73,7 +87,7 @@ UserExtensionsDirectoryEditor::UserExtensionsDirectoryEditor()
     editor.addKeyListener (&mappings);
     editor.setMultiLine (true);
     editor.setTabKeyUsedAsCharacter (false);
-    editor.setFont (Font ("Monaco", 12, 0));
+    editor.setFont (Font ("Menlo", 14, 0));
     mappings.returnKeyCallback = [this] () { return sendContentsToMainViewerCollection(); };
     setColours();
     addAndMakeVisible (editor);
@@ -522,7 +536,7 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
     auto text1 = findColour (LookAndFeelHelpers::environmentViewText1);
     auto text2 = findColour (LookAndFeelHelpers::environmentViewText2);
 
-    g.setFont (Font ("Monaco", 11, 0));
+    g.setFont (Font ("Menlo", 11, 0));
     g.setColour (text1);
     g.drawText (keys[rowNumber], 8, 0, width - 16, height, Justification::centredLeft);
 
@@ -553,7 +567,7 @@ void EnvironmentView::selectedRowsChanged (int lastRowSelected)
 KernelRuleEntry::KernelRuleEntry()
 {
     editor.setTextToShowWhenEmpty ("key: value", Colours::grey);
-    editor.setFont (Font ("Monaco", 15, 0));
+    editor.setFont (Font ("Menlo", 15, 0));
     editor.addListener (this);
     editor.addKeyListener (&keyMappings);
     keyMappings.nextCallback = [this] () { return recallNext(); };
@@ -688,21 +702,20 @@ MainComponent::MainComponent()
     directoryTree.addListener (this);
     directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
     environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
+    statusBar.setCurrentViewerName ("Viewer List");
 
     viewers.addListener (this);
-    viewers.add (std::make_unique<MetaYamlViewer> (this));
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::make_unique<PDFViewer>());
+    viewers.add (std::make_unique<MetaYamlViewer> (this));
 
-//#if (JUCE_DEBUG == 0)
-//     viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
-//     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
-//#warning("Loading hard-coded viewers")
-//#else
-//    viewers.startWatchingDirectory (File ("/Users/jzrake/Work/CounterPlot/Viewers"));
-//#endif
+#if (JUCE_DEBUG == 0)
+     viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
+     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
+#warning("Loading hard-coded viewers")
+#endif
 
     addAndMakeVisible (directoryTree);
     addAndMakeVisible (environmentView);
@@ -865,7 +878,7 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
         }
         else
         {
-            statusBar.setCurrentViewerName (String());
+            statusBar.setCurrentViewerName ("Viewer List");
             environmentView.setKernel (nullptr);
         }
         if (isKernelRuleEntryShowing() && ! viewer->canReceiveMessages())
@@ -1030,7 +1043,9 @@ void MainComponent::viewerCollectionViewerAdded (Viewer *viewer)
 void MainComponent::viewerCollectionViewerRemoved (Viewer *viewer)
 {
     statusBar.setCurrentInfoMessage ("Unload viewer " + viewer->getViewerName(), 3000);
-    makeViewerCurrent (nullptr);
+
+    if (viewer == currentViewer)
+        makeViewerCurrent (nullptr);
 }
 
 

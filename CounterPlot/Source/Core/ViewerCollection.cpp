@@ -132,58 +132,12 @@ void ViewerCollection::stopWatchingDirectory (File directory)
     }
 }
 
-void ViewerCollection::loadAllInDirectory (File directory, Viewer::MessageSink* messageSink)
-{
-    for (auto child : directory.findChildFiles (File::findFiles, false))
-    {
-        if (child.hasFileExtension (".yaml") && ! isExtensionViewerLoaded (child))
-        {
-            auto viewer = std::make_unique<UserExtensionView>();
-            auto v = viewer.get();
-            viewer->setMessageSink (messageSink);
-            viewer->configure (child);
-            items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });
-            listeners.call (&Listener::viewerCollectionViewerAdded, v);
-            listeners.call (&Listener::viewerCollectionViewerReconfigured, v);
-        }
-    }
-}
-
-void ViewerCollection::unloadAllInDirectory (File directory)
-{
-    auto predicate = [directory] (const auto& item)
-    {
-        return item.source.isAChildOf (directory);
-    };
-
-    for (const auto& item : items)
-        if (predicate (item))
-            listeners.call (&Listener::viewerCollectionViewerRemoved, item.viewer.get());
-
-    items.removeIf (predicate);
-}
-
-void ViewerCollection::unloadAllNonexistentInDirectory (File directory)
-{
-    auto predicate = [directory] (const auto& item)
-    {
-        return item.source.isAChildOf (directory) && ! item.source.existsAsFile();
-    };
-
-    for (const auto& item : items)
-        if (predicate (item))
-            listeners.call (&Listener::viewerCollectionViewerRemoved, item.viewer.get());
-
-    items.removeIf (predicate);
-}
-
-void ViewerCollection::loadFromYamlString (const String& source, Viewer::MessageSink* messageSink)
+void ViewerCollection::loadFromYamlString (const String& source)
 {
     auto viewer = std::make_unique<UserExtensionView>();
     auto yroot = YAML::Load (source.toStdString());
     auto jroot = DataHelpers::varFromYamlNode (yroot);
     viewer->configure (jroot);
-    viewer->setMessageSink (messageSink);
     add (std::move (viewer));
 }
 
@@ -235,6 +189,54 @@ void ViewerCollection::showOnly (Viewer* componentThatShouldBeVisible) const
         item.viewer->setVisible (item.viewer.get() == componentThatShouldBeVisible);
         item.viewer->setBounds (bounds);
     }
+}
+
+
+
+
+//=========================================================================
+void ViewerCollection::loadAllInDirectory (File directory)
+{
+    for (auto child : directory.findChildFiles (File::findFiles, false))
+    {
+        if (child.hasFileExtension (".yaml") && ! isExtensionViewerLoaded (child))
+        {
+            auto viewer = std::make_unique<UserExtensionView>();
+            auto v = viewer.get();
+            viewer->configure (child);
+            items.add ({ true, child, Time::getCurrentTime(), std::move (viewer) });
+            listeners.call (&Listener::viewerCollectionViewerAdded, v);
+            listeners.call (&Listener::viewerCollectionViewerReconfigured, v);
+        }
+    }
+}
+
+void ViewerCollection::unloadAllInDirectory (File directory)
+{
+    auto predicate = [directory] (const auto& item)
+    {
+        return item.source.isAChildOf (directory);
+    };
+
+    for (const auto& item : items)
+        if (predicate (item))
+            listeners.call (&Listener::viewerCollectionViewerRemoved, item.viewer.get());
+
+    items.removeIf (predicate);
+}
+
+void ViewerCollection::unloadAllNonexistentInDirectory (File directory)
+{
+    auto predicate = [directory] (const auto& item)
+    {
+        return item.source.isAChildOf (directory) && ! item.source.existsAsFile();
+    };
+
+    for (const auto& item : items)
+        if (predicate (item))
+            listeners.call (&Listener::viewerCollectionViewerRemoved, item.viewer.get());
+
+    items.removeIf (predicate);
 }
 
 

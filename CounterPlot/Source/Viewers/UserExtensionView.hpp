@@ -19,6 +19,7 @@ public:
 
     //=========================================================================
     UserExtensionView();
+    void reset();
     void configure (const var& config);
     void configure (File file);
 

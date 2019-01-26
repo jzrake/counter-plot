@@ -1,4 +1,5 @@
 #include "ColourMapViewer.hpp"
+#include "../Plotting/Artists.hpp"
 
 
 

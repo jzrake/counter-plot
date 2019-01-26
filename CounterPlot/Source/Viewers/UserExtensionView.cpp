@@ -9,12 +9,21 @@
 //=============================================================================
 UserExtensionView::UserExtensionView() : taskPool (4)
 {
+    reset();
+    taskPool.addListener (this);
+    setWantsKeyboardFocus (true);
+}
+
+void UserExtensionView::reset()
+{
+    kernel.clear();
     Runtime::load_builtins (kernel);
     kernel.insert ("file", currentFile.getFullPathName());
     kernel.insert ("stops", Runtime::make_data (colourMaps.getCurrentStops()));
 
-    taskPool.addListener (this);
-    setWantsKeyboardFocus (true);
+    taskPool.cancelAll();
+    figures.clear();
+    layout.items.clear();
 }
 
 void UserExtensionView::configure (const var& config)

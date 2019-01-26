@@ -1,6 +1,6 @@
 #include "Runtime.hpp"
 #include "DataHelpers.hpp"
-#include "../Plotting/FigureView.hpp"
+#include "../Plotting/Artists.hpp"
 
 
 
