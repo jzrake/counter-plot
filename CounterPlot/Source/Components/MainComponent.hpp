@@ -15,6 +15,63 @@
 
 
 //=============================================================================
+class EitherOrComponent : public Component
+{
+public:
+
+    //=========================================================================
+    EitherOrComponent();
+    void setComponent1 (Component* componentToShow);
+    void setComponent2 (Component* componentToShow);
+
+    //=========================================================================
+    void paint (Graphics& g) override;
+    void resized() override;
+
+private:
+
+    //=========================================================================
+    class TabButton : public Button
+    {
+    public:
+        TabButton();
+        void paintButton (Graphics& g, bool, bool) override;
+    };
+
+    WeakReference<Component> component1;
+    WeakReference<Component> component2;
+    TabButton button1;
+    TabButton button2;
+};
+
+
+
+
+//=============================================================================
+class SourceList : public Component, public ListBoxModel
+{
+public:
+    //=========================================================================
+    SourceList();
+
+    //=========================================================================
+    void resized() override;
+    void paint (Graphics& g) override;
+
+    //=========================================================================
+    int getNumRows() override;
+    void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
+    void selectedRowsChanged (int lastRowSelected) override;
+    String getTooltipForRow (int row) override;
+
+private:
+    ListBox list;
+};
+
+
+
+
+//=============================================================================
 class UserExtensionsDirectoryEditor : public Component, public TextEditor::Listener
 {
 public:
@@ -148,6 +205,7 @@ public:
     int getNumRows() override;
     void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
     void selectedRowsChanged (int lastRowSelected) override;
+    String getTooltipForRow (int row) override;
 
 private:
     //=========================================================================
@@ -273,10 +331,12 @@ private:
     //=========================================================================
     StatusBar statusBar;
     DirectoryTree directoryTree;
+    SourceList sourceList;
     ViewerCollection viewers;
     Viewer* currentViewer = nullptr;
     EnvironmentView environmentView;
     KernelRuleEntry kernelRuleEntry;
     UserExtensionsDirectoryEditor userExtensionsDirectoryEditor;
+    EitherOrComponent sidebar;
     FilePoller filePoller;
 };

@@ -8,6 +8,154 @@
 
 
 
+//=========================================================================
+EitherOrComponent::EitherOrComponent()
+{
+    addAndMakeVisible (button1);
+    addAndMakeVisible (button2);
+    button1.setToggleState (true, NotificationType::dontSendNotification);
+    button1.onStateChange = [this] { if (component1) component1->setVisible (button1.getToggleState()); };
+    button2.onStateChange = [this] { if (component2) component2->setVisible (button2.getToggleState()); };
+}
+
+void EitherOrComponent::setComponent1 (Component* componentToShow)
+{
+    addChildComponent (component1 = componentToShow);
+
+    if (component1)
+    {
+        button1.setButtonText (component1->getName());
+        component1->setVisible (button1.getToggleState());
+    }
+}
+
+void EitherOrComponent::setComponent2 (Component* componentToShow)
+{
+    addChildComponent (component2 = componentToShow);
+
+    if (component2)
+    {
+        button2.setButtonText (component2->getName());
+        component2->setVisible (button2.getToggleState());
+    }
+}
+
+
+
+
+//=========================================================================
+SourceList::SourceList()
+{
+    list.setColour (ListBox::ColourIds::backgroundColourId, Colours::transparentBlack);
+    list.setModel (this);
+    list.setRowHeight (48);
+    addAndMakeVisible (list);
+}
+
+
+
+
+//=========================================================================
+void SourceList::resized()
+{
+    list.setBounds (getLocalBounds());
+}
+
+void SourceList::paint (Graphics& g)
+{
+    g.fillAll (findColour (LookAndFeelHelpers::directoryTreeBackground));
+}
+
+
+
+
+//=========================================================================
+int SourceList::getNumRows()
+{
+    return 10;
+}
+
+void SourceList::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
+{
+    if (rowIsSelected)
+    {
+        g.fillAll (findColour (LookAndFeelHelpers::directoryTreeSelectedItem));
+    }
+}
+
+void SourceList::selectedRowsChanged (int lastRowSelected)
+{
+}
+
+String SourceList::getTooltipForRow (int row)
+{
+    return String();
+}
+
+
+
+
+//=========================================================================
+void EitherOrComponent::paint (Graphics& g)
+{
+    auto area = getLocalBounds();
+    auto buttonRow = area.removeFromTop (36);
+
+    g.setColour (findColour (LookAndFeelHelpers::directoryTreeBackground));
+    g.fillRect (buttonRow);
+}
+
+void EitherOrComponent::resized()
+{
+    auto area = getLocalBounds();
+    auto buttonRow = area.removeFromTop (36).reduced (6);
+    button1.setBounds (buttonRow.removeFromLeft (getWidth() / 2));
+    button2.setBounds (buttonRow);
+
+    if (component1)
+        component1->setBounds (area);
+    if (component2)
+        component2->setBounds (area);
+}
+
+
+
+
+//=========================================================================
+EitherOrComponent::TabButton::TabButton() : Button ("")
+{
+    setWantsKeyboardFocus (false);
+    setClickingTogglesState (true);
+    setRadioGroupId (1);
+}
+
+void EitherOrComponent::TabButton::paintButton (Graphics& g, bool, bool)
+{
+    auto c1 = findColour (LookAndFeelHelpers::directoryTreeBackground);
+    auto c2 = findColour (LookAndFeelHelpers::directoryTreeBackground).darker();
+
+    if (getToggleState())
+    {
+        g.setColour (c2);
+        g.fillRect (getLocalBounds());
+        g.setColour (c1.brighter (0.4f));
+        g.drawText (getButtonText(), getLocalBounds(), Justification::centred);
+    }
+    else
+    {
+        g.setColour (c1);
+        g.fillRect (getLocalBounds());
+        g.setColour (c2.brighter (0.4f));
+        g.drawText (getButtonText(), getLocalBounds(), Justification::centred);
+    }
+
+    g.setColour (c1.darker());
+    g.drawRect (getLocalBounds());
+}
+
+
+
+
 //=============================================================================
 class MetaYamlViewer : public Viewer
 {
@@ -542,11 +690,13 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
 
     if (err.empty())
     {
+        g.setFont (g.getCurrentFont().withStyle (Font::italic));
         g.setColour (text2);
         g.drawText (repr, 8, 0, width - 16, height, Justification::centredRight);
     }
     else
     {
+        g.setFont (g.getCurrentFont().withStyle (Font::italic));
         g.setColour (Colours::orange);
         g.drawText (err, 8, 0, width - 16, height, Justification::centredRight);
     }
@@ -558,6 +708,11 @@ void EnvironmentView::selectedRowsChanged (int lastRowSelected)
     {
         main->showKernelRule (keys[lastRowSelected]);
     }
+}
+
+String EnvironmentView::getTooltipForRow (int row)
+{
+    return String();
 }
 
 
@@ -717,7 +872,12 @@ MainComponent::MainComponent()
 #warning("Loading hard-coded viewers")
 #endif
 
-    addAndMakeVisible (directoryTree);
+    directoryTree.setName ("Directory");
+    sourceList.setName ("Sources");
+    sidebar.setComponent1 (&directoryTree);
+    sidebar.setComponent2 (&sourceList);
+
+    addAndMakeVisible (sidebar);
     addAndMakeVisible (environmentView);
     addAndMakeVisible (statusBar);
     addChildComponent (kernelRuleEntry);
@@ -1074,7 +1234,8 @@ void MainComponent::layout (bool animated)
         kernelRuleEntry.setBounds (area.removeFromBottom (32));
     }
     setBounds (statusBar, statusBarArea);
-    setBounds (directoryTree, directoryTreeArea);
+    // setBounds (directoryTree, directoryTreeArea);
+    setBounds (sidebar, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
     viewers.setBounds (area, animated);
 
