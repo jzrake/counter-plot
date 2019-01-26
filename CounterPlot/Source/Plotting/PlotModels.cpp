@@ -503,6 +503,7 @@ FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultMo
             else if (item.name == Identifier ("border-color")) convert (item.value, model.borderColour);
             else if (item.name == Identifier ("background-color")) convert (item.value, model.backgroundColour);
             else if (item.name == Identifier ("gridlines-color")) convert (item.value, model.gridlinesColour);
+            else if (item.name == Identifier ("text-color")) convert (item.value, model.textColour);
             else if (item.name == Identifier ("content")) convert (item.value, model.content);
             else if (item.name == Identifier ("capture")) convert (item.value, model.capture);
             else DBG("unknown figure property: " << item.name.toString());
@@ -545,6 +546,7 @@ var FigureModel::toVar() const
     if (borderColour != ref.borderColour) obj->setProperty ("border-colour", borderColour.toString());
     if (backgroundColour != ref.backgroundColour) obj->setProperty ("background-colour", backgroundColour.toString());
     if (gridlinesColour != ref.gridlinesColour) obj->setProperty ("gridlines-colour", gridlinesColour.toString());
+    if (textColour != ref.textColour) obj->setProperty ("text-colour", textColour.toString());
     if (capture != ref.capture) obj->setProperty ("capture", DataHelpers::varFromStringMap (capture));
     return obj.release();
 }

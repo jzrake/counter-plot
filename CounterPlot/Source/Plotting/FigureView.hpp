@@ -16,6 +16,7 @@ public:
         borderColourId     = 0x0771202,
         backgroundColourId = 0x0771203,
         gridlinesColourId  = 0x0771204,
+        textColourId       = 0x0771205,
     };
 
     enum class ColourScheme
@@ -24,7 +25,6 @@ public:
     };
 
     static void setLookAndFeelDefaults (LookAndFeel&, ColourScheme scheme);
-    static void setComponentColours (Component&, const FigureModel& model);
 
     //=========================================================================
     class Listener
@@ -188,6 +188,7 @@ private:
     //=========================================================================
     void layout();
     void refreshModes (bool alsoRepaint=true);
+    void setColours();
     void createOrDestroySurface();
     PlotGeometry computeGeometry() const;
     Rectangle<double> undeformedDomain (const Rectangle<int>& newPlotAreaBounds) const;

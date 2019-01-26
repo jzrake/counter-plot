@@ -363,6 +363,7 @@ void FigureView::setLookAndFeelDefaults (LookAndFeel& laf, ColourScheme scheme)
             laf.setColour (borderColourId, Colours::black);
             laf.setColour (backgroundColourId, Colours::white);
             laf.setColour (gridlinesColourId, Colours::lightgrey);
+            laf.setColour (textColourId, Colours::black);
             break;
 
         case ColourScheme::dark:
@@ -370,18 +371,35 @@ void FigureView::setLookAndFeelDefaults (LookAndFeel& laf, ColourScheme scheme)
             laf.setColour (borderColourId, Colours::black);
             laf.setColour (backgroundColourId, Colours::darkslategrey);
             laf.setColour (gridlinesColourId, Colours::darkslategrey.brighter (0.05f));
+            laf.setColour (textColourId, Colours::lightgrey);
             break;
     }
 }
 
-void FigureView::setComponentColours (Component& t, const FigureModel& m)
+void FigureView::setColours()
 {
+    const auto& m = model;
     auto w = Colours::transparentWhite;
 
-    if (m.marginColour     != w) t.setColour (marginColourId,     m.marginColour);     else t.removeColour (marginColourId);
-    if (m.borderColour     != w) t.setColour (borderColourId,     m.borderColour);     else t.removeColour (borderColourId);
-    if (m.backgroundColour != w) t.setColour (backgroundColourId, m.backgroundColour); else t.removeColour (backgroundColourId);
-    if (m.gridlinesColour  != w) t.setColour (gridlinesColourId,  m.gridlinesColour);  else t.removeColour (gridlinesColourId);
+    if (m.marginColour     != w) setColour (marginColourId,      m.marginColour);     else removeColour (marginColourId);
+    if (m.borderColour     != w) setColour (borderColourId,      m.borderColour);     else removeColour (borderColourId);
+    if (m.backgroundColour != w) setColour (backgroundColourId,  m.backgroundColour); else removeColour (backgroundColourId);
+    if (m.gridlinesColour  != w) setColour (gridlinesColourId,   m.gridlinesColour);  else removeColour (gridlinesColourId);
+
+    if (m.textColour != w)
+    {
+        setColour (textColourId, m.textColour);
+        title .setColour (Label::textColourId, m.textColour);
+        xlabel.setColour (Label::textColourId, m.textColour);
+        ylabel.setColour (Label::textColourId, m.textColour);
+    }
+    else
+    {
+        removeColour (textColourId);
+        title .removeColour (Label::textColourId);
+        xlabel.removeColour (Label::textColourId);
+        ylabel.removeColour (Label::textColourId);
+    }
 }
 
 
@@ -443,7 +461,7 @@ void FigureView::setModel (const FigureModel& newModel)
     ylabel.setText (model.ylabel, NotificationType::dontSendNotification);
     title .setText (model.title , NotificationType::dontSendNotification);
 
-    setComponentColours (*this, model);
+    setColours();
     refreshModes (false);
     createOrDestroySurface();
 
@@ -484,14 +502,6 @@ void FigureView::removeListener (Listener* listener)
     listeners.remove (listener);
 }
 
-//Image FigureView::createSnapshot()
-//{
-//    captureRenderingSurface = true;
-//    auto result = createComponentSnapshot (getLocalBounds(), true, 2.f);
-//    captureRenderingSurface = false;
-//    return result;
-//}
-
 void FigureView::captureRenderingSurfaceInNextPaint()
 {
     captureRenderingSurface = true;
@@ -505,6 +515,7 @@ void FigureView::paint (Graphics& g)
 {
     if (paintMarginsAndBackground)
     {
+        g.excludeClipRegion (plotArea.getBounds());
         g.fillAll (findColour (marginColourId));
     }
 }
@@ -552,8 +563,7 @@ void FigureView::paintOverChildren (Graphics& g)
 
     // Draw the ticks and labels
     // ========================================================================
-    g.setColour (findColour (Label::textColourId));
-    g.setFont (Font().withHeight (12));
+    g.setColour (findColour (textColourId));
     for (auto box : xtickBoxes) g.fillRect (box);
     for (auto box : ytickBoxes) g.fillRect (box);
 
