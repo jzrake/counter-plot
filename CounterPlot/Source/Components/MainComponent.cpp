@@ -995,7 +995,7 @@ void MainComponent::viewerAsyncTaskCompleted (const String& name)
 void MainComponent::viewerAsyncTaskCancelled (const String& name)
 {
     statusBar.decrementAsyncTaskCount();
-    statusBar.setCurrentInfoMessage ("Cancelled " + name);
+    // statusBar.setCurrentInfoMessage ("Cancelled " + name);
 }
 
 void MainComponent::viewerLogErrorMessage (const String& what)

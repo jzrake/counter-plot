@@ -60,6 +60,7 @@ private:
     void resolveKernel();
     void loadFromKernelIfFigure (const std::string& id);
     void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict, bool rethrowExceptions=false) const;
+    void saveSnapshot (bool toTempDirectory);
 
     //=========================================================================
     String viewerName;

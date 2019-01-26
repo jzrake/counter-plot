@@ -167,10 +167,11 @@ public:
 
 
     /**
-     * Return an image of the figure, including a frame capture of the rendering
-     * surface, if there is one.
+     * This method indicates that on the following paint call, the rendering surface
+     * should be captured as an image and drawn into the context. You should call
+     * this just before calling createImageComponent.
      */
-    Image createSnapshot();
+    void captureRenderingSurfaceInNextPaint();
 
 
     //=========================================================================
@@ -206,4 +207,5 @@ private:
     bool paintAxisLabels = true;
     bool paintTickLabels = true;
     bool paintMarginsAndBackground = true;
+    bool captureRenderingSurface = false;
 };

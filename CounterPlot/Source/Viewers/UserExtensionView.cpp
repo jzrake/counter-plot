@@ -265,8 +265,8 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 void UserExtensionView::getAllCommands (Array<CommandID>& commands)
 {
     Viewer::getAllCommands (commands);
-    commands.removeAllInstancesOf (Viewer::Commands::makeSnapshotAndOpen);
-    commands.removeAllInstancesOf (Viewer::Commands::saveSnapshotAs);
+//    commands.removeAllInstancesOf (Viewer::Commands::makeSnapshotAndOpen);
+//    commands.removeAllInstancesOf (Viewer::Commands::saveSnapshotAs);
 }
 
 void UserExtensionView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)
@@ -278,8 +278,8 @@ bool UserExtensionView::perform (const InvocationInfo& info)
 {
     switch (info.commandID)
     {
-//        case Commands::makeSnapshotAndOpen: saveSnapshot (true); break;
-//        case Commands::saveSnapshotAs: saveSnapshot (false); break;
+        case Commands::makeSnapshotAndOpen: saveSnapshot (true); break;
+        case Commands::saveSnapshotAs: saveSnapshot (false); break;
         case Commands::nextColourMap: kernel.insert ("stops", Runtime::make_data (colourMaps.next())); resolveKernel(); break;
         case Commands::prevColourMap: kernel.insert ("stops", Runtime::make_data (colourMaps.prev())); resolveKernel(); break;
         case Commands::resetScalarRange:
@@ -437,5 +437,41 @@ void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kern
                 kernel.set_error (key, e.what());
             }
         }
+    }
+}
+
+void UserExtensionView::saveSnapshot (bool toTempDirectory)
+{
+    auto target = File();
+    
+    if (toTempDirectory)
+    {
+        target = File::createTempFile (".png");
+    }
+    else
+    {
+        FileChooser chooser ("Open directory...", currentFile.getParentDirectory(), "", true, false, nullptr);
+        
+        if (chooser.browseForFileToSave (true))
+            target = chooser.getResult();
+        else
+            return;
+    }
+
+    for (auto figure : figures)
+        if (figure->isVisible())
+            figure->captureRenderingSurfaceInNextPaint();
+
+    auto image = createComponentSnapshot (getLocalBounds());
+    target.deleteFile();
+
+    if (auto stream = std::unique_ptr<FileOutputStream> (target.createOutputStream()))
+    {
+        auto fmt = PNGImageFormat();
+        fmt.writeImageToStream (image, *stream);
+    }
+    if (toTempDirectory)
+    {
+        target.startAsProcess();
     }
 }

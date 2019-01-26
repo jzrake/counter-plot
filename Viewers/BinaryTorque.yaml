@@ -27,7 +27,7 @@ environment:
   scalars  : (to-gpu field replicate=6)
   mapping  : (scalar-mapping vmin vmax stops)
 
-expensive: [sigma, field, vertices, scalars]
+expensive: [sigma, field, vmin, vmax, grid, vertices, scalars]
 
 commands:
   reset-scalar-range:

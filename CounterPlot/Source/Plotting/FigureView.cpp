@@ -183,6 +183,30 @@ void FigureView::PlotArea::paint (Graphics& g)
     }
 
 
+    // Draw the surface content if capture was requested
+    // ========================================================================
+    if (figure.captureRenderingSurface && figure.surface)
+    {
+        figure.captureRenderingSurface = false;
+        auto foreground = figure.surface->createSnapshot();
+
+        // In metal rendering, the texture read does not preserve the alpha
+        // channel. I'm sure that can be fixed, however for now this shameful
+        // trick gets it done. Of course a side-effect is that any black that
+        // was supposed to be rendered in hardware is converted to
+        // transparent.
+        //
+        // https://stackoverflow.com/questions/29835537/metal-mtltexture-replaces-semi-transparent-areas-with-black-when-alpha-values-th
+        // --------------------------------------------------------------------
+        for (int i = 0; i < foreground.getWidth(); ++i)
+            for (int j = 0; j < foreground.getHeight(); ++j)
+                if (foreground.getPixelAt (i, j) == Colours::black)
+                    foreground.setPixelAt (i, j, Colours::transparentBlack);
+
+        g.drawImage (foreground, getBounds().translated (-getX(), -getY()).toFloat());
+    }
+
+
     // Draw border
     // ========================================================================
     g.setColour (figure.findColour (borderColourId));
@@ -460,32 +484,17 @@ void FigureView::removeListener (Listener* listener)
     listeners.remove (listener);
 }
 
-Image FigureView::createSnapshot()
+//Image FigureView::createSnapshot()
+//{
+//    captureRenderingSurface = true;
+//    auto result = createComponentSnapshot (getLocalBounds(), true, 2.f);
+//    captureRenderingSurface = false;
+//    return result;
+//}
+
+void FigureView::captureRenderingSurfaceInNextPaint()
 {
-    auto result = createComponentSnapshot (getLocalBounds(), true, 2.f);
-
-    if (surface)
-    {
-        Graphics g (result);
-        auto foreground = surface->createSnapshot();
-
-        // In metal rendering, the texture read does not preserve the alpha
-        // channel. I'm sure that can be fixed, however for now this shameful
-        // trick gets it done. Of course a side-effect is that any black that
-        // was supposed to be rendered in hardware is converted to
-        // transparent.
-        // 
-        // https://stackoverflow.com/questions/29835537/metal-mtltexture-replaces-semi-transparent-areas-with-black-when-alpha-values-th
-        // --------------------------------------------------------------------
-        for (int i = 0; i < foreground.getWidth(); ++i)
-            for (int j = 0; j < foreground.getHeight(); ++j)
-                if (foreground.getPixelAt (i, j) == Colours::black)
-                    foreground.setPixelAt (i, j, Colours::transparentBlack);
-
-        g.drawImage (foreground, plotArea.getBounds()
-                     .transformedBy (AffineTransform::scale (2.f)).toFloat());
-    }
-    return result;
+    captureRenderingSurface = true;
 }
 
 
