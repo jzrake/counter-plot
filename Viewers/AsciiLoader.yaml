@@ -21,10 +21,7 @@ figures:
 - title: (basename file)
   xlabel: $fig1-xmin
   ylabel: Y
-  xmin: $xmin
-  xmax: $xmax
-  ymin: $ymin
-  ymax: $ymax
+  domain: $domain
   can-edit-title: false
   can-deform-domain: false
   margin: $margin
@@ -34,7 +31,4 @@ figures:
   - (plot t y lw=1 ls='solid'  lc='orange')
   capture:
     margin: margin
-    xmin: xmin
-    xmax: xmax
-    ymin: ymin
-    ymax: ymax
+    domain: domain

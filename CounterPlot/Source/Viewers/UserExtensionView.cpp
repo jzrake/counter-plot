@@ -243,11 +243,17 @@ void UserExtensionView::figureViewSetMargin (FigureView* figure, const BorderSiz
 
 void UserExtensionView::figureViewSetDomain (FigureView* figure, const Rectangle<double>& domain)
 {
+    auto x0 = domain.getX();
+    auto x1 = domain.getRight();
+    auto y0 = domain.getY();
+    auto y1 = domain.getBottom();
+
     const auto& capture = figure->getModel().capture;
-    if (capture.count ("xmin")) kernel.insert (capture.at ("xmin"), var (domain.getX()));
-    if (capture.count ("ymin")) kernel.insert (capture.at ("ymin"), var (domain.getY()));
-    if (capture.count ("xmax")) kernel.insert (capture.at ("xmax"), var (domain.getRight()));
-    if (capture.count ("ymax")) kernel.insert (capture.at ("ymax"), var (domain.getBottom()));
+    if (capture.count ("domain")) kernel.insert (capture.at ("domain"), Array<var>{x0, x1, y0, y1});
+    if (capture.count ("xmin")) kernel.insert (capture.at ("xmin"), var (x0));
+    if (capture.count ("xmax")) kernel.insert (capture.at ("xmax"), var (x1));
+    if (capture.count ("ymin")) kernel.insert (capture.at ("ymin"), var (y0));
+    if (capture.count ("ymax")) kernel.insert (capture.at ("ymax"), var (y1));
     resolveKernel();
 }
 

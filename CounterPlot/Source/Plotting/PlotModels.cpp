@@ -313,18 +313,6 @@ std::vector<simd::float2> MeshHelpers::triangulateQuadMesh (const nd::array<doub
             verts.push_back (simd::float2 {x01, y01});
             verts.push_back (simd::float2 {x10, y10});
             verts.push_back (simd::float2 {x11, y11});
-
-//            const float x0 = vertices (i, j, 0);
-//            const float y0 = vertices (i, j, 1);
-//            const float x1 = vertices (i + 1, j, 0);
-//            const float y1 = vertices (i, j + 1, 1);
-//
-//            verts.push_back (simd::float2 {x0, y0});
-//            verts.push_back (simd::float2 {x0, y1});
-//            verts.push_back (simd::float2 {x1, y0});
-//            verts.push_back (simd::float2 {x0, y1});
-//            verts.push_back (simd::float2 {x1, y0});
-//            verts.push_back (simd::float2 {x1, y1});
         }
     }
     return verts;
@@ -452,6 +440,19 @@ static void convert (const var& source, std::vector<std::shared_ptr<PlotArtist>>
         }
     }
 }
+static void convert (const var& source, double& x0, double& x1, double& y0, double& y1)
+{
+    if (auto arr = source.getArray())
+    {
+        if (arr->size() == 4)
+        {
+            x0 = arr->getUnchecked(0);
+            x1 = arr->getUnchecked(1);
+            y0 = arr->getUnchecked(2);
+            y1 = arr->getUnchecked(3);
+        }
+    }
+}
 
 
 
@@ -473,6 +474,7 @@ FigureModel FigureModel::fromVar (const var& value, const FigureModel& defaultMo
         for (const auto& item : obj->getProperties())
         {
             if (false) {}
+            else if (item.name == Identifier ("domain")) convert (item.value, model.xmin, model.xmax, model.ymin, model.ymax);
             else if (item.name == Identifier ("xmin")) convert (item.value, model.xmin);
             else if (item.name == Identifier ("xmax")) convert (item.value, model.xmax);
             else if (item.name == Identifier ("ymin")) convert (item.value, model.ymin);
