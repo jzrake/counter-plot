@@ -4,7 +4,7 @@
 
 
 //=============================================================================
-void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, TextColourScheme scheme)
+void AppLookAndFeel::setLookAndFeelDefaults (LookAndFeel& laf, TextColourScheme scheme)
 {
     switch (scheme)
     {
@@ -31,7 +31,7 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, TextColourSch
     }
 }
 
-void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundScheme scheme)
+void AppLookAndFeel::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundScheme scheme)
 {
 
     // These are the LookAndFeel_v4 DarkColourScheme colours:
@@ -65,7 +65,7 @@ void LookAndFeelHelpers::setLookAndFeelDefaults (LookAndFeel& laf, BackgroundSch
     }
 }
 
-Colour LookAndFeelHelpers::findColourForPropertyText (const Component& target, int index)
+Colour AppLookAndFeel::findColourForPropertyText (const Component& target, int index)
 {
     switch (index % 5)
     {
@@ -78,7 +78,7 @@ Colour LookAndFeelHelpers::findColourForPropertyText (const Component& target, i
     return Colours::black;
 }
 
-int LookAndFeelHelpers::colourIdFromString (const String& name)
+int AppLookAndFeel::colourIdFromString (const String& name)
 {
     if (name == "directory_tree.background")    return directoryTreeBackground;
     if (name == "directory_tree.selected_item") return directoryTreeSelectedItem;
@@ -131,4 +131,15 @@ void AppLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<floa
 int AppLookAndFeel::getDefaultScrollbarWidth()
 {
     return 6;
+}
+
+void AppLookAndFeel::drawTooltip (Graphics& g, const String& text, int width, int height)
+{
+    Rectangle<int> bounds (width, height);
+    g.setColour (Colours::whitesmoke);
+    g.fillRect (bounds);
+    g.setColour (Colours::black);
+    g.drawRect (bounds, 0.5);
+    g.setFont (Font().withHeight (11));
+    g.drawText (text, 4, 0, width, height, Justification::centredLeft);
 }

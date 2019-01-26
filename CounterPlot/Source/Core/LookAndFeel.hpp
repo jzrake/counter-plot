@@ -5,9 +5,11 @@
 
 
 //=============================================================================
-class LookAndFeelHelpers
+class AppLookAndFeel : public LookAndFeel_V4
 {
 public:
+
+    //=========================================================================
     enum ColourIds
     {
         propertyViewBackground      = 0x0771601,
@@ -34,30 +36,24 @@ public:
         environmentViewText2        = 0x0771619,
     };
 
+    //=========================================================================
     enum class TextColourScheme
     {
         pastels1,
         pastels2,
     };
 
+    //=========================================================================
     enum class BackgroundScheme
     {
         dark,
     };
 
+    //=========================================================================
     static void setLookAndFeelDefaults (LookAndFeel&, TextColourScheme scheme);
     static void setLookAndFeelDefaults (LookAndFeel&, BackgroundScheme scheme);
     static Colour findColourForPropertyText (const Component&, int index);
     static int colourIdFromString (const String&);
-};
-
-
-
-
-//=============================================================================
-class AppLookAndFeel : public LookAndFeel_V4
-{
-public:
 
     //=========================================================================
     Font getDefaultFont() const;
@@ -68,6 +64,7 @@ public:
     void drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float>& area,
                                    Colour backgroundColour, bool isOpen, bool isMouseOver) override;
     int getDefaultScrollbarWidth() override;
+    void drawTooltip (Graphics& g, const String& text, int width, int height) override;
 
 private:
     Font defaultFont;

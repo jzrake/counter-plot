@@ -146,7 +146,7 @@ void SourceList::resized()
 
 void SourceList::paint (Graphics& g)
 {
-    g.fillAll (findColour (LookAndFeelHelpers::directoryTreeBackground));
+    g.fillAll (findColour (AppLookAndFeel::directoryTreeBackground));
 }
 
 bool SourceList::keyPressed (const KeyPress& key)
@@ -177,7 +177,7 @@ void SourceList::paintListBoxItem (int row, Graphics &g, int width, int height, 
 {
     if (rowIsSelected)
     {
-        g.fillAll (findColour (LookAndFeelHelpers::directoryTreeSelectedItem));
+        g.fillAll (findColour (AppLookAndFeel::directoryTreeSelectedItem));
 
         g.setColour (Colours::cornflowerblue);
         g.fillRect (getLocalBounds().removeFromLeft (4));
@@ -188,16 +188,16 @@ void SourceList::paintListBoxItem (int row, Graphics &g, int width, int height, 
     auto imageArea = area.reduced (8, 0).withTrimmedBottom(4);
     auto image = assets.getReference (row).capture;
 
-    g.setColour (findColour (LookAndFeelHelpers::directoryTreeFile));
+    g.setColour (findColour (AppLookAndFeel::directoryTreeFile));
     g.drawText (sources.getReference (row).getFileName(), nameArea.reduced (8, 0), Justification::centred);
 
     if (image == Image())
     {
         auto target = imageArea.withSizeKeepingCentre (imageArea.getHeight(),
                                                        imageArea.getHeight()).toFloat();
-        g.setColour (findColour (LookAndFeelHelpers::directoryTreeSelectedItem).brighter());
+        g.setColour (findColour (AppLookAndFeel::directoryTreeSelectedItem).brighter());
         g.fillRect (target);
-        g.setColour (findColour (LookAndFeelHelpers::directoryTreeBackground).darker());
+        g.setColour (findColour (AppLookAndFeel::directoryTreeBackground).darker());
         g.drawRect (target, 1.f);
     }
     else
@@ -263,7 +263,7 @@ void EitherOrComponent::paint (Graphics& g)
     auto area = getLocalBounds();
     auto buttonRow = area.removeFromTop (34);
 
-    g.setColour (findColour (LookAndFeelHelpers::directoryTreeBackground));
+    g.setColour (findColour (AppLookAndFeel::directoryTreeBackground));
     g.fillRect (buttonRow);
 }
 
@@ -293,8 +293,8 @@ EitherOrComponent::TabButton::TabButton() : Button ("")
 
 void EitherOrComponent::TabButton::paintButton (Graphics& g, bool, bool)
 {
-    auto c1 = findColour (LookAndFeelHelpers::directoryTreeBackground);
-    auto c2 = findColour (LookAndFeelHelpers::directoryTreeBackground).darker();
+    auto c1 = findColour (AppLookAndFeel::directoryTreeBackground);
+    auto c2 = findColour (AppLookAndFeel::directoryTreeBackground).darker();
     g.setFont (Font().withHeight (11));
 
     if (getToggleState())
@@ -432,11 +432,11 @@ void UserExtensionsDirectoryEditor::paint (Graphics& g)
     auto instructionsArea = getLocalBounds().withTop (editor.getBottom());
     auto press = KeyPress (KeyPress::returnKey, ModifierKeys::commandModifier, 0);
 
-    g.setColour (findColour (LookAndFeelHelpers::statusBarBackground));
+    g.setColour (findColour (AppLookAndFeel::statusBarBackground));
     g.fillRect (instructionsArea);
 
     g.setFont (Font().withHeight (11)); // TODO: add font preference to LAF
-    g.setColour (findColour (LookAndFeelHelpers::statusBarText));
+    g.setColour (findColour (AppLookAndFeel::statusBarText));
     g.drawText ("Directories to watch for .yaml extensions - one per line.", instructionsArea.withTrimmedLeft(6), Justification::centredLeft);
     g.drawText (press.getTextDescriptionWithIcons(), instructionsArea.withTrimmedRight(6), Justification::centredRight);
 }
@@ -494,10 +494,10 @@ void UserExtensionsDirectoryEditor::textEditorFocusLost (TextEditor&)
 //=========================================================================
 void UserExtensionsDirectoryEditor::setColours()
 {
-    editor.setColour (TextEditor::textColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
-    editor.setColour (TextEditor::backgroundColourId, findColour (LookAndFeelHelpers::statusBarBackground));
-    editor.setColour (TextEditor::highlightColourId, findColour (LookAndFeelHelpers::statusBarBackground).brighter());
-    editor.setColour (TextEditor::highlightedTextColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
+    editor.setColour (TextEditor::textColourId, findColour (AppLookAndFeel::statusBarText).brighter());
+    editor.setColour (TextEditor::backgroundColourId, findColour (AppLookAndFeel::statusBarBackground));
+    editor.setColour (TextEditor::highlightColourId, findColour (AppLookAndFeel::statusBarBackground).brighter());
+    editor.setColour (TextEditor::highlightedTextColourId, findColour (AppLookAndFeel::statusBarText).brighter());
     editor.setColour (TextEditor::focusedOutlineColourId, Colours::transparentBlack);
     editor.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
 }
@@ -563,7 +563,7 @@ void StatusBar::EnvironmentViewToggleButton::paintButton (Graphics& g,
     {
         auto text = String (main->isEnvironmentViewShowing() ? "Hide" : "Show") + " Viewer Environment";
         g.setFont (Font().withHeight (11));
-        g.setColour (findColour (LookAndFeelHelpers::statusBarText).brighter (highlighted ? 0.2f : 0.0f));
+        g.setColour (findColour (AppLookAndFeel::statusBarText).brighter (highlighted ? 0.2f : 0.0f));
         g.drawText (text, getLocalBounds().withTrimmedLeft(8), Justification::centredLeft);
     }
 }
@@ -582,7 +582,7 @@ void StatusBar::ViewerNamePopupButton::paintButton (Graphics& g,
                                                     bool /*down*/)
 {
     g.setFont (Font().withHeight (11));
-    g.setColour (findColour (LookAndFeelHelpers::statusBarText).brighter (highlighted ? 0.2f : 0.0f));
+    g.setColour (findColour (AppLookAndFeel::statusBarText).brighter (highlighted ? 0.2f : 0.0f));
     g.drawText (currentViewerName, getLocalBounds().withTrimmedRight(8), Justification::centredRight);
 }
 
@@ -677,9 +677,9 @@ void StatusBar::setCurrentInfoMessage (const String& info, int milliseconds)
 void StatusBar::paint (Graphics& g)
 {
     auto geom                = computeGeometry();
-    auto backgroundColour    = findColour (LookAndFeelHelpers::statusBarBackground);
-    auto fontColour          = findColour (LookAndFeelHelpers::statusBarText);
-    auto errorColour         = findColour (LookAndFeelHelpers::statusBarErrorText);
+    auto backgroundColour    = findColour (AppLookAndFeel::statusBarBackground);
+    auto fontColour          = findColour (AppLookAndFeel::statusBarText);
+    auto errorColour         = findColour (AppLookAndFeel::statusBarErrorText);
     auto busyIndicatorColour = numberOfAsyncTasks ? Colours::yellow : Colours::transparentBlack;
 
     g.setColour (backgroundColour);
@@ -825,7 +825,7 @@ void EnvironmentView::lookAndFeelChanged()
 //=============================================================================
 void EnvironmentView::setColours()
 {
-    list.setColour (ListBox::backgroundColourId, findColour (LookAndFeelHelpers::environmentViewBackground));
+    list.setColour (ListBox::backgroundColourId, findColour (AppLookAndFeel::environmentViewBackground));
 }
 
 
@@ -844,8 +844,8 @@ void EnvironmentView::paintListBoxItem (int rowNumber, Graphics &g, int width, i
     auto key = keys[rowNumber];
     auto err = kernel->error_at (key.toStdString());
     auto repr = Runtime::represent (kernel->at (keys[rowNumber].toStdString()));
-    auto text1 = findColour (LookAndFeelHelpers::environmentViewText1);
-    auto text2 = findColour (LookAndFeelHelpers::environmentViewText2);
+    auto text1 = findColour (AppLookAndFeel::environmentViewText1);
+    auto text2 = findColour (AppLookAndFeel::environmentViewText2);
 
     g.setFont (Font ("Menlo", 11, 0));
     g.setColour (text1);
@@ -1004,10 +1004,10 @@ void KernelRuleEntry::textEditorFocusLost (TextEditor&)
 //=============================================================================
 void KernelRuleEntry::setColours()
 {
-    editor.setColour (TextEditor::textColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
-    editor.setColour (TextEditor::backgroundColourId, findColour (LookAndFeelHelpers::statusBarBackground));
+    editor.setColour (TextEditor::textColourId, findColour (AppLookAndFeel::statusBarText).brighter());
+    editor.setColour (TextEditor::backgroundColourId, findColour (AppLookAndFeel::statusBarBackground));
     editor.setColour (TextEditor::highlightColourId, Colours::black.withAlpha (0.15f));
-    editor.setColour (TextEditor::highlightedTextColourId, findColour (LookAndFeelHelpers::statusBarText).brighter());
+    editor.setColour (TextEditor::highlightedTextColourId, findColour (AppLookAndFeel::statusBarText).brighter());
     editor.setColour (TextEditor::focusedOutlineColourId, Colours::transparentBlack);
     editor.setColour (TextEditor::outlineColourId, Colours::transparentBlack);
 }

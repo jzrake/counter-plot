@@ -35,7 +35,7 @@ void VariantTree::Item::paintItem (Graphics& g, int width, int height)
         font = laf->getDefaultFont();
     }
 
-    g.setColour (LookAndFeelHelpers::findColourForPropertyText (*getOwnerView(), depth()));
+    g.setColour (AppLookAndFeel::findColourForPropertyText (*getOwnerView(), depth()));
     g.setFont (font);
 
     if (mightContainSubItems())
@@ -122,8 +122,8 @@ void VariantTree::lookAndFeelChanged()
 
 void VariantTree::setColours()
 {
-    tree.setColour (TreeView::backgroundColourId, findColour (LookAndFeelHelpers::propertyViewBackground));
-    tree.setColour (TreeView::selectedItemBackgroundColourId, findColour (LookAndFeelHelpers::propertyViewSelectedItem));
+    tree.setColour (TreeView::backgroundColourId, findColour (AppLookAndFeel::propertyViewBackground));
+    tree.setColour (TreeView::selectedItemBackgroundColourId, findColour (AppLookAndFeel::propertyViewSelectedItem));
     tree.setColour (TreeView::dragAndDropIndicatorColourId, Colours::green);
     tree.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
     tree.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);

@@ -335,9 +335,9 @@ void PatchViewApplication::configureLookAndFeel()
     laf.setColour (Label::ColourIds::backgroundWhenEditingColourId, Colours::white);
     laf.setColour (ScrollBar::ColourIds::thumbColourId, Colours::cornflowerblue.withAlpha (0.5f));
 
-    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::BackgroundScheme::dark);
-    LookAndFeelHelpers::setLookAndFeelDefaults (laf, LookAndFeelHelpers::TextColourScheme::pastels1);
-    FigureView        ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
+    AppLookAndFeel::setLookAndFeelDefaults (laf, AppLookAndFeel::BackgroundScheme::dark);
+    AppLookAndFeel::setLookAndFeelDefaults (laf, AppLookAndFeel::TextColourScheme::pastels1);
+    FigureView    ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
 }
 
 bool PatchViewApplication::presentOpenDirectoryDialog()

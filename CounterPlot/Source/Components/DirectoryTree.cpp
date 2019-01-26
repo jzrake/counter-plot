@@ -51,9 +51,9 @@ public:
     {
         Colour textColour;
 
-        if (file.isDirectory())    textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeDirectory);
-        if (file.existsAsFile())   textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeFile);
-        if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (LookAndFeelHelpers::directoryTreeSymbolicLink);
+        if (file.isDirectory())    textColour = getOwnerView()->findColour (AppLookAndFeel::directoryTreeDirectory);
+        if (file.existsAsFile())   textColour = getOwnerView()->findColour (AppLookAndFeel::directoryTreeFile);
+        if (file.isSymbolicLink()) textColour = getOwnerView()->findColour (AppLookAndFeel::directoryTreeSymbolicLink);
 
         g.setColour (isMouseOver() ? textColour.brighter (0.8f) : textColour);
         glyphs.draw (g);
@@ -295,8 +295,8 @@ void DirectoryTree::setMouseOverItem (TreeViewItem *newMouseOverItem)
 
 void DirectoryTree::setColours()
 {
-    tree.setColour (TreeView::backgroundColourId, findColour (LookAndFeelHelpers::directoryTreeBackground));
-    tree.setColour (TreeView::selectedItemBackgroundColourId, findColour (LookAndFeelHelpers::directoryTreeSelectedItem));
+    tree.setColour (TreeView::backgroundColourId, findColour (AppLookAndFeel::directoryTreeBackground));
+    tree.setColour (TreeView::selectedItemBackgroundColourId, findColour (AppLookAndFeel::directoryTreeSelectedItem));
     tree.setColour (TreeView::dragAndDropIndicatorColourId, Colours::green);
     tree.setColour (TreeView::evenItemsColourId, Colours::transparentBlack);
     tree.setColour (TreeView::oddItemsColourId, Colours::transparentBlack);
