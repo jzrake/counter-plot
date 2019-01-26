@@ -1,5 +1,7 @@
+#include <fstream>
 #include "Runtime.hpp"
 #include "DataHelpers.hpp"
+#include "AsciiLoader.hpp"
 #include "../Plotting/Artists.hpp"
 
 
@@ -132,7 +134,15 @@ namespace builtin
     }
     var item (var::NativeFunctionArgs args)
     {
-        return checkArg<var> ("item", args, 0)[checkArg<int> ("item", args, 1)];
+        auto arr = checkArg<Array<var>>("item", args, 0);
+        auto ind = checkArg<int> ("item", args, 1);
+
+//        if (arr.size() <= ind)
+//            throw std::runtime_error ("index "
+//                                      + std::to_string (ind)
+//                                      + " out of range on list of size "
+//                                      + std::to_string (arr.size()));
+        return arr[ind];
     }
     var attr (var::NativeFunctionArgs args)
     {
@@ -444,6 +454,31 @@ namespace builtin
         return Runtime::make_data (std::dynamic_pointer_cast<PlotArtist> (gradient));
     }
 
+    
+    //=========================================================================
+    var load_text (var::NativeFunctionArgs args)
+    {
+        auto fname = checkArg<std::string> ("load-text", args, 0);
+        auto stream = std::ifstream (fname);
+        auto loader = AsciiLoader (stream);
+
+        if (! loader.getStatusMessage().empty())
+        {
+            throw std::runtime_error (loader.getStatusMessage());
+        }
+
+        auto columns = var();
+
+        for (int n = 0; n < loader.getNumColumns(); ++n)
+        {
+            auto name = loader.getColumnName(n);
+            auto data = nd::array<double, 1> (loader.getNumRows());
+            loader.column (n, data.begin());
+            columns.append (Runtime::make_data (data));
+        }
+        return columns;
+    }
+
 
     //=========================================================================
     var load_hdf5 (var::NativeFunctionArgs args)
@@ -531,6 +566,7 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("plot",           var::NativeFunction (builtin::plot),           Flags::builtin);
     kernel.insert ("trimesh",        var::NativeFunction (builtin::trimesh),        Flags::builtin);
     kernel.insert ("gradient",       var::NativeFunction (builtin::gradient),       Flags::builtin);
+    kernel.insert ("load-text",      var::NativeFunction (builtin::load_text),      Flags::builtin);
     kernel.insert ("load-hdf5",      var::NativeFunction (builtin::load_hdf5),      Flags::builtin);
     kernel.insert ("load-patches2d", var::NativeFunction (builtin::load_patches2d), Flags::builtin);
 

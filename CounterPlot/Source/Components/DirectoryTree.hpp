@@ -5,7 +5,7 @@
 
 
 //=============================================================================
-class DirectoryTree : public Component
+class DirectoryTree : public Component, public AsyncUpdater
 {
 public:
     class Listener
@@ -37,9 +37,13 @@ public:
     void colourChanged() override;
     void lookAndFeelChanged() override;
 
+    //=========================================================================
+    void handleAsyncUpdate() override;
+
 private:
     //=========================================================================
     void sendSelectedFilesAsSources();
+    void sendSelectedFilesChanged();
     void setMouseOverItem (TreeViewItem*);
     void setColours();
     class Item;

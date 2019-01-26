@@ -93,7 +93,7 @@ private:
     std::unique_ptr<ApplicationCommandManager> commandManager;
     std::unique_ptr<MainMenu> menu;
     std::unique_ptr<MainWindow> mainWindow;
-    // TooltipWindow tooltipWindow;
+    TooltipWindow tooltipWindow;
     AppLookAndFeel lookAndFeel;
     ApplicationProperties applicationProperties;
     File currentDirectory;

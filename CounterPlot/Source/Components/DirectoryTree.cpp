@@ -82,7 +82,9 @@ public:
     void itemSelectionChanged (bool isNowSelected) override
     {
         if (isNowSelected)
-            directory.listeners.call (&Listener::directoryTreeSelectedFileChanged, &directory, file);
+        {
+            directory.sendSelectedFilesChanged();
+        }
     }
 
     void itemOpennessChanged (bool isNowOpen) override
@@ -258,6 +260,18 @@ void DirectoryTree::lookAndFeelChanged()
 
 
 //=============================================================================
+void DirectoryTree::handleAsyncUpdate()
+{
+    if (tree.getNumSelectedItems() == 1)
+        listeners.call (&Listener::directoryTreeSelectedFileChanged, this, dynamic_cast<Item*> (tree.getSelectedItem(0))->file);
+    else
+        listeners.call (&Listener::directoryTreeSelectedFileChanged, this, File());
+}
+
+
+
+
+//=============================================================================
 void DirectoryTree::sendSelectedFilesAsSources()
 {
     for (int n = 0; n < tree.getNumSelectedItems(); ++n)
@@ -265,6 +279,11 @@ void DirectoryTree::sendSelectedFilesAsSources()
         auto item = dynamic_cast<Item*> (tree.getSelectedItem(n));
         listeners.call (&Listener::directoryTreeWantsFileToBeSource, this, item->file);
     }
+}
+
+void DirectoryTree::sendSelectedFilesChanged()
+{
+    triggerAsyncUpdate();
 }
 
 void DirectoryTree::setMouseOverItem (TreeViewItem *newMouseOverItem)

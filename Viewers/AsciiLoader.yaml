@@ -1,0 +1,40 @@
+# =============================================================================
+# Ascii loader
+# =============================================================================
+
+
+name: Ascii
+file-patterns: ["*.dat"]
+rows: [1]
+cols: [1]
+
+
+environment:
+  columns: (load-text file)
+  t: (item columns 0)
+  x: (item columns 1)
+  y: (item columns 2)
+
+
+figures:
+
+- title: (basename file)
+  xlabel: $fig1-xmin
+  ylabel: Y
+  xmin: $xmin
+  xmax: $xmax
+  ymin: $ymin
+  ymax: $ymax
+  can-edit-title: false
+  can-deform-domain: false
+  margin: $margin
+  border-width: 2
+  content:
+  - (plot t x lw=1 ls='dash'  lc='magenta')
+  - (plot t y lw=1 ls='solid'  lc='orange')
+  capture:
+    margin: margin
+    xmin: xmin
+    xmax: xmax
+    ymin: ymin
+    ymax: ymax

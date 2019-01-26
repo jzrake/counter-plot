@@ -875,7 +875,9 @@ void EnvironmentView::selectedRowsChanged (int lastRowSelected)
 
 String EnvironmentView::getTooltipForRow (int row)
 {
-    return String();
+    auto key = keys[row];
+    auto err = kernel->error_at (key.toStdString());
+    return err;
 }
 
 
