@@ -30,6 +30,8 @@
       <FILE id="siOuWT" name="VariantTree.hpp" compile="0" resource="0" file="Source/Components/VariantTree.hpp"/>
     </GROUP>
     <GROUP id="{B598C4C2-9FA1-7CA8-758B-F1B244C19DD5}" name="Core">
+      <FILE id="fO8AXk" name="MovieWriter.cpp" compile="1" resource="0" file="Source/Core/MovieWriter.cpp"/>
+      <FILE id="t2iZ64" name="MovieWriter.hpp" compile="0" resource="0" file="Source/Core/MovieWriter.hpp"/>
       <FILE id="xXzUSx" name="EditorKeyMappings.cpp" compile="1" resource="0"
             file="Source/Core/EditorKeyMappings.cpp"/>
       <FILE id="XHRPiy" name="EditorKeyMappings.hpp" compile="0" resource="0"

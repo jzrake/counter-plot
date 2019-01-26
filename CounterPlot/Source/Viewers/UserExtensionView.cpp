@@ -211,6 +211,15 @@ bool UserExtensionView::receiveMessage (const String& message)
     }
 }
 
+Image UserExtensionView::createViewerSnapshot()
+{
+    for (auto figure : figures)
+        if (figure->isVisible())
+            figure->captureRenderingSurfaceInNextPaint();
+
+    return createComponentSnapshot (getLocalBounds());
+}
+
 
 
 
@@ -450,7 +459,7 @@ void UserExtensionView::saveSnapshot (bool toTempDirectory)
     }
     else
     {
-        FileChooser chooser ("Open directory...", currentFile.getParentDirectory(), "", true, false, nullptr);
+        FileChooser chooser ("Choose Save Location...", currentFile.getParentDirectory(), "", true, false, nullptr);
         
         if (chooser.browseForFileToSave (true))
             target = chooser.getResult();
@@ -458,17 +467,13 @@ void UserExtensionView::saveSnapshot (bool toTempDirectory)
             return;
     }
 
-    for (auto figure : figures)
-        if (figure->isVisible())
-            figure->captureRenderingSurfaceInNextPaint();
-
-    auto image = createComponentSnapshot (getLocalBounds());
     target.deleteFile();
 
     if (auto stream = std::unique_ptr<FileOutputStream> (target.createOutputStream()))
     {
-        auto fmt = PNGImageFormat();
-        fmt.writeImageToStream (image, *stream);
+        auto format = PNGImageFormat();
+        auto image = createViewerSnapshot();
+        format.writeImageToStream (image, *stream);
     }
     if (toTempDirectory)
     {

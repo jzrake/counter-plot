@@ -1,6 +1,7 @@
 #include "MainComponent.hpp"
 #include "../Core/LookAndFeel.hpp"
 #include "../Core/Main.hpp"
+#include "../Core/MovieWriter.hpp"
 #include "../Viewers/Viewer.hpp"
 #include "../Viewers/ColourMapViewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
@@ -122,6 +123,44 @@ void SourceList::setCaptureForSource (File source, Image capturedImage)
     int n = sources.indexOf (source);
     assets.getReference(n).capture = capturedImage;
     list.repaintRow(n);
+
+
+//    auto outf = File::getSpecialLocation (File::tempDirectory).getChildFile ("frame.0001.png");
+//    auto fstr = std::unique_ptr<FileOutputStream> (outf.createOutputStream());
+//
+//    DBG(outf.getFullPathName());
+//
+//    PNGImageFormat format;
+//    format.writeImageToStream (capturedImage, *fstr);
+//
+//    ChildProcess process;
+//
+//    // ffmpeg -r 60 -f image2 -s 1920x1080 -i frame.%04.png -vcodec libx264 -pix_fmt yuv420p -crf 25 -y /Users/jzrake/Desktop/output.mp4
+//
+//    StringArray args = {
+//        "/usr/local/bin/ffmpeg",
+//        "-r", "12",
+//        "-f", "image2",
+//        "-i", File::getSpecialLocation (File::tempDirectory).getChildFile ("frame.%04d.png").getFullPathName(),
+//        "-vcodec", "libx264",
+//        "-pix_fmt", "yuv420p",
+//        "-crf", "25",
+//        "-y", "/Users/jzrake/Desktop/output.mp4",
+//    };
+//
+//    process.start (args, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
+//    process.waitForProcessToFinish (10000);
+//
+//    DBG("finished! " << int(process.getExitCode()) << " " << process.readAllProcessOutput());
+}
+
+Array<Image> SourceList::getAllImageAssets() const
+{
+    Array<Image> captures;
+
+    for (const auto& item : assets)
+        captures.add (item.capture);
+    return captures;
 }
 
 
@@ -162,27 +201,34 @@ void SourceList::paintListBoxItem (int row, Graphics &g, int width, int height, 
     if (rowIsSelected)
     {
         g.fillAll (findColour (LookAndFeelHelpers::directoryTreeSelectedItem));
+
+        g.setColour (Colours::cornflowerblue);
+        g.fillRect (getLocalBounds().removeFromLeft (4));
     }
 
     auto area = Rectangle<int> (0, 0, width, height);
     auto nameArea = area.removeFromTop (22);
-    auto imageArea = area.reduced (8, 0);
+    auto imageArea = area.reduced (8, 0).withTrimmedBottom(4);
+    auto image = assets.getReference (row).capture;
 
     g.setColour (findColour (LookAndFeelHelpers::directoryTreeFile));
-    g.drawText (sources.getReference (row).getFileName(), nameArea.reduced (8, 0), Justification::centredLeft);
-
-    auto image = assets.getReference (row).capture;
+    g.drawText (sources.getReference (row).getFileName(), nameArea.reduced (8, 0), Justification::centred);
 
     if (image == Image())
     {
+        auto target = imageArea.withSizeKeepingCentre (imageArea.getHeight(),
+                                                       imageArea.getHeight()).toFloat();
         g.setColour (findColour (LookAndFeelHelpers::directoryTreeSelectedItem).brighter());
-        g.fillRoundedRectangle (imageArea.toFloat(), 4);
+        g.fillRect (target);
+        g.setColour (findColour (LookAndFeelHelpers::directoryTreeBackground).darker());
+        g.drawRect (target, 1.f);
     }
     else
     {
-        g.drawImage (image, imageArea
-                     .withWidth (imageArea.getHeight() * image.getBounds().getAspectRatio())
-                     .toFloat());
+        auto aspect = image.getBounds().getAspectRatio();
+        auto target = imageArea.withSizeKeepingCentre (imageArea.getHeight() * aspect,
+                                                       imageArea.getHeight()).toFloat();
+        g.drawImage (image, target);
     }
 }
 
@@ -1236,6 +1282,33 @@ void MainComponent::indicateSuccess (const String& info)
 void MainComponent::logErrorMessage (const String& what)
 {
     statusBar.setCurrentErrorMessage (what);
+}
+
+void MainComponent::createAnimation (bool toTempDirectory)
+{
+    auto target = File();
+
+    if (toTempDirectory)
+    {
+        target = File::createTempFile (".mp4");
+    }
+    else
+    {
+        FileChooser chooser ("Choose Save Location...", currentFile.getParentDirectory(), "", true, false, nullptr);
+
+        if (chooser.browseForFileToSave (true))
+            target = chooser.getResult();
+        else
+            return;
+    }
+
+    FFMpegMovieWriter writer;
+    writer.writeImagesToFile (sourceList.getAllImageAssets(), target);
+
+    if (toTempDirectory)
+    {
+        target.startAsProcess();
+    }
 }
 
 

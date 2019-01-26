@@ -34,6 +34,7 @@ public:
     const Runtime::Kernel* getKernel() const override;
     bool canReceiveMessages() const override;
     bool receiveMessage (const String& message) override;
+    Image createViewerSnapshot() override;
 
     //=========================================================================
     void figureViewSetMargin (FigureView*, const BorderSize<int>&) override;

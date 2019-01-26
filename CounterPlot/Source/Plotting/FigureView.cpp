@@ -203,7 +203,8 @@ void FigureView::PlotArea::paint (Graphics& g)
                 if (foreground.getPixelAt (i, j) == Colours::black)
                     foreground.setPixelAt (i, j, Colours::transparentBlack);
 
-        g.drawImage (foreground, getBounds().translated (-getX(), -getY()).toFloat());
+        g.setColour (Colours::black); // resets the alpha-channel to 1
+        g.drawImage (foreground, getLocalBounds().toFloat());
     }
 
 

@@ -30,6 +30,8 @@ public:
         toggleUserExtensionsDirectoryEditor = 107,
         increaseFontSize                    = 108,
         decreaseFontSize                    = 109,
+        makeAnimationAndOpen                = 110,
+        saveAnimationAs                     = 111,
     };
 
 

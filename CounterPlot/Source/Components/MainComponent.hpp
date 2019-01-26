@@ -73,6 +73,7 @@ public:
     void removeSource (File source);
     void removeSourceAtRow (int row);
     void setCaptureForSource (File source, Image capturedImage);
+    Array<Image> getAllImageAssets() const;
 
     //=========================================================================
     void resized() override;
@@ -330,6 +331,7 @@ public:
     void showKernelRule (const String& rule);
     void indicateSuccess (const String& info);
     void logErrorMessage (const String& what);
+    void createAnimation (bool toTempDirectory);
 
     //=========================================================================
     void resized() override;

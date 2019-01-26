@@ -94,6 +94,8 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
         menu.addSeparator();
         menu.addCommandItem (manager, Viewer::Commands::makeSnapshotAndOpen);
         menu.addCommandItem (manager, Viewer::Commands::saveSnapshotAs);
+        menu.addCommandItem (manager, Commands::makeAnimationAndOpen);
+        menu.addCommandItem (manager, Commands::saveAnimationAs);
         return menu;
     }
     if (menuName == "View")
@@ -228,6 +230,8 @@ void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
         Commands::toggleKernelRuleEntry,
         Commands::increaseFontSize,
         Commands::decreaseFontSize,
+        Commands::makeAnimationAndOpen,
+        Commands::saveAnimationAs,
     };
     commands.addArray (ids, numElementsInArray (ids));
 }
@@ -277,6 +281,14 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
             result.setInfo ("Decrease Font Size", "", "View", 0);
             result.defaultKeypresses.add (KeyPress ('-', ModifierKeys::commandModifier, '-'));
             break;
+        case Commands::makeAnimationAndOpen:
+            result.setInfo ("Create Animation", "", "File", 0);
+            result.defaultKeypresses.add (KeyPress ('a', ModifierKeys::altModifier | ModifierKeys::commandModifier, 0));
+            break;
+        case Commands::saveAnimationAs:
+            result.setInfo ("Save Animation As...", "", "File", 0);
+            result.defaultKeypresses.add (KeyPress ('a', ModifierKeys::shiftModifier | ModifierKeys::commandModifier, 0));
+            break;
         default:
             JUCEApplication::getCommandInfo (commandID, result);
             break;
@@ -298,6 +310,8 @@ bool PatchViewApplication::perform (const InvocationInfo& info)
         case Commands::reloadCurrentFile:         main->reloadCurrentFile(); return true;
         case Commands::increaseFontSize:          lookAndFeel.incrementFontSize (+1); mainWindow->sendLookAndFeelChange(); return true;
         case Commands::decreaseFontSize:          lookAndFeel.incrementFontSize (-1); mainWindow->sendLookAndFeelChange(); return true;
+        case Commands::makeAnimationAndOpen:      main->createAnimation (true); return true;
+        case Commands::saveAnimationAs:           main->createAnimation (false); return true;
         default:                                  return JUCEApplication::perform (info);
     }
 }
