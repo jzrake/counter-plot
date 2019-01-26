@@ -76,6 +76,11 @@ void TaskPool::cancelAll()
     threadPool.removeAllJobs (true, 0);
 }
 
+int TaskPool::getNumJobsRunningOrQueued() const
+{
+    return threadPool.getNumJobs();
+}
+
 
 
 

@@ -11,19 +11,6 @@ class Viewer : public Component
 {
 public:
 
-    //=========================================================================
-    class MessageSink
-    {
-    public:
-        virtual ~MessageSink() {}
-        virtual void viewerAsyncTaskStarted (const String& name) = 0;
-        virtual void viewerAsyncTaskCompleted (const String& name) = 0;
-        virtual void viewerAsyncTaskCancelled (const String& name) = 0;
-        virtual void viewerLogErrorMessage (const String& what) = 0;
-        virtual void viewerIndicateSuccess() = 0;
-        virtual void viewerEnvironmentChanged() = 0;
-    };
-
     /**
      * Common commands that views might typically respond to. Views that are
      * ApplicationCommandTarget's should return the subset of these which they
@@ -37,6 +24,33 @@ public:
         prevColourMap       = 0x0213004,
         resetScalarRange    = 0x0213005,
     };
+
+    //=========================================================================
+    class MessageSink
+    {
+    public:
+        virtual ~MessageSink() {}
+        virtual void viewerAsyncTaskStarted (const String& name) = 0;
+        virtual void viewerAsyncTaskCompleted (const String& name) = 0;
+        virtual void viewerAsyncTaskCancelled (const String& name) = 0;
+        virtual void viewerLogErrorMessage (const String& what) = 0;
+        virtual void viewerIndicateSuccess() = 0;
+        virtual void viewerEnvironmentChanged() = 0;
+        // virtual void viewerRenderingStateChanged (bool isCurrentlyRendering) = 0;
+    };
+
+    /**
+     * Derived classes can call these method to send a message to the sink. This
+     * is either the private messageSink instance if it is not null, or the
+     * nearest parent that is a message sink, if it exists.
+     */
+    void sendAsyncTaskStarted (const String& name) const;
+    void sendAsyncTaskCompleted (const String& name) const;
+    void sendAsyncTaskCancelled (const String& name) const;
+    void sendErrorMessage (const String& what) const;
+    void sendIndicateSuccess() const;
+    void sendEnvironmentChanged() const;
+    // void sendRenderingStateChanged (bool isCurrentlyRendering) const;
 
     /**
      * This returns the list of the above commands.
@@ -100,19 +114,9 @@ public:
 
     virtual void setMessageSink (MessageSink* explicitMessageSink) { messageSink = explicitMessageSink; }
 
-    virtual Image createViewerSnapshot() { return createComponentSnapshot (getLocalBounds()); }
+    virtual bool isRenderingComplete() const { return true; }
 
-    /**
-     * Derived classes can call these method to send a message to the sink. This
-     * is either the private messageSink instance if it is not null, or the
-     * nearest parent that is a message sink, if it exists.
-     */
-    void sendAsyncTaskStarted (const String& name) const;
-    void sendAsyncTaskCompleted (const String& name) const;
-    void sendAsyncTaskCancelled (const String& name) const;
-    void sendErrorMessage (const String& what) const;
-    void sendIndicateSuccess() const;
-    void sendEnvironmentChanged() const;
+    virtual Image createViewerSnapshot() { return createComponentSnapshot (getLocalBounds()); }
 
 private:
     MessageSink* messageSink = nullptr;

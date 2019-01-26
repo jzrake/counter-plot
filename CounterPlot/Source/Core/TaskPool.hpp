@@ -67,6 +67,12 @@ public:
     void cancelAll();
 
 
+    /**
+     * Return the number of running or queued jobs.
+     */
+    int getNumJobsRunningOrQueued() const;
+
+
 private:
 
 

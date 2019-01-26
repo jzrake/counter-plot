@@ -34,6 +34,7 @@ public:
     const Runtime::Kernel* getKernel() const override;
     bool canReceiveMessages() const override;
     bool receiveMessage (const String& message) override;
+    bool isRenderingComplete() const override;
     Image createViewerSnapshot() override;
 
     //=========================================================================

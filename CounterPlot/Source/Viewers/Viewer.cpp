@@ -107,6 +107,13 @@ void Viewer::sendEnvironmentChanged() const
     }
 }
 
+//void Viewer::sendRenderingStateChanged (bool isCurrentlyRendering) const
+//{
+//    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
+//    {
+//        sink->sendRenderingStateChanged (isCurrentlyRendering);
+//    }
+//}
 
 
 

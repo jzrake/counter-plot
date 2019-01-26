@@ -211,6 +211,11 @@ bool UserExtensionView::receiveMessage (const String& message)
     }
 }
 
+bool UserExtensionView::isRenderingComplete() const
+{
+    return taskPool.getNumJobsRunningOrQueued() == 0 && kernel.dirty_rules().empty();
+}
+
 Image UserExtensionView::createViewerSnapshot()
 {
     for (auto figure : figures)
@@ -274,8 +279,6 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 void UserExtensionView::getAllCommands (Array<CommandID>& commands)
 {
     Viewer::getAllCommands (commands);
-//    commands.removeAllInstancesOf (Viewer::Commands::makeSnapshotAndOpen);
-//    commands.removeAllInstancesOf (Viewer::Commands::saveSnapshotAs);
 }
 
 void UserExtensionView::getCommandInfo (CommandID commandID, ApplicationCommandInfo& result)

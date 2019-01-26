@@ -123,35 +123,6 @@ void SourceList::setCaptureForSource (File source, Image capturedImage)
     int n = sources.indexOf (source);
     assets.getReference(n).capture = capturedImage;
     list.repaintRow(n);
-
-
-//    auto outf = File::getSpecialLocation (File::tempDirectory).getChildFile ("frame.0001.png");
-//    auto fstr = std::unique_ptr<FileOutputStream> (outf.createOutputStream());
-//
-//    DBG(outf.getFullPathName());
-//
-//    PNGImageFormat format;
-//    format.writeImageToStream (capturedImage, *fstr);
-//
-//    ChildProcess process;
-//
-//    // ffmpeg -r 60 -f image2 -s 1920x1080 -i frame.%04.png -vcodec libx264 -pix_fmt yuv420p -crf 25 -y /Users/jzrake/Desktop/output.mp4
-//
-//    StringArray args = {
-//        "/usr/local/bin/ffmpeg",
-//        "-r", "12",
-//        "-f", "image2",
-//        "-i", File::getSpecialLocation (File::tempDirectory).getChildFile ("frame.%04d.png").getFullPathName(),
-//        "-vcodec", "libx264",
-//        "-pix_fmt", "yuv420p",
-//        "-crf", "25",
-//        "-y", "/Users/jzrake/Desktop/output.mp4",
-//    };
-//
-//    process.start (args, ChildProcess::wantStdOut | ChildProcess::wantStdErr);
-//    process.waitForProcessToFinish (10000);
-//
-//    DBG("finished! " << int(process.getExitCode()) << " " << process.readAllProcessOutput());
 }
 
 Array<Image> SourceList::getAllImageAssets() const
@@ -1360,10 +1331,15 @@ void MainComponent::sourceListSelectedSourceChanged (SourceList*, File file)
 
 void MainComponent::sourceListWantsCaptureOfCurrent (SourceList*)
 {
-    if (currentViewer)
+    if (currentViewer && currentViewer->isRenderingComplete())
     {
         auto capture = currentViewer->createViewerSnapshot();
         sourceList.setCaptureForSource (currentFile, capture);
+        indicateSuccess ("Recorded snapshot");
+    }
+    else
+    {
+        logErrorMessage ("Cannot do a snapshot because viewer is still rendering...");
     }
 }
 
@@ -1416,6 +1392,10 @@ void MainComponent::viewerEnvironmentChanged()
         kernelRuleEntry.refresh (currentViewer->getKernel());
     }
 }
+
+//void MainComponent::viewerRenderingStateChanged (bool isCurrentlyRendering)
+//{
+//}
 
 
 

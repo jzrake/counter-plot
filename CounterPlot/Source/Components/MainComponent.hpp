@@ -354,6 +354,7 @@ public:
     void viewerLogErrorMessage (const String&) override;
     void viewerIndicateSuccess() override;
     void viewerEnvironmentChanged() override;
+    // void viewerRenderingStateChanged (bool isCurrentlyRendering) override;
 
     //=========================================================================
     void viewerCollectionViewerReconfigured (Viewer*) override;
