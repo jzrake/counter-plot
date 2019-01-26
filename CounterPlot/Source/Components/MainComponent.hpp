@@ -23,6 +23,8 @@ public:
     EitherOrComponent();
     void setComponent1 (Component* componentToShow);
     void setComponent2 (Component* componentToShow);
+    void showComponent1();
+    void showComponent2();
 
     //=========================================================================
     void paint (Graphics& g) override;
@@ -51,20 +53,52 @@ private:
 class SourceList : public Component, public ListBoxModel
 {
 public:
+
+    //=========================================================================
+    class Listener
+    {
+    public:
+        virtual ~Listener() {}
+        virtual void sourceListSelectedSourceChanged (SourceList*, File) = 0;
+        virtual void sourceListWantsCaptureOfCurrent (SourceList*) = 0;
+    };
+
     //=========================================================================
     SourceList();
+    void addListener (Listener*);
+    void removeListener (Listener*);
+    void clear();
+    void setSources (const Array<File>& sourcesToShow);
+    void addSource (File source);
+    void removeSource (File source);
+    void removeSourceAtRow (int row);
+    void setCaptureForSource (File source, Image capturedImage);
 
     //=========================================================================
     void resized() override;
     void paint (Graphics& g) override;
+    bool keyPressed (const KeyPress& key) override;
 
     //=========================================================================
     int getNumRows() override;
     void paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected) override;
     void selectedRowsChanged (int lastRowSelected) override;
+    void deleteKeyPressed (int row) override;
+    void listBoxItemDoubleClicked (int row, const MouseEvent& e) override;
+
     String getTooltipForRow (int row) override;
 
 private:
+    //=========================================================================
+    struct SourceAssets
+    {
+        Image capture;
+    };
+
+    void sendSelectedSourceChanged (int row);
+    ListenerList<Listener> listeners;
+    Array<File> sources;
+    Array<SourceAssets> assets;
     ListBox list;
 };
 
@@ -260,6 +294,7 @@ private:
 class MainComponent
 : public Component
 , public DirectoryTree::Listener
+, public SourceList::Listener
 , public FigureView::MessageSink
 , public Viewer::MessageSink
 , public ViewerCollection::Listener
@@ -300,7 +335,12 @@ public:
     void resized() override;
 
     //=========================================================================
-    void selectedFileChanged (DirectoryTree*, File) override;
+    void directoryTreeSelectedFileChanged (DirectoryTree*, File) override;
+    void directoryTreeWantsFileToBeSource (DirectoryTree*, File) override;
+
+    //=========================================================================
+    void sourceListSelectedSourceChanged (SourceList*, File) override;
+    void sourceListWantsCaptureOfCurrent (SourceList*) override;
 
     //=========================================================================
     void figureMousePosition (Point<double> position) override;

@@ -40,6 +40,24 @@ void EitherOrComponent::setComponent2 (Component* componentToShow)
     }
 }
 
+void EitherOrComponent::showComponent1()
+{
+    if (component1)
+    {
+        button1.setToggleState (true, NotificationType::dontSendNotification);
+        component1->setVisible (true);
+    }
+}
+
+void EitherOrComponent::showComponent2()
+{
+    if (component2)
+    {
+        button2.setToggleState (true, NotificationType::dontSendNotification);
+        component2->setVisible (true);
+    }
+}
+
 
 
 
@@ -48,8 +66,62 @@ SourceList::SourceList()
 {
     list.setColour (ListBox::ColourIds::backgroundColourId, Colours::transparentBlack);
     list.setModel (this);
-    list.setRowHeight (48);
+    list.setRowHeight (96);
     addAndMakeVisible (list);
+}
+
+void SourceList::addListener (Listener* listener)
+{
+    listeners.add (listener);
+}
+
+void SourceList::removeListener (Listener* listener)
+{
+    listeners.remove (listener);
+}
+
+void SourceList::clear()
+{
+    sources.clear();
+    assets.clear();
+    list.updateContent();
+}
+
+void SourceList::setSources (const Array<File>& sourcesToShow)
+{
+    sources = sourcesToShow;
+    assets.clear();
+    assets.resize (sources.size());
+    list.updateContent();
+}
+
+void SourceList::addSource (File source)
+{
+    if (! sources.contains (source))
+    {
+        sources.addUsingDefaultSort (source);
+        assets.insert (sources.indexOf (source), SourceAssets());
+        list.updateContent();
+    }
+}
+
+void SourceList::removeSource (File source)
+{
+    removeSourceAtRow (sources.indexOf (source));
+}
+
+void SourceList::removeSourceAtRow (int row)
+{
+    sources.remove (row);
+    assets.remove (row);
+    list.updateContent();
+}
+
+void SourceList::setCaptureForSource (File source, Image capturedImage)
+{
+    int n = sources.indexOf (source);
+    assets.getReference(n).capture = capturedImage;
+    list.repaintRow(n);
 }
 
 
@@ -66,25 +138,82 @@ void SourceList::paint (Graphics& g)
     g.fillAll (findColour (LookAndFeelHelpers::directoryTreeBackground));
 }
 
+bool SourceList::keyPressed (const KeyPress& key)
+{
+    if (key == KeyPress::spaceKey)
+    {
+        listeners.call (&Listener::sourceListWantsCaptureOfCurrent, this);
+        return true;
+    }
+    return false;
+}
+
 
 
 
 //=========================================================================
 int SourceList::getNumRows()
 {
-    return 10;
+    return sources.size();
 }
 
-void SourceList::paintListBoxItem (int rowNumber, Graphics &g, int width, int height, bool rowIsSelected)
+void SourceList::paintListBoxItem (int row, Graphics &g, int width, int height, bool rowIsSelected)
 {
     if (rowIsSelected)
     {
         g.fillAll (findColour (LookAndFeelHelpers::directoryTreeSelectedItem));
     }
+
+    auto area = Rectangle<int> (0, 0, width, height);
+    auto nameArea = area.removeFromTop (22);
+    auto imageArea = area.reduced (8, 0);
+
+    g.setColour (findColour (LookAndFeelHelpers::directoryTreeFile));
+    g.drawText (sources.getReference (row).getFileName(), nameArea.reduced (8, 0), Justification::centredLeft);
+
+    auto image = assets.getReference (row).capture;
+
+    if (image == Image())
+    {
+        g.setColour (findColour (LookAndFeelHelpers::directoryTreeSelectedItem).brighter());
+        g.fillRoundedRectangle (imageArea.toFloat(), 4);
+    }
+    else
+    {
+        g.drawImage (image, imageArea
+                     .withWidth (imageArea.getHeight() * image.getBounds().getAspectRatio())
+                     .toFloat());
+    }
 }
 
 void SourceList::selectedRowsChanged (int lastRowSelected)
 {
+    listeners.call (&Listener::sourceListSelectedSourceChanged, this, sources[lastRowSelected]);
+}
+
+void SourceList::deleteKeyPressed (int row)
+{
+    removeSourceAtRow (row);
+
+    if (row >= getNumRows())
+        list.selectRow (row - 1);
+}
+
+void SourceList::listBoxItemDoubleClicked (int row, const MouseEvent& e)
+{
+    auto image = assets.getReference(row).capture;
+
+    if (image != Image())
+    {
+        auto target = File::createTempFile (".png");
+
+        if (auto stream = std::unique_ptr<FileOutputStream> (target.createOutputStream()))
+        {
+            auto fmt = PNGImageFormat();
+            fmt.writeImageToStream (image, *stream);
+            target.startAsProcess();
+        }
+    }
 }
 
 String SourceList::getTooltipForRow (int row)
@@ -96,10 +225,19 @@ String SourceList::getTooltipForRow (int row)
 
 
 //=========================================================================
+void SourceList::sendSelectedSourceChanged (int row)
+{
+    listeners.call (&Listener::sourceListSelectedSourceChanged, this, sources[row]);
+}
+
+
+
+
+//=========================================================================
 void EitherOrComponent::paint (Graphics& g)
 {
     auto area = getLocalBounds();
-    auto buttonRow = area.removeFromTop (36);
+    auto buttonRow = area.removeFromTop (34);
 
     g.setColour (findColour (LookAndFeelHelpers::directoryTreeBackground));
     g.fillRect (buttonRow);
@@ -108,7 +246,7 @@ void EitherOrComponent::paint (Graphics& g)
 void EitherOrComponent::resized()
 {
     auto area = getLocalBounds();
-    auto buttonRow = area.removeFromTop (36).reduced (6);
+    auto buttonRow = area.removeFromTop (34).reduced (6);
     button1.setBounds (buttonRow.removeFromLeft (getWidth() / 2));
     button2.setBounds (buttonRow);
 
@@ -856,6 +994,7 @@ MainComponent::MainComponent()
     filePoller.setCallback ([this] (File) { reloadCurrentFile(); });
     directoryTree.addListener (this);
     directoryTree.getTreeView().setWantsKeyboardFocus (directoryTreeShowing);
+    sourceList.addListener (this);
     environmentView.getListBox().setWantsKeyboardFocus (environmentViewShowing);
     statusBar.setCurrentViewerName ("Viewer List");
 
@@ -1112,18 +1251,46 @@ void MainComponent::resized()
 
 
 //=============================================================================
-void MainComponent::selectedFileChanged (DirectoryTree*, File file)
+void MainComponent::directoryTreeSelectedFileChanged (DirectoryTree*, File file)
 {
     currentFile = file;
     filePoller.setFileToPoll (currentFile);
 
     if (currentViewer && currentViewer->isInterestedInFile (currentFile))
-    {
         currentViewer->loadFile (currentFile);
-    }
     else if (auto viewer = viewers.findViewerForFile (file))
-    {
         makeViewerCurrent (viewer);
+}
+
+void MainComponent::directoryTreeWantsFileToBeSource (DirectoryTree*, File file)
+{
+    sourceList.addSource (file);
+    sidebar.showComponent2();
+}
+
+
+
+
+//=============================================================================
+void MainComponent::sourceListSelectedSourceChanged (SourceList*, File file)
+{
+    currentFile = file;
+    filePoller.setFileToPoll (currentFile);
+
+    if (currentViewer && currentViewer->isInterestedInFile (currentFile))
+        currentViewer->loadFile (currentFile);
+    else if (auto viewer = viewers.findViewerForFile (file))
+        makeViewerCurrent (viewer);
+    else
+        makeViewerCurrent (nullptr);
+}
+
+void MainComponent::sourceListWantsCaptureOfCurrent (SourceList*)
+{
+    if (currentViewer)
+    {
+        auto capture = currentViewer->createViewerSnapshot();
+        sourceList.setCaptureForSource (currentFile, capture);
     }
 }
 

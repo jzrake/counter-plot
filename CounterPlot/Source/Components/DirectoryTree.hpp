@@ -12,7 +12,8 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void selectedFileChanged (DirectoryTree*, File) = 0;
+        virtual void directoryTreeSelectedFileChanged (DirectoryTree*, File) = 0;
+        virtual void directoryTreeWantsFileToBeSource (DirectoryTree*, File) = 0;
     };
 
     //=========================================================================
@@ -37,8 +38,8 @@ public:
 
 private:
     //=========================================================================
+    void sendSelectedFilesAsSources();
     void setMouseOverItem (TreeViewItem*);
-    void sendSelectedFileChanged (File);
     void setColours();
     class Item;
     friend class Item;

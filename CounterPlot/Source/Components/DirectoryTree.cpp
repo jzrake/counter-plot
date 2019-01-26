@@ -82,9 +82,7 @@ public:
     void itemSelectionChanged (bool isNowSelected) override
     {
         if (isNowSelected)
-        {
-            directory.sendSelectedFileChanged (file);
-        }
+            directory.listeners.call (&Listener::directoryTreeSelectedFileChanged, &directory, file);
     }
 
     void itemOpennessChanged (bool isNowOpen) override
@@ -112,12 +110,27 @@ public:
         }
     }
 
+    void itemClicked (const MouseEvent& e) override
+    {
+        if (e.mods.isPopupMenu())
+        {
+            PopupMenu menu;
+            menu.addItem (1, "Add as Source");
+
+            switch (menu.show())
+            {
+                case 1: directory.sendSelectedFilesAsSources(); break;
+            }
+        }
+    }
+
 private:
     bool isMouseOver() const
     {
         return directory.mouseOverItem == this;
     }
 
+    friend class DirectoryTree;
     int itemHeight = 24;
     GlyphArrangement glyphs;
     DirectoryTree& directory;
@@ -232,16 +245,24 @@ void DirectoryTree::lookAndFeelChanged()
     repaint();
 }
 
+
+
+
+//=============================================================================
+void DirectoryTree::sendSelectedFilesAsSources()
+{
+    for (int n = 0; n < tree.getNumSelectedItems(); ++n)
+    {
+        auto item = dynamic_cast<Item*> (tree.getSelectedItem(n));
+        listeners.call (&Listener::directoryTreeWantsFileToBeSource, this, item->file);
+    }
+}
+
 void DirectoryTree::setMouseOverItem (TreeViewItem *newMouseOverItem)
 {
     if (mouseOverItem) mouseOverItem->repaintItem();
     if (newMouseOverItem) newMouseOverItem->repaintItem();
     mouseOverItem = newMouseOverItem;
-}
-
-void DirectoryTree::sendSelectedFileChanged (juce::File file)
-{
-    listeners.call (&Listener::selectedFileChanged, this, file);
 }
 
 void DirectoryTree::setColours()

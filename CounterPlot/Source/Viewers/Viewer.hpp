@@ -100,6 +100,8 @@ public:
 
     virtual void setMessageSink (MessageSink* explicitMessageSink) { messageSink = explicitMessageSink; }
 
+    virtual Image createViewerSnapshot() { return createComponentSnapshot (getLocalBounds()); }
+
     /**
      * Derived classes can call these method to send a message to the sink. This
      * is either the private messageSink instance if it is not null, or the
