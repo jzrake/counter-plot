@@ -116,7 +116,6 @@ public:
         {
             PopupMenu menu;
             menu.addItem (1, "Add as Source");
-
             switch (menu.show())
             {
                 case 1: directory.sendSelectedFilesAsSources(); break;
@@ -229,6 +228,16 @@ void DirectoryTree::mouseExit (const MouseEvent& e)
 void DirectoryTree::mouseMove (const MouseEvent& e)
 {
     setMouseOverItem (tree.getItemAt (e.position.y - tree.getViewport()->getViewPositionY()));
+}
+
+bool DirectoryTree::keyPressed (const KeyPress& key)
+{
+    if (key == KeyPress::spaceKey)
+    {
+        sendSelectedFilesAsSources();
+        return true;
+    }
+    return false;
 }
 
 void DirectoryTree::colourChanged()

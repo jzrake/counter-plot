@@ -68,6 +68,7 @@ SourceList::SourceList()
     list.setColour (ListBox::ColourIds::backgroundColourId, Colours::transparentBlack);
     list.setModel (this);
     list.setRowHeight (96);
+    list.setMultipleSelectionEnabled (true);
     addAndMakeVisible (list);
 }
 
@@ -155,6 +156,11 @@ bool SourceList::keyPressed (const KeyPress& key)
         listeners.call (&Listener::sourceListWantsCaptureOfCurrent, this);
         return true;
     }
+    if (key == KeyPress ('a', ModifierKeys::commandModifier, 0))
+    {
+        list.selectRangeOfRows (0, getNumRows());
+        return true;
+    }
     return false;
 }
 
@@ -205,7 +211,8 @@ void SourceList::paintListBoxItem (int row, Graphics &g, int width, int height, 
 
 void SourceList::selectedRowsChanged (int lastRowSelected)
 {
-    listeners.call (&Listener::sourceListSelectedSourceChanged, this, sources[lastRowSelected]);
+    if (list.getNumSelectedRows() == 1)
+        listeners.call (&Listener::sourceListSelectedSourceChanged, this, sources[lastRowSelected]);
 }
 
 void SourceList::deleteKeyPressed (int row)
@@ -288,6 +295,7 @@ void EitherOrComponent::TabButton::paintButton (Graphics& g, bool, bool)
 {
     auto c1 = findColour (LookAndFeelHelpers::directoryTreeBackground);
     auto c2 = findColour (LookAndFeelHelpers::directoryTreeBackground).darker();
+    g.setFont (Font().withHeight (11));
 
     if (getToggleState())
     {
@@ -300,7 +308,7 @@ void EitherOrComponent::TabButton::paintButton (Graphics& g, bool, bool)
     {
         g.setColour (c1);
         g.fillRect (getLocalBounds());
-        g.setColour (c2.brighter (0.4f));
+        g.setColour (c2.brighter (0.8f));
         g.drawText (getButtonText(), getLocalBounds(), Justification::centred);
     }
 

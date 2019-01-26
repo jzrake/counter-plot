@@ -33,6 +33,7 @@ public:
     void mouseEnter (const MouseEvent& e) override;
     void mouseExit (const MouseEvent& e) override;
     void mouseMove (const MouseEvent& e) override;
+    bool keyPressed (const KeyPress& key) override;
     void colourChanged() override;
     void lookAndFeelChanged() override;
 
