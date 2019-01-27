@@ -1,6 +1,7 @@
 #include "Main.hpp"
 #include "DataHelpers.hpp"
 #include "../Components/MainComponent.hpp"
+#include "../Components/TableView.hpp"
 #include "../Plotting/FigureView.hpp"
 #include "../Viewers/Viewer.hpp"
 
@@ -350,6 +351,7 @@ void PatchViewApplication::configureLookAndFeel()
     AppLookAndFeel::setLookAndFeelDefaults (laf, AppLookAndFeel::BackgroundScheme::dark);
     AppLookAndFeel::setLookAndFeelDefaults (laf, AppLookAndFeel::TextColourScheme::pastels1);
     FigureView    ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
+    TableView     ::setLookAndFeelDefaults (laf);
 }
 
 bool PatchViewApplication::presentOpenDirectoryDialog()

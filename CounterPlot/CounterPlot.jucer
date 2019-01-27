@@ -26,6 +26,8 @@
             file="Source/Components/MainComponent.cpp"/>
       <FILE id="JetBqA" name="MainComponent.hpp" compile="0" resource="0"
             file="Source/Components/MainComponent.hpp"/>
+      <FILE id="SVGFVQ" name="TableView.cpp" compile="1" resource="0" file="Source/Components/TableView.cpp"/>
+      <FILE id="AmRNSy" name="TableView.hpp" compile="0" resource="0" file="Source/Components/TableView.hpp"/>
       <FILE id="TcbaWy" name="VariantTree.cpp" compile="1" resource="0" file="Source/Components/VariantTree.cpp"/>
       <FILE id="siOuWT" name="VariantTree.hpp" compile="0" resource="0" file="Source/Components/VariantTree.hpp"/>
     </GROUP>

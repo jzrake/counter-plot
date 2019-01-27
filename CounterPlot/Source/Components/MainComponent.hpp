@@ -1,6 +1,7 @@
 #pragma once
 #include "JuceHeader.h"
 #include "DirectoryTree.hpp"
+#include "TableView.hpp"
 #include "../Plotting/FigureView.hpp"
 #include "../Viewers/Viewer.hpp"
 #include "../Viewers/UserExtensionView.hpp"
@@ -356,7 +357,6 @@ public:
     void viewerLogErrorMessage (const String&) override;
     void viewerIndicateSuccess() override;
     void viewerEnvironmentChanged() override;
-    // void viewerRenderingStateChanged (bool isCurrentlyRendering) override;
 
     //=========================================================================
     void viewerCollectionViewerReconfigured (Viewer*) override;
@@ -385,4 +385,6 @@ private:
     UserExtensionsDirectoryEditor userExtensionsDirectoryEditor;
     EitherOrComponent sidebar;
     FilePoller filePoller;
+
+    TableView testTableView;
 };

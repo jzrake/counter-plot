@@ -1060,6 +1060,10 @@ MainComponent::MainComponent()
     addAndMakeVisible (statusBar);
     addChildComponent (kernelRuleEntry);
     addChildComponent (userExtensionsDirectoryEditor);
+
+    ///////
+    addAndMakeVisible (testTableView);
+
     setSize (1024, 768 - 64);
 }
 
@@ -1486,6 +1490,9 @@ void MainComponent::layout (bool animated)
     setBounds (sidebar, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
     viewers.setBounds (area, animated);
+
+    ///////
+    testTableView.setBounds (area);
 
     userExtensionsDirectoryEditor.setBounds (getLocalBounds().withSizeKeepingCentre (400, 300));
 }
