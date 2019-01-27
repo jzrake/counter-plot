@@ -49,7 +49,8 @@ void TableView::setLookAndFeelDefaults (LookAndFeel& laf)
 {
     laf.setColour (backgroundColourId, Colours::white);
     laf.setColour (headerCellColourId, Colours::whitesmoke);
-    laf.setColour (selectedCellColourId, Colours::lightgrey);
+    laf.setColour (selectedCellColourId, Colours::blue.withAlpha (0.1f));
+    laf.setColour (abscissaCellColourId, Colours::green.withAlpha (0.1f));
     laf.setColour (gridlineColourId, Colours::lightgrey);
     laf.setColour (textColourId, Colours::black);
 }
@@ -60,9 +61,6 @@ void TableView::setLookAndFeelDefaults (LookAndFeel& laf)
 //=========================================================================
 TableView::TableView()
 {
-    model.columns.add ({"Column 1", Array<double> {1.2, 2.256, 3.122, 4.22211147, 0.5, 6.123}});
-    model.columns.add ({"Column 2", Array<double> {4.2, 2.256, 2.122, 3.22211147, 0.9, 6.123}});
-    model.columns.add ({"Column 3", Array<double> {1.2, 2.256, 2.122,-1231.30000, 0.9, 6.123}});
 }
 
 void TableView::setModel (const TableModel& newModel)
@@ -84,10 +82,6 @@ void TableView::paint (Graphics& g)
     g.saveState();
     g.addTransform (AffineTransform::translation (upperLeftOfTable));
 
-    g.setColour (findColour (ColourIds::backgroundColourId).darker());
-    g.fillRect (geometry.getCellArea (mouseOverCell.row, mouseOverCell.col));
-
-
     for (int j = 0; j < model.columns.size(); ++j)
     {
         paintColumn (g, geometry, j, model.columns.getReference(j));
@@ -108,6 +102,33 @@ void TableView::paint (Graphics& g)
 
 void TableView::resized()
 {
+}
+
+void TableView::mouseDown (const MouseEvent& e)
+{
+    if (mouseOverCell.row == 0 && mouseOverCell.col != model.abscissa)
+    {
+        auto& column = model.columns.getReference (mouseOverCell.col - 1);
+
+        if (e.mods.isPopupMenu())
+        {
+            auto menu = PopupMenu();
+
+            menu.addItem (1, "Make Column Abscissa");
+            menu.addItem (2, column.selected ? "Unselect Column" : "Select Column");
+
+            switch (menu.show())
+            {
+                case 1: model.abscissa = mouseOverCell.col; column.selected = false; break;
+                case 2: column.selected = ! column.selected; break;
+            }
+        }
+        else
+        {
+            column.selected = ! column.selected;
+        }
+        repaint();
+    }
 }
 
 void TableView::mouseMove (const MouseEvent& e)
@@ -167,8 +188,8 @@ void TableView::paintHeaderShadow (Graphics &g, const Geometry &geometry)
     {
         auto y1 = model.headerHeight;
         auto y2 = model.headerHeight + 16;
-        auto rect = Rectangle<int>::leftTopRightBottom(geometry.colEdges[1], y1,
-                                                       geometry.colEdges.getLast(), y2);
+        auto rect = Rectangle<int>::leftTopRightBottom (geometry.colEdges[1], y1,
+                                                        geometry.colEdges.getLast(), y2);
         ColourGradient grad (Colours::darkslateblue.withAlpha (0.2f), 0, y1,
                              Colours::darkslateblue.withAlpha (0.0f), 0, y2, false);
         g.setGradientFill (grad);
@@ -183,12 +204,43 @@ void TableView::paintHeader (Graphics& g, const Geometry& geometry)
     for (int j = 0; j < model.columns.size(); ++j)
     {
         auto area = geometry.getCellArea (0, j + 1);
+        auto& column = model.columns.getReference(j);
 
-        g.setColour (findColour (ColourIds::headerCellColourId));
+        if (   mouseOverCell.row == 0
+            && mouseOverCell.col == j + 1
+            && model.abscissa    != j + 1)
+            g.setColour (findColour (ColourIds::headerCellColourId).darker (0.1f));
+        else
+            g.setColour (findColour (ColourIds::headerCellColourId));
+
         g.fillRect (area);
-
         g.setColour (findColour (ColourIds::textColourId));
-        g.drawText (model.columns.getUnchecked(j).name, area, Justification::centred);
+        g.drawText (column.name, area, Justification::centred);
+    }
+}
+
+void TableView::paintColumn (Graphics& g, const Geometry& geometry, int j, const TableModel::Series& data)
+{
+    auto& column = model.columns.getReference(j);
+
+    for (int i = 0; i < data.size(); ++i)
+    {
+        if (isRowOnscreen (i, geometry))
+        {
+            if (column.selected)
+                g.setColour (findColour (ColourIds::selectedCellColourId));
+            else if (model.abscissa == j + 1)
+                g.setColour (findColour (ColourIds::abscissaCellColourId));
+            else
+                g.setColour (Colours::transparentBlack);
+
+            auto area = geometry.getCellArea (i + 1, j + 1);
+
+            g.fillRect (area);
+            g.setColour (findColour (ColourIds::textColourId));
+            g.setFont (model.numberFont);
+            g.drawText (String (data.doubleData.getUnchecked (i), 8), area, Justification::centred);
+        }
     }
 }
 
@@ -209,21 +261,6 @@ void TableView::paintGutter (Graphics& g, const Geometry& geometry)
     }
 }
 
-void TableView::paintColumn (Graphics& g, const Geometry& geometry, int column, const TableModel::Series& data)
-{
-    g.setColour (findColour (ColourIds::textColourId));
-    g.setFont (model.numberFont);
-
-    for (int i = 0; i < data.size(); ++i)
-    {
-        if (isRowOnscreen (i, geometry))
-        {
-            auto area = geometry.getCellArea (i + 1, column + 1);
-            g.drawText (String (data.doubleData.getUnchecked (i), 8), area, Justification::centred);
-        }
-    }
-}
-
 TableView::Geometry TableView::computeGeometry()
 {
     Geometry g;
@@ -231,7 +268,7 @@ TableView::Geometry TableView::computeGeometry()
     g.rowEdges.add(0);
 
     for (int j = 0; j < model.columns.size() + 1; ++j)
-        g.colEdges.add (j * model.columnWidth + model.leftMarginWidth);
+        g.colEdges.add (j * model.columnWidth + model.gutterWidth);
 
     for (int i = 0; i < model.maxRows() + 1; ++i)
         g.rowEdges.add (i * model.rowHeight + model.headerHeight);
@@ -239,10 +276,22 @@ TableView::Geometry TableView::computeGeometry()
     return g;
 }
 
-TableView::Cell TableView::cellAtPosition (Point<float> tablePosition)
+TableView::Cell TableView::cellAtPosition (Point<float> pos)
 {
-    int i = 1 + (-upperLeftOfTable.y + tablePosition.y - model.headerHeight) / model.rowHeight;
-    int j = 1 + (-upperLeftOfTable.x + tablePosition.x - model.leftMarginWidth) / model.columnWidth;
+    // If the mouse is over a header cell, we return {0, col}.
+    // ------------------------------------------------------------------------------
+    int col = 1 + (pos.x - model.gutterWidth) / model.columnWidth;
+
+    if (pos.y < model.headerHeight && 1 <= col && col <= model.columns.size())
+    {
+        return {0, col};
+    }
+
+    // Otherwise, we return the index of the cell the mouse is in (row/col starting
+    // from 1).
+    // ------------------------------------------------------------------------------
+    int i = 1 + (-upperLeftOfTable.y + pos.y - model.headerHeight) / model.rowHeight;
+    int j = 1 + (-upperLeftOfTable.x + pos.x - model.gutterWidth) / model.columnWidth;
     return {i, j};
 }
 

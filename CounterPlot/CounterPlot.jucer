@@ -8,7 +8,7 @@
             file="../Viewers/BinaryTorque.yaml"/>
       <FILE id="snk8h0" name="cividis.cmap" compile="0" resource="1" file="../Resources/cividis.cmap"/>
       <FILE id="q3gzrE" name="dawn.cmap" compile="0" resource="1" file="../resources/dawn.cmap"/>
-      <FILE id="XA8lBl" name="Durian-512.png" compile="0" resource="0" file="../Resources/Durian-512.png"/>
+      <FILE id="DuPY1e" name="Durian.png" compile="0" resource="1" file="../Resources/Durian.png"/>
       <FILE id="y1t0Kg" name="fire.cmap" compile="0" resource="1" file="../resources/fire.cmap"/>
       <FILE id="Vnm15D" name="inferno.cmap" compile="0" resource="1" file="../Resources/inferno.cmap"/>
       <FILE id="jmWxyK" name="JetInCloud.yaml" compile="0" resource="1" file="../Viewers/JetInCloud.yaml"/>
@@ -91,7 +91,7 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5&#10;yaml-cpp&#10;"
                customXcodeResourceFolders="../third_party/embed-hdf5-macos/lib/libhdf5.dylib&#10;../third_party/embed-yaml-macos/lib/libyaml-cpp.dylib"
-               smallIcon="XA8lBl" bigIcon="XA8lBl" extraFrameworks="Quartz">
+               smallIcon="DuPY1e" bigIcon="DuPY1e" extraFrameworks="Quartz">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" headerPath="../../../third_party/embed-hdf5-macos/include&#10;../../../third_party/embed-yaml-macos/include"
                        libraryPath="../../../third_party/embed-hdf5-macos/lib&#10;../../../third_party/embed-yaml-macos/lib"/>
