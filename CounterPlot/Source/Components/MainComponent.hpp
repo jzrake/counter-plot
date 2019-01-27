@@ -386,5 +386,5 @@ private:
     EitherOrComponent sidebar;
     FilePoller filePoller;
 
-    TableView testTableView;
+    // TableView testTableView;
 };

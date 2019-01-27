@@ -1040,6 +1040,7 @@ MainComponent::MainComponent()
     viewers.addListener (this);
     viewers.add (std::make_unique<JsonFileViewer>());
     viewers.add (std::make_unique<ImageFileViewer>());
+    viewers.add (std::make_unique<AsciiTableViewer>());
     viewers.add (std::make_unique<ColourMapViewer>());
     viewers.add (std::make_unique<PDFViewer>());
     viewers.add (std::make_unique<MetaYamlViewer> (this));
@@ -1062,7 +1063,7 @@ MainComponent::MainComponent()
     addChildComponent (userExtensionsDirectoryEditor);
 
     ///////
-    addAndMakeVisible (testTableView);
+    // addAndMakeVisible (testTableView);
 
     setSize (1024, 768 - 64);
 }
@@ -1492,7 +1493,7 @@ void MainComponent::layout (bool animated)
     viewers.setBounds (area, animated);
 
     ///////
-    testTableView.setBounds (area);
+    // testTableView.setBounds (area);
 
     userExtensionsDirectoryEditor.setBounds (getLocalBounds().withSizeKeepingCentre (400, 300));
 }

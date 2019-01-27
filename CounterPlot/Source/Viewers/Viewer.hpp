@@ -1,6 +1,7 @@
 #pragma once
 #include "JuceHeader.h"
 #include "../Components/VariantTree.hpp"
+#include "../Components/TableView.hpp"
 #include "../Core/Runtime.hpp"
 
 
@@ -36,7 +37,6 @@ public:
         virtual void viewerLogErrorMessage (const String& what) = 0;
         virtual void viewerIndicateSuccess() = 0;
         virtual void viewerEnvironmentChanged() = 0;
-        // virtual void viewerRenderingStateChanged (bool isCurrentlyRendering) = 0;
     };
 
     /**
@@ -50,7 +50,6 @@ public:
     void sendErrorMessage (const String& what) const;
     void sendIndicateSuccess() const;
     void sendEnvironmentChanged() const;
-    // void sendRenderingStateChanged (bool isCurrentlyRendering) const;
 
     /**
      * This returns the list of the above commands.
@@ -166,6 +165,29 @@ public:
 private:
     File currentFile;
     ImageComponent view;
+};
+
+
+
+//=============================================================================
+class AsciiTableViewer : public Viewer
+{
+public:
+
+    //=========================================================================
+    AsciiTableViewer();
+    bool isInterestedInFile (File file) const override;
+    void loadFile (File file) override;
+    void reloadFile() override;
+    String getViewerName() const override { return "Ascii Table"; }
+
+    //=========================================================================
+    void resized() override;
+
+private:
+    File currentFile;
+    TableModel model;
+    TableView view;
 };
 
 

@@ -1,6 +1,8 @@
+#include <fstream>
 #include "Viewer.hpp"
 #include "../Components/VariantTree.hpp"
 #include "../Core/DataHelpers.hpp"
+#include "../Core/AsciiLoader.hpp"
 #include "yaml-cpp/yaml.h"
 
 
@@ -107,13 +109,6 @@ void Viewer::sendEnvironmentChanged() const
     }
 }
 
-//void Viewer::sendRenderingStateChanged (bool isCurrentlyRendering) const
-//{
-//    if (auto sink = messageSink ? messageSink : findParentComponentOfClass<MessageSink>())
-//    {
-//        sink->sendRenderingStateChanged (isCurrentlyRendering);
-//    }
-//}
 
 
 
@@ -151,6 +146,58 @@ void JsonFileViewer::reloadFile()
 }
 
 void JsonFileViewer::resized()
+{
+    view.setBounds (getLocalBounds());
+}
+
+
+
+
+//=============================================================================
+AsciiTableViewer::AsciiTableViewer()
+{
+    addAndMakeVisible (view);
+}
+
+bool AsciiTableViewer::isInterestedInFile (File file) const
+{
+    return file.hasFileExtension (".dat") || file.hasFileExtension (".cmap");
+}
+
+void AsciiTableViewer::loadFile (File file)
+{
+    if (currentFile != file)
+    {
+        currentFile = file;
+        reloadFile();
+    }
+}
+
+void AsciiTableViewer::reloadFile()
+{
+    auto stream = std::ifstream (currentFile.getFullPathName().toStdString());
+    auto loader = AsciiLoader (stream);
+
+    if (! loader.getStatusMessage().empty())
+    {
+        return;
+    }
+
+    model.columns.clear();
+
+    for (int n = 0; n < loader.getNumColumns(); ++n)
+    {
+        auto name = loader.getColumnName(n);
+        Array<double> data;
+        data.resize (int (loader.getNumRows()));
+
+        loader.column (n, data.begin());
+        model.columns.add ({name, data});
+    }
+    view.setModel (model);
+}
+
+void AsciiTableViewer::resized()
 {
     view.setBounds (getLocalBounds());
 }

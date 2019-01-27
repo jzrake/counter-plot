@@ -52,6 +52,7 @@ class TableView : public Component
 {
 public:
 
+    //=========================================================================
     enum ColourIds
     {
         backgroundColourId   = 0x0761201,
@@ -70,6 +71,12 @@ public:
     };
 
     //=========================================================================
+    struct Cell
+    {
+        int row, col;
+    };
+
+    //=========================================================================
     static void setLookAndFeelDefaults (LookAndFeel&);
 
     //=========================================================================
@@ -79,15 +86,26 @@ public:
     //=========================================================================
     void paint (Graphics& g) override;
     void resized() override;
+    void mouseMove (const MouseEvent&) override;
+    void mouseExit (const MouseEvent&) override;
+    void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override;
 
 private:
 
     //=========================================================================
-    Geometry computeGeometry();
-    Point<int> rowAndColumnAtPosition (Point<float> tablePosition);
-    void paintGridlines (Graphics& g, const Geometry& geometry);
+    void paintGridlines (Graphics& g, const Geometry& geometry, char which);
+    void paintHeaderShadow (Graphics &g, const Geometry &geometry);
     void paintHeader (Graphics& g, const Geometry& geometry);
+    void paintGutter (Graphics& g, const Geometry& geometry);
     void paintColumn (Graphics& g, const Geometry& geometry, int column, const TableModel::Series& data);
+    Geometry computeGeometry();
+    Cell cellAtPosition (Point<float> tablePosition);
+    Point<float> tableToComponent (Point<float> tablePosition) const;
+    Point<float> componentToTable (Point<float> componentPosition) const;
+    bool isRowOnscreen (int row, const Geometry& geometry);
+    bool isColOnscreen (int col, const Geometry& geometry);
 
     TableModel model;
+    Cell mouseOverCell;
+    Point<float> upperLeftOfTable;
 };
