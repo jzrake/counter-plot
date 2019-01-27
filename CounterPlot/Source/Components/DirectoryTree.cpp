@@ -239,6 +239,17 @@ bool DirectoryTree::keyPressed (const KeyPress& key)
         sendSelectedFilesAsSources();
         return true;
     }
+
+    if (key == KeyPress (KeyPress::downKey, ModifierKeys::shiftModifier, 0))
+        if (auto item = tree.getSelectedItem (tree.getNumSelectedItems() - 1))
+            if (auto target = tree.getItemOnRow (item->getRowNumberInTree() + 1))
+                return static_cast<void> (target->setSelected (true, false)), true;
+
+    if (key == KeyPress (KeyPress::upKey, ModifierKeys::shiftModifier, 0))
+        if (auto item = tree.getSelectedItem (0))
+            if (auto target = tree.getItemOnRow (item->getRowNumberInTree() - 1))
+                return static_cast<void> (target->setSelected (true, false)), true;
+
     return false;
 }
 
