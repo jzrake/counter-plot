@@ -12,14 +12,18 @@ cols: [1]
 environment:
   columns: (load-text file)
   t: (item columns 0)
-  x: (item columns 1)
-  y: (item columns 2)
+  series: [(item columns 1), (item columns 2)]
+  colors: [magenta, orange]
+  styles: [dash, solid]
+  widths: [1, 4]
 
+control:
+  selected-columns: toggle-array
 
 figures:
 
 - title: (basename file)
-  xlabel: $fig1-xmin
+  xlabel: X
   ylabel: Y
   domain: $domain
   can-edit-title: false
@@ -27,8 +31,15 @@ figures:
   margin: $margin
   border-width: 2
   content:
-  - (plot t x lw=1 ls='dash'  lc='magenta')
-  - (plot t y lw=1 ls='solid'  lc='orange')
+  - (map plot t series lw=widths ls=styles lc=colors)
+
   capture:
     margin: margin
     domain: domain
+
+controls:
+- type: table-selector
+  capture:
+    abscissa: x-index
+    ordinate: y-indexes
+

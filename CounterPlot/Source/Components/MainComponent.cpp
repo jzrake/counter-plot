@@ -629,9 +629,7 @@ void StatusBar::ViewerNamePopupButton::clicked()
 //=============================================================================
 StatusBar::StatusBar()
 {
-    environmentViewToggleButton.setCommandToTrigger (&PatchViewApplication::getApp().getCommandManager(),
-                                                     PatchViewApplication::Commands::toggleEnvironmentView,
-                                                     true);
+    PatchViewApplication::getApp().configureCommandButton (environmentViewToggleButton, PatchViewApplication::toggleEnvironmentView);
     addAndMakeVisible (environmentViewToggleButton);
     addAndMakeVisible (viewerNamePopupButton);
 }
@@ -920,6 +918,7 @@ void KernelRuleEntry::loadRule (const std::string& rule, const Runtime::Kernel& 
 
         loadedRule = rule;
         loadedText = editor.getText();
+        editor.repaint();
     }
 }
 
@@ -1482,8 +1481,8 @@ void MainComponent::layout (bool animated)
     {
         kernelRuleEntry.setBounds (area.removeFromBottom (32));
     }
+
     setBounds (statusBar, statusBarArea);
-    // setBounds (directoryTree, directoryTreeArea);
     setBounds (sidebar, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
     viewers.setBounds (area, animated);

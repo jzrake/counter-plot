@@ -161,7 +161,7 @@ namespace builtin
         auto op = checkArg<var::NativeFunction> ("map", args, 0);
         auto res = Array<var>();
 
-        auto argSlice = [args] (int argNumber)
+        auto argsSlice = [args] (int argNumber) -> Array<var>
         {
             Array<var> result;
 
@@ -173,6 +173,20 @@ namespace builtin
                     result.add (args.arguments[s]);
             }
             return result;
+        };
+
+        auto selfSlice = [args] (int argNumber) -> var
+        {
+            auto result = std::make_unique<DynamicObject>();
+
+            for (const auto& item : args.thisObject.getDynamicObject()->getProperties())
+            {
+                if (auto arr = item.value.getArray())
+                    result->setProperty (item.name, argNumber < arr->size() ? arr->getUnchecked (argNumber) : var());
+                else
+                    result->setProperty (item.name, item.value);
+            }
+            return result.release();
         };
 
         int arrayArgLength = 0;
@@ -192,8 +206,9 @@ namespace builtin
             {
                 return var();
             }
-            auto slice = argSlice(n);
-            res.add (op (var::NativeFunctionArgs (args.thisObject, slice.begin(), slice.size())));
+            auto args = argsSlice(n);
+            auto self = selfSlice(n);
+            res.add (op (var::NativeFunctionArgs (self, args.begin(), args.size())));
         }
         return res;
     }

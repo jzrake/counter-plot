@@ -40,7 +40,7 @@ public:
     virtual ~PatchViewApplication() {}
     static PatchViewApplication& getApp();
     ApplicationCommandManager& getCommandManager();
-
+    void configureCommandButton (Button& button, int commandId) const;
 
     //=========================================================================
     const String getApplicationName() override;

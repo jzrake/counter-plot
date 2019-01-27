@@ -137,6 +137,18 @@ ApplicationCommandManager& PatchViewApplication::getCommandManager()
     return *commandManager;
 }
 
+void PatchViewApplication::configureCommandButton (Button& button, int commandId) const
+{
+    assert (commandManager->getCommandForID (commandId));
+    const auto& info = *commandManager->getCommandForID (commandId);
+
+    if (! info.defaultKeypresses.isEmpty())
+    {
+        button.setTooltip (info.defaultKeypresses.getFirst().getTextDescriptionWithIcons());
+    }
+    button.onClick = [this, commandId] { commandManager->invokeDirectly (commandId, false); };
+}
+
 PatchViewApplication::PatchViewApplication()
 {
 }
@@ -174,6 +186,9 @@ void PatchViewApplication::initialise (const String& commandLine)
     LookAndFeel::setDefaultLookAndFeel (&lookAndFeel);
 
     commandManager = std::make_unique<ApplicationCommandManager>();
+    commandManager->registerAllCommandsForTarget (this);
+    Viewer::registerCommands (*commandManager);
+
     menu           = std::make_unique<MainMenu>();
     mainWindow     = std::make_unique<MainWindow> (getApplicationName());
     mainWindow->content->setCurrentDirectory (currentDirectory);
@@ -182,9 +197,6 @@ void PatchViewApplication::initialise (const String& commandLine)
         mainWindow->content->getDirectoryTree().restoreRootOpenness (*directoryTreeState);
     if (userExtensionDirectories)
         mainWindow->content->getViewerCollection().setWatchedDirectories (*userExtensionDirectories);
-
-    commandManager->registerAllCommandsForTarget (this);
-    Viewer::registerCommands (*commandManager);
 
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
 }
