@@ -24,6 +24,29 @@ int TableModel::maxRows() const
     return max;
 }
 
+TableModel::Series::Series (const String& name, const Array<double>& data)
+: name (name)
+, doubleData (data)
+, type (Type::Double)
+{
+    Font font ("Menlo", 11, 0);
+
+    for (auto datum : data)
+    {
+        auto glyphs = GlyphArrangement();
+        auto text = String (datum, 8);
+
+        glyphs.addLineOfText (font, text, 0, 0);
+        glyphs.justifyGlyphs (0, text.length(), 0, 0, 100, 22, Justification::centred);
+        glyphsCache.add (glyphs);
+    }
+}
+
+const GlyphArrangement& TableModel::Series::getGlyphs (int i) const
+{
+    return glyphsCache.getReference(i);
+}
+
 
 
 
@@ -59,6 +82,31 @@ void TableView::setLookAndFeelDefaults (LookAndFeel& laf)
 
 
 //=========================================================================
+void TableView::DefaultController::tableViewMakeColumnAbscissa (TableView* table, int column)
+{
+    auto model = table->getModel();
+    model.abscissa = column;
+    table->setModel (model);
+}
+
+void TableView::DefaultController::tableViewSetColumnSelected (TableView* table, int column, bool shouldBeSelected)
+{
+    auto model = table->getModel();
+    model.columns.getReference (column - 1).selected = shouldBeSelected;
+    table->setModel (model);
+}
+
+void TableView::DefaultController::tableViewSetScrollPosition (TableView* table, Point<float> newScrollPosition)
+{
+    auto model = table->getModel();
+    model.scrollPosition = newScrollPosition;
+    table->setModel (model);
+}
+
+
+
+
+//=========================================================================
 TableView::TableView()
 {
 }
@@ -67,6 +115,16 @@ void TableView::setModel (const TableModel& newModel)
 {
     model = newModel;
     repaint();
+}
+
+void TableView::setController (Controller* controllerToUse)
+{
+    controller = controllerToUse ? controllerToUse : &defaultController;
+}
+
+const TableModel& TableView::getModel() const
+{
+    return model;
 }
 
 
@@ -80,20 +138,20 @@ void TableView::paint (Graphics& g)
     g.fillAll();
 
     g.saveState();
-    g.addTransform (AffineTransform::translation (upperLeftOfTable));
+    g.addTransform (AffineTransform::translation (model.scrollPosition));
 
     for (int j = 0; j < model.columns.size(); ++j)
     {
         paintColumn (g, geometry, j, model.columns.getReference(j));
     }
-    paintGutter (g, geometry);
+    paintGutter (g, geometry); // NOTE: cache glyphs for perf
     paintGridlines (g, geometry, 'h');
 
     g.restoreState();
     paintHeader (g, geometry);
 
     g.saveState();
-    g.addTransform (AffineTransform::translation (upperLeftOfTable));
+    g.addTransform (AffineTransform::translation (model.scrollPosition));
     paintGridlines (g, geometry, 'v');
 
     g.restoreState();
@@ -106,26 +164,26 @@ void TableView::resized()
 
 void TableView::mouseDown (const MouseEvent& e)
 {
+    auto c = mouseOverCell.col;
+    auto& column = model.columns.getReference (c - 1);
+
     if (mouseOverCell.row == 0 && mouseOverCell.col != model.abscissa)
     {
-        auto& column = model.columns.getReference (mouseOverCell.col - 1);
-
         if (e.mods.isPopupMenu())
         {
             auto menu = PopupMenu();
-
             menu.addItem (1, "Make Column Abscissa");
             menu.addItem (2, column.selected ? "Unselect Column" : "Select Column");
 
             switch (menu.show())
             {
-                case 1: model.abscissa = mouseOverCell.col; column.selected = false; break;
-                case 2: column.selected = ! column.selected; break;
+                case 1: controller->tableViewMakeColumnAbscissa (this, c); break;
+                case 2: controller->tableViewSetColumnSelected (this, c, ! column.selected); break;
             }
         }
         else
         {
-            column.selected = ! column.selected;
+            controller->tableViewSetColumnSelected (this, c, ! column.selected);
         }
         repaint();
     }
@@ -145,9 +203,10 @@ void TableView::mouseExit (const MouseEvent& e)
 
 void TableView::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
 {
-    float ymin = -model.maxRows() * model.rowHeight - model.headerHeight + getHeight();
-    upperLeftOfTable.y += wheel.deltaY * getHeight();
-    upperLeftOfTable.y = jlimit (ymin, 0.f, upperLeftOfTable.y);
+    auto dy = wheel.deltaY * getHeight();
+    auto ymin = float (-model.maxRows() * model.rowHeight - model.headerHeight + getHeight());
+    Point<float> newScrollPosition = {0.f, jlimit (ymin, 0.f, model.scrollPosition.y + dy)};
+    controller->tableViewSetScrollPosition (this, newScrollPosition);
     mouseOverCell = cellAtPosition (e.position);
     repaint();
 }
@@ -184,7 +243,7 @@ void TableView::paintGridlines (Graphics& g, const Geometry& geometry, char whic
 
 void TableView::paintHeaderShadow (Graphics &g, const Geometry &geometry)
 {
-    if (upperLeftOfTable.y < 0)
+    if (model.scrollPosition.y < 0)
     {
         auto y1 = model.headerHeight;
         auto y2 = model.headerHeight + 16;
@@ -227,25 +286,32 @@ void TableView::paintColumn (Graphics& g, const Geometry& geometry, int j, const
     {
         if (isRowOnscreen (i, geometry))
         {
-            if (column.selected)
-                g.setColour (findColour (ColourIds::selectedCellColourId));
-            else if (model.abscissa == j + 1)
-                g.setColour (findColour (ColourIds::abscissaCellColourId));
-            else
-                g.setColour (Colours::transparentBlack);
-
             auto area = geometry.getCellArea (i + 1, j + 1);
+            auto transform = AffineTransform::translation (area.getX(), area.getY());
 
-            g.fillRect (area);
+            if (column.selected)
+            {
+                g.setColour (findColour (ColourIds::selectedCellColourId));
+                g.fillRect (area);
+            }
+            else if (model.abscissa == j + 1)
+            {
+                g.setColour (findColour (ColourIds::abscissaCellColourId));
+                g.fillRect (area);
+            }
+
             g.setColour (findColour (ColourIds::textColourId));
-            g.setFont (model.numberFont);
-            g.drawText (String (data.doubleData.getUnchecked (i), 8), area, Justification::centred);
+            model.columns.getReference(j).getGlyphs(i).draw (g, transform);
+            // g.setFont (model.numberFont);
+            // g.drawText (String (column.doubleData.getReference(j), 8), area, Justification::centred);
         }
     }
 }
 
 void TableView::paintGutter (Graphics& g, const Geometry& geometry)
 {
+    g.setFont (model.numberFont);
+
     for (int i = 1; i < model.maxRows() + 1; ++i)
     {
         if (isRowOnscreen (i - 1, geometry))
@@ -279,7 +345,7 @@ TableView::Geometry TableView::computeGeometry()
 TableView::Cell TableView::cellAtPosition (Point<float> pos)
 {
     // If the mouse is over a header cell, we return {0, col}.
-    // ------------------------------------------------------------------------------
+    // -----------------------------------------------------------
     int col = 1 + (pos.x - model.gutterWidth) / model.columnWidth;
 
     if (pos.y < model.headerHeight && 1 <= col && col <= model.columns.size())
@@ -287,28 +353,28 @@ TableView::Cell TableView::cellAtPosition (Point<float> pos)
         return {0, col};
     }
 
-    // Otherwise, we return the index of the cell the mouse is in (row/col starting
-    // from 1).
-    // ------------------------------------------------------------------------------
-    int i = 1 + (-upperLeftOfTable.y + pos.y - model.headerHeight) / model.rowHeight;
-    int j = 1 + (-upperLeftOfTable.x + pos.x - model.gutterWidth) / model.columnWidth;
+    // Otherwise, we return the index of the cell the mouse is
+    // in (row/col starting from 1).
+    // -----------------------------------------------------------
+    int i = 1 + (-model.scrollPosition.y + pos.y - model.headerHeight) / model.rowHeight;
+    int j = 1 + (-model.scrollPosition.x + pos.x - model.gutterWidth) / model.columnWidth;
     return {i, j};
 }
 
 Point<float> TableView::tableToComponent (Point<float> tablePosition) const
 {
-    return tablePosition + upperLeftOfTable;
+    return tablePosition + model.scrollPosition;
 }
 
 Point<float> TableView::componentToTable (Point<float> componentPosition) const
 {
-    return componentPosition - upperLeftOfTable;
+    return componentPosition - model.scrollPosition;
 }
 
 bool TableView::isRowOnscreen (int row, const Geometry& geometry)
 {
-    auto y0 = geometry.rowEdges[row + 1] + upperLeftOfTable.y;
-    auto y1 = geometry.rowEdges[row + 2] + upperLeftOfTable.y;
+    auto y0 = geometry.rowEdges[row + 1] + model.scrollPosition.y;
+    auto y1 = geometry.rowEdges[row + 2] + model.scrollPosition.y;
     return y1 > 0 && y0 < getHeight();
 }
 

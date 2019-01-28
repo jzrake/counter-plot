@@ -24,6 +24,7 @@ public:
     //=========================================================================
     Item (DirectoryTree& directory, File file) : directory (directory), file (file)
     {
+        isDirectory = file.isDirectory();
         setDrawsInLeftMargin (true);
         refreshLook (false);
     }
@@ -61,7 +62,7 @@ public:
 
     bool mightContainSubItems() override
     {
-        return file.isDirectory();
+        return isDirectory;
     }
 
     bool canBeSelected() const override
@@ -136,6 +137,7 @@ private:
     GlyphArrangement glyphs;
     DirectoryTree& directory;
     File file;
+    bool isDirectory = false; // cache for performance
     ElementComparator comparator;
 };
 

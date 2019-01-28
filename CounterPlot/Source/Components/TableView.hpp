@@ -17,11 +17,9 @@ struct TableModel
     //=========================================================================
     struct Series
     {
-        Series (const String& name, const Array<int>& data)    : name (name), integerData (data), type (Type::Int)    {}
-        Series (const String& name, const Array<double>& data) : name (name), doubleData  (data), type (Type::Double) {}
-        Series (const String& name, const Array<Time>& data)   : name (name), timeData    (data), type (Type::Time)   {}
-        Series (const String& name, const StringArray& data)   : name (name), stringData  (data), type (Type::String) {}
+        Series (const String& name, const Array<double>& data);
         int size() const;
+        const GlyphArrangement& getGlyphs (int i) const;
 
         String name;
         Array<int> integerData;
@@ -30,6 +28,7 @@ struct TableModel
         StringArray stringData;
         bool selected = false;
         Type type;
+        Array<GlyphArrangement> glyphsCache;
     };
 
     //=========================================================================
@@ -37,13 +36,14 @@ struct TableModel
 
     //=========================================================================
     Array<Series> columns;
-    int abscissa = 1;
+    int abscissa = 0;
     int columnWidth = 100;
     int rowHeight = 22;
     int headerHeight = 26;
     int gutterWidth = 32;
     Font headerFont = Font().withHeight (12);
     Font numberFont = Font ("Menlo", 11, 0);
+    Point<float> scrollPosition;
 };
 
 
@@ -53,6 +53,25 @@ struct TableModel
 class TableView : public Component
 {
 public:
+
+    //=========================================================================
+    class Controller
+    {
+    public:
+        virtual ~Controller() {}
+        virtual void tableViewMakeColumnAbscissa (TableView*, int column) = 0;
+        virtual void tableViewSetColumnSelected (TableView*, int column, bool shouldBeSelected) = 0;
+        virtual void tableViewSetScrollPosition (TableView*, Point<float> newScrollPosition) = 0;
+    };
+
+    //=========================================================================
+    class DefaultController : public Controller
+    {
+    public:
+        void tableViewMakeColumnAbscissa (TableView*, int column) override;
+        void tableViewSetColumnSelected (TableView*, int column, bool shouldBeSelected) override;
+        void tableViewSetScrollPosition (TableView*, Point<float> newScrollPosition) override;
+    };
 
     //=========================================================================
     enum ColourIds
@@ -85,6 +104,8 @@ public:
     //=========================================================================
     TableView();
     void setModel (const TableModel& newModel);
+    void setController (Controller* controllerToUse);
+    const TableModel& getModel() const;
 
     //=========================================================================
     void paint (Graphics& g) override;
@@ -109,7 +130,9 @@ private:
     bool isRowOnscreen (int row, const Geometry& geometry);
     bool isColOnscreen (int col, const Geometry& geometry);
 
+    DefaultController defaultController;
+    Controller* controller = &defaultController;
     TableModel model;
     Cell mouseOverCell;
-    Point<float> upperLeftOfTable;
+//    Point<float> upperLeftOfTable;
 };

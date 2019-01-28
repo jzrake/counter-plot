@@ -1235,7 +1235,7 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
             statusBar.setCurrentViewerName ("Viewer List");
             environmentView.setKernel (nullptr);
         }
-        if (isKernelRuleEntryShowing() && ! viewer->canReceiveMessages())
+        if ((! viewer) || (isKernelRuleEntryShowing() && ! viewer->canReceiveMessages()))
         {
             toggleKernelRuleEntryShown();
         }
