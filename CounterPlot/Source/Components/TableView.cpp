@@ -1,5 +1,6 @@
 #include "TableView.hpp"
 #include "../Core/DataHelpers.hpp"
+#include "../Core/Runtime.hpp"
 
 
 
@@ -10,17 +11,6 @@ TableModel::Series::Series (const String& name, nd::array<double, 1> data)
 , doubleData (data)
 , type (Type::Double)
 {
-    Font font ("Menlo", 11, 0);
-
-    for (auto datum : data)
-    {
-        auto glyphs = GlyphArrangement();
-        auto text = String (datum, 8);
-
-        glyphs.addLineOfText (font, text, 0, 0);
-        glyphs.justifyGlyphs (0, text.length(), 0, 0, 100, 22, Justification::centred);
-        glyphsCache.add (glyphs);
-    }
 }
 
 int TableModel::Series::size() const
@@ -42,32 +32,33 @@ void TableModel::add (const String& name, nd::array<double, 1> data)
 //=========================================================================
 TableModel TableModel::fromVar (const var& value)
 {
-    TableModel model;
+    auto model = TableModel();
+    auto columns = DataHelpers::makeDictFromList (value["columns"], "Column ");
 
-    if (auto columns = value["columns"].getArray())
+    for (const auto& item : columns.getDynamicObject()->getProperties())
     {
-        int n = 0;
-
-        for (auto column : *columns)
+        if (item.value.isArray())
         {
-            auto data = DataHelpers::ndarrayDouble1FromVar (column);
-            model.add ("Column " + String (n++), data);
+            model.add (item.name.toString(), DataHelpers::ndarrayDouble1FromVar (item.value));
         }
-    }
-    else if (auto columns = value["columns"].getDynamicObject())
-    {
-        for (const auto& item : columns->getProperties())
+        else if (auto data = Runtime::opt_data<nd::array<double, 1>> (item.value))
         {
-            auto data = DataHelpers::ndarrayDouble1FromVar (item.value);
-            model.add (item.name.toString(), data);
+            model.add (item.name.toString(), *data);
         }
     }
     return model;
 }
 
-const GlyphArrangement& TableModel::getGlyphs (int i, int j) const
+GlyphArrangement TableModel::getGlyphs (int i, int j) const
 {
-    return columns.getReference(j).glyphsCache.getReference(i);
+    Font font ("Menlo", 11, 0);
+    auto datum = columns.getReference(j).doubleData(i);
+    auto glyphs = GlyphArrangement();
+    auto text = String (datum, 8);
+
+    glyphs.addLineOfText (font, text, 0, 0);
+    glyphs.justifyGlyphs (0, text.length(), 0, 0, 100, 22, Justification::centred);
+    return glyphs;
 }
 
 int TableModel::maxRows() const

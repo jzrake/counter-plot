@@ -136,12 +136,6 @@ namespace builtin
     {
         auto arr = checkArg<Array<var>>("item", args, 0);
         auto ind = checkArg<int> ("item", args, 1);
-
-//        if (arr.size() <= ind)
-//            throw std::runtime_error ("index "
-//                                      + std::to_string (ind)
-//                                      + " out of range on list of size "
-//                                      + std::to_string (arr.size()));
         return arr[ind];
     }
     var attr (var::NativeFunctionArgs args)

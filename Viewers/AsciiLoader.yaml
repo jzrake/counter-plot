@@ -43,7 +43,7 @@ controls:
   columns:
     - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     - (map attr margin (list 'top' 'bottom' 'left' 'right'))
-    - t
-  capture:
-    abscissa: x-index
-    ordinate: y-indexes
+    - (item columns 1)
+#   capture:
+#     abscissa: x-index
+#     ordinate: y-indexes

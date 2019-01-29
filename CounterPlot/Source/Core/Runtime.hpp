@@ -1,6 +1,5 @@
 #pragma once
 #include "JuceHeader.h"
-#include "../Plotting/PlotModels.hpp"
 
 
 
@@ -106,17 +105,22 @@ class Runtime
 {
 public:
 
+
+    //=========================================================================
     enum Flags {
         builtin      = 2,
         asynchronous = 4,
     };
 
+
     //=========================================================================
     using Kernel = crt::kernel<var, VarCallAdapter>;
     static void load_builtins (Kernel& kernel);
 
+
     //=========================================================================
     template<typename> class DataTypeInfo {};
+
 
     //=========================================================================
     class GenericData : public ReferenceCountedObject
@@ -142,7 +146,10 @@ public:
 
 
     //=========================================================================
-    static std::runtime_error make_type_error (const std::string& expected, const var& value, const char* caller=nullptr, int index=-1)
+    static std::runtime_error make_type_error (const std::string& expected,
+                                               const var& value,
+                                               const char* caller=nullptr,
+                                               int index=-1)
     {
         return std::runtime_error ((caller ? std::string (caller) + ": " : "")
                                    + "wrong data type "
@@ -153,7 +160,9 @@ public:
     }
 
     template<typename T>
-    static std::runtime_error make_type_error (const var& value, const char* caller=nullptr, int index=-1)
+    static std::runtime_error make_type_error (const var& value,
+                                               const char* caller=nullptr,
+                                               int index=-1)
     {
         return make_type_error (DataTypeInfo<T>::name(), value, caller, index);
     }
@@ -174,7 +183,9 @@ public:
     }
 
     template<typename T>
-    static T& check_data (const var& value, const char* caller=nullptr, int index=-1)
+    static T& check_data (const var& value,
+                          const char* caller=nullptr,
+                          int index=-1)
     {
         if (auto result = dynamic_cast<Data<T>*> (value.getObject()))
         {
@@ -215,6 +226,12 @@ public:
 
 
 //=============================================================================
+#include "../Plotting/PlotModels.hpp"
+
+
+
+
+//=============================================================================
 template<>
 class Runtime::DataTypeInfo<nd::array<double, 1>>
 {
@@ -227,6 +244,7 @@ public:
     }
 };
 
+//=============================================================================
 template<>
 class Runtime::DataTypeInfo<nd::array<double, 2>>
 {
@@ -240,6 +258,7 @@ public:
     }
 };
 
+//=============================================================================
 template<>
 class Runtime::DataTypeInfo<nd::array<double, 3>>
 {

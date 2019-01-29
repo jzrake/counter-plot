@@ -26,12 +26,11 @@ struct TableModel
         nd::array<double, 1> doubleData;
         bool selected = false;
         Type type;
-        Array<GlyphArrangement> glyphsCache;
     };
 
     //=========================================================================
     static TableModel fromVar (const var&);
-    const GlyphArrangement& getGlyphs (int i, int j) const;
+    GlyphArrangement getGlyphs (int i, int j) const;
     int maxRows() const;
     void add (const String& name, nd::array<double, 1> data);
 

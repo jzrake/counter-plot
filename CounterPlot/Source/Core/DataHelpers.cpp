@@ -25,6 +25,11 @@ void DataHelpers::updateDict (var& dictToUpdate, const var& other)
 //=============================================================================
 var DataHelpers::makeDictFromList (const var& list, StringRef basename)
 {
+    if (auto obj = list.getDynamicObject())
+    {
+        return obj;
+    }
+
     auto obj = std::make_unique<DynamicObject>();
     int n = 0;
 
