@@ -124,6 +124,17 @@ var DataHelpers::varFromStringMap (const std::map<std::string, std::string>& val
     return obj.release();
 }
 
+var DataHelpers::varFromIntegerArray (const Array<int>& value)
+{
+    Array<var> result;
+
+    for (auto element : value)
+    {
+        result.add (element);
+    }
+    return result;
+}
+
 
 
 

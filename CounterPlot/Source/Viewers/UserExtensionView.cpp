@@ -7,13 +7,65 @@
 
 
 //=============================================================================
+void KernelAgent::insert (const std::string& key, const var& value)
+{
+    listeners.call (&Listener::kernelAgentInsertValue, key, value);
+}
+void KernelAgent::insert (const std::string& key, const crt::expression& expr)
+{
+    listeners.call (&Listener::kernelAgentInsertExpression, key, expr);
+}
+void KernelAgent::suggestResolve()
+{
+    listeners.call (&Listener::kernelAgentSuggestResolve);
+}
+
+
+
+
+//=============================================================================
 class TableViewAgent : public TableView::Controller, public KernelAgent
 {
 public:
+    TableViewAgent()
+    {
+        view.setController (this);
+    }
+
     //=========================================================================
-    void tableViewMakeColumnAbscissa (TableView*, int column) override {}
-    void tableViewSetColumnSelected (TableView*, int column, bool shouldBeSelected) override {}
-    void tableViewSetScrollPosition (TableView*, Point<float> newScrollPosition) override {}
+    void tableViewMakeColumnAbscissa (TableView* table, int column) override
+    {
+        if (capture.count ("abscissa"))
+        {
+            insert (capture.at ("abscissa"), var (column - 1));
+            tableViewSetColumnSelected (table, column, false);
+        }
+    }
+
+    void tableViewSetColumnSelected (TableView* table, int column, bool shouldBeSelected) override
+    {
+        if (capture.count ("selected"))
+        {
+            auto selected = table->getModel().getSelectedColumnIndexes();
+
+            if (shouldBeSelected)
+                selected.addIfNotAlreadyThere (column - 1);
+            else
+                selected.removeAllInstancesOf (column - 1);
+
+            insert (capture.at ("selected"), DataHelpers::varFromIntegerArray (selected));
+            suggestResolve();
+        }
+    }
+
+    void tableViewSetScrollPosition (TableView*, Point<float> newScrollPosition) override
+    {
+        if (capture.count ("scroll-position"))
+        {
+            insert (capture.at ("scroll-position"), var (newScrollPosition.y));
+            suggestResolve();
+        }
+    }
 
     //=========================================================================
     Component& getComponent() override
@@ -23,8 +75,15 @@ public:
 
     void setModel (const var& model) override
     {
+        capture.clear();
+
+        if (auto obj = model["capture"].getDynamicObject())
+            for (const auto& item : obj->getProperties())
+                capture[item.name.toString().toStdString()] = item.value.toString().toStdString();
+
         view.setModel (TableModel::fromVar (model));
     }
+
 private:
     std::map<std::string, std::string> capture;
     TableView view;
@@ -352,12 +411,12 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 
 
 //=============================================================================
-void UserExtensionView::kernelAgentInsert (const std::string& key, const var& value)
+void UserExtensionView::kernelAgentInsertValue (const std::string& key, const var& value)
 {
     kernel.insert (key, value);
 }
 
-void UserExtensionView::kernelAgentInsert (const std::string& key, const crt::expression& expr)
+void UserExtensionView::kernelAgentInsertExpression (const std::string& key, const crt::expression& expr)
 {
     kernel.insert (key, expr);
 }
@@ -449,7 +508,7 @@ void UserExtensionView::resolveKernel()
 
         for (const auto& rule : synchronousDirtyRules)
         {
-            if (kernel.eligible (rule))
+            if (kernel.eligible (rule)) // && ! taskPool.areAnyRunning (kernel.upstream (rule))
             {
                 kernel.update (rule);
                 loadFromKernelIfFigure (rule);

@@ -31,6 +31,7 @@ struct TableModel
     //=========================================================================
     static TableModel fromVar (const var&);
     GlyphArrangement getGlyphs (int i, int j) const;
+    Array<int> getSelectedColumnIndexes() const;
     int maxRows() const;
     void add (const String& name, nd::array<double, 1> data);
 

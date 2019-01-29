@@ -10,16 +10,16 @@ cols: [1]
 
 
 environment:
+  x-index: 1
+  y-indexes: []
   columns: (load-text file)
-  t: (item columns 0)
-  series: [(item columns 1), (item columns 2)]
+  t: (item columns x-index)
+  series: (take columns y-indexes) #[(item columns 1), (item columns 2)]
   colors: [magenta, orange]
   styles: [dash, solid]
   widths: [1, 4]
   x: [10, 14]
 
-control:
-  selected-columns: toggle-array
 
 figures:
 
@@ -38,12 +38,20 @@ figures:
     margin: margin
     domain: domain
 
+
 controls:
 - type: table
-  columns:
-    - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    - (map attr margin (list 'top' 'bottom' 'left' 'right'))
-    - (item columns 1)
-#   capture:
-#     abscissa: x-index
-#     ordinate: y-indexes
+  scroll-position: $scroll-position
+  abscissa: $x-index
+  selected: $y-indexes
+  columns: $columns
+  capture:
+    scroll-position: scroll-position
+    abscissa: x-index
+    selected: y-indexes
+
+  # columns:
+    # - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    # - (map attr margin (list 'top' 'bottom' 'left' 'right'))
+    # - (item columns 1)
+    # - $y-indexes

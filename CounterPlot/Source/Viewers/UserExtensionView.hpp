@@ -25,8 +25,8 @@ public:
     {
     public:
         virtual ~Listener() {}
-        virtual void kernelAgentInsert (const std::string&, const var&) = 0;
-        virtual void kernelAgentInsert (const std::string&, const crt::expression&) = 0;
+        virtual void kernelAgentInsertValue (const std::string&, const var&) = 0;
+        virtual void kernelAgentInsertExpression (const std::string&, const crt::expression&) = 0;
         virtual void kernelAgentSuggestResolve() = 0;
     };
 
@@ -78,6 +78,11 @@ public:
      */
     const std::string& getAgentID() const { return id; }
 
+protected:
+
+    void insert (const std::string&, const var&);
+    void insert (const std::string&, const crt::expression&);
+    void suggestResolve();
 
 private:
     ListenerList<Listener> listeners;
@@ -126,8 +131,8 @@ public:
     void figureViewSetTitle (FigureView*, const String&) override;
 
     //=========================================================================
-    void kernelAgentInsert (const std::string&, const var&) override;
-    void kernelAgentInsert (const std::string&, const crt::expression&) override;
+    void kernelAgentInsertValue (const std::string&, const var&) override;
+    void kernelAgentInsertExpression (const std::string&, const crt::expression&) override;
     void kernelAgentSuggestResolve() override;
 
     //=========================================================================

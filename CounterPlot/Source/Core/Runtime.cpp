@@ -146,6 +146,19 @@ namespace builtin
     {
         return args.numArguments >= 1 ? args.arguments[0].size() : 0;
     }
+    var take (var::NativeFunctionArgs args)
+    {
+        auto arr = checkArg<Array<var>> ("item", args, 0);
+        auto ind = checkArg<Array<var>> ("item", args, 1);
+
+        Array<var> result;
+
+        for (const auto& item : ind)
+        {
+            result.add (arr[item]);
+        }
+        return result;
+    }
 
 
     //=========================================================================
@@ -560,6 +573,7 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("dict",           var::NativeFunction (builtin::dict),           Flags::builtin);
     kernel.insert ("attr",           var::NativeFunction (builtin::attr),           Flags::builtin);
     kernel.insert ("item",           var::NativeFunction (builtin::item),           Flags::builtin);
+    kernel.insert ("take",           var::NativeFunction (builtin::take),           Flags::builtin);
     kernel.insert ("len",            var::NativeFunction (builtin::len),            Flags::builtin);
     kernel.insert ("map",            var::NativeFunction (builtin::map),            Flags::builtin);
     kernel.insert ("join",           var::NativeFunction (builtin::join),           Flags::builtin);

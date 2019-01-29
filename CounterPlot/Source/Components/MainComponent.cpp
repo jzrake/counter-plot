@@ -350,7 +350,7 @@ void EitherOrComponent::TabButton::paintButton (Graphics& g, bool, bool)
         g.drawText (getButtonText(), getLocalBounds(), Justification::centred);
     }
 
-    g.setColour (c1.darker());
+    g.setColour (c1.brighter());
     g.drawRect (getLocalBounds());
 }
 

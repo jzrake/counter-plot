@@ -19,6 +19,7 @@ public:
     static var varFromBorderSize (const BorderSize<int>&);
     static var varFromStringPairArray (const StringPairArray& value);
     static var varFromStringMap (const std::map<std::string, std::string>& value);
+    static var varFromIntegerArray (const Array<int>& value);
 
     static crt::expression expressionFromVar (const var& value);
     static YAML::Node yamlNodeFromVar (const var& value);

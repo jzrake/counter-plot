@@ -65,14 +65,22 @@ TableModel TableModel::fromVar (const var& value)
     auto columns = DataHelpers::makeDictFromList (value["columns"], "Column ");
 
     for (const auto& item : columns.getDynamicObject()->getProperties())
-    {
         if (item.value.isArray())
-        {
             model.add (item.name.toString(), DataHelpers::ndarrayDouble1FromVar (item.value));
-        }
         else if (auto data = Runtime::opt_data<nd::array<double, 1>> (item.value))
-        {
             model.add (item.name.toString(), *data);
+
+    model.scrollPosition.x = 0.f;
+    model.scrollPosition.y = value["scroll-position"];
+    model.abscissa = int (value["abscissa"]) + 1;
+
+    for (int n = 0; n < value["selected"].size(); ++n)
+    {
+        int col = int (value["selected"][n]) + 1;
+
+        if (1 <= col && col <= model.columns.size())
+        {
+            model.columns.getReference (col - 1).selected = true;
         }
     }
     return model;
@@ -89,6 +97,22 @@ GlyphArrangement TableModel::getGlyphs (int i, int j) const
         return computeGlyphs (text, columnWidth);
     }
     return {};
+}
+
+Array<int> TableModel::getSelectedColumnIndexes() const
+{
+    Array<int> result;
+    int j = 0;
+
+    for (const auto& column : columns)
+    {
+        if (column.selected)
+        {
+            result.add (j);
+        }
+        ++j;
+    }
+    return result;
 }
 
 int TableModel::maxRows() const
@@ -275,7 +299,6 @@ void TableView::mouseDown (const MouseEvent& e)
             {
                 controller->tableViewSetColumnSelected (this, c, ! column.selected);
             }
-            repaint();
         }
     }
     else
@@ -314,7 +337,6 @@ void TableView::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wh
     auto newy = jlimit (jmin (0.f, ymin), 0.f, targetY);
     controller->tableViewSetScrollPosition (this, Point<float> (0, newy));
     mouseOverCell = cellAtPosition (e.position);
-    repaint();
 }
 
 
