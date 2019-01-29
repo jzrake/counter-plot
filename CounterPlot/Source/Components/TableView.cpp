@@ -1,6 +1,35 @@
 #include "TableView.hpp"
 #include "../Core/DataHelpers.hpp"
 #include "../Core/Runtime.hpp"
+#define PROFILE_PAINT 1
+
+
+
+
+//=========================================================================
+static GlyphArrangement computeGlyphs (const String& text, int width)
+{
+    static std::map<std::pair<int, String>, GlyphArrangement> cache;
+    auto font = Font ("Menlo", 11, 0);
+    auto key  = std::make_pair (width, text);
+
+    if (cache.count (key))
+    {
+        return cache.at (key);
+    }
+
+    auto glyphs = GlyphArrangement();
+    glyphs.addLineOfText (font, text, 0, 0);
+    glyphs.justifyGlyphs (0, text.length(), 0, 0, width, 22, Justification::centred);
+    cache[key] = glyphs;
+
+    if (cache.size() > 10000)
+    {
+        cache.clear();
+    }
+    return glyphs;
+
+}
 
 
 
@@ -51,14 +80,15 @@ TableModel TableModel::fromVar (const var& value)
 
 GlyphArrangement TableModel::getGlyphs (int i, int j) const
 {
-    Font font ("Menlo", 11, 0);
-    auto datum = columns.getReference(j).doubleData(i);
-    auto glyphs = GlyphArrangement();
-    auto text = String (datum, 8);
+    auto font = Font ("Menlo", 11, 0);
 
-    glyphs.addLineOfText (font, text, 0, 0);
-    glyphs.justifyGlyphs (0, text.length(), 0, 0, 100, 22, Justification::centred);
-    return glyphs;
+    if (i < columns.getReference(j).doubleData.size())
+    {
+        auto datum = columns.getReference(j).doubleData(i);
+        auto text = String (datum, 8);
+        return computeGlyphs (text, columnWidth);
+    }
+    return {};
 }
 
 int TableModel::maxRows() const
@@ -177,6 +207,8 @@ const TableModel& TableView::getModel() const
 //=========================================================================
 void TableView::paint (Graphics& g)
 {
+    auto start = Time::getMillisecondCounterHiRes();
+
     auto geometry = computeGeometry();
     g.setColour (findColour (ColourIds::backgroundColourId));
     g.fillAll();
@@ -188,7 +220,7 @@ void TableView::paint (Graphics& g)
     {
         paintColumn (g, geometry, j, model.columns.getReference(j));
     }
-    paintGutter (g, geometry); // NOTE: cache glyphs for perf
+    paintGutter (g, geometry);
     paintGridlines (g, geometry, 'h');
 
     g.restoreState();
@@ -200,6 +232,16 @@ void TableView::paint (Graphics& g)
 
     g.restoreState();
     paintHeaderShadow (g, geometry);
+
+    if (PROFILE_PAINT)
+    {
+        auto paintTime = Time::getMillisecondCounterHiRes() - start;
+        g.setColour (Colours::ghostwhite);
+        g.setFont (model.numberFont);
+        g.drawText (String (1e3 / paintTime, 4) + " fps",
+                    getLocalBounds().removeFromTop (model.headerHeight).removeFromRight (100).toFloat(),
+                    Justification::centredRight);
+    }
 }
 
 void TableView::resized()
@@ -236,6 +278,21 @@ void TableView::mouseDown (const MouseEvent& e)
             repaint();
         }
     }
+    else
+    {
+        mouseDownScrollPosition = model.scrollPosition;
+    }
+}
+
+void TableView::mouseDrag (const MouseEvent& e)
+{
+    if (mouseOverCell.col == 0)
+    {
+        auto targetY = mouseDownScrollPosition.y + e.getDistanceFromDragStartY();
+        auto ymin = float (-model.maxRows() * model.rowHeight - model.headerHeight + getHeight());
+        auto newy = jlimit (jmin (0.f, ymin), 0.f, targetY);
+        controller->tableViewSetScrollPosition (this, Point<float> (0, newy));
+    }
 }
 
 void TableView::mouseMove (const MouseEvent& e)
@@ -252,10 +309,10 @@ void TableView::mouseExit (const MouseEvent& e)
 
 void TableView::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
 {
-    auto dy = wheel.deltaY * getHeight();
+    auto targetY = model.scrollPosition.y + wheel.deltaY * getHeight();
     auto ymin = float (-model.maxRows() * model.rowHeight - model.headerHeight + getHeight());
-    Point<float> newScrollPosition = {0.f, jlimit (jmin (0.f, ymin), 0.f, model.scrollPosition.y + dy)};
-    controller->tableViewSetScrollPosition (this, newScrollPosition);
+    auto newy = jlimit (jmin (0.f, ymin), 0.f, targetY);
+    controller->tableViewSetScrollPosition (this, Point<float> (0, newy));
     mouseOverCell = cellAtPosition (e.position);
     repaint();
 }
@@ -314,17 +371,6 @@ void TableView::paintHeader (Graphics& g, const Geometry& geometry)
         auto area = geometry.getCellArea (0, j + 1);
         auto& column = model.columns.getReference(j);
 
-//        if (column.selected)
-//        {
-//            g.setColour (findColour (ColourIds::selectedCellColourId).withAlpha (0.8f));
-//            g.drawHorizontalLine (area.getBottom(), area.getX(), area.getRight());
-//        }
-//        else if (model.abscissa == j + 1)
-//        {
-//            g.setColour (findColour (ColourIds::abscissaCellColourId).withAlpha (0.8f));
-//            g.drawHorizontalLine (area.getBottom(), area.getX(), area.getRight());
-//        }
-
         if (   mouseOverCell.row == 0
             && mouseOverCell.col == j + 1)
             g.setColour (findColour (ColourIds::headerCellColourId).brighter (0.05f));
@@ -341,7 +387,7 @@ void TableView::paintColumn (Graphics& g, const Geometry& geometry, int j, const
 {
     auto& column = model.columns.getReference(j);
 
-    for (int i = 0; i < data.size(); ++i)
+    for (int i = 0; i < model.maxRows(); ++i)
     {
         if (isRowOnscreen (i, geometry))
         {
@@ -369,17 +415,18 @@ void TableView::paintGutter (Graphics& g, const Geometry& geometry)
 {
     g.setFont (model.numberFont);
 
-    for (int i = 1; i < model.maxRows() + 1; ++i)
+    for (int i = 0; i < model.maxRows(); ++i)
     {
-        if (isRowOnscreen (i - 1, geometry))
+        if (isRowOnscreen (i, geometry))
         {
-            auto area = geometry.getCellArea (i, 0);
+            auto area = geometry.getCellArea (i + 1, 0);
+            auto transform = AffineTransform::translation (area.getX(), area.getY());
 
             g.setColour (findColour (ColourIds::headerCellColourId));
             g.fillRect (area);
 
             g.setColour (findColour (ColourIds::textColourId));
-            g.drawText (String (i), area, Justification::centred);
+            computeGlyphs (String (i + 1), model.gutterWidth).draw (g, transform);
         }
     }
 }

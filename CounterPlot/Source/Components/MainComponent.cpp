@@ -15,8 +15,31 @@ EitherOrComponent::EitherOrComponent()
     addAndMakeVisible (button1);
     addAndMakeVisible (button2);
     button1.setToggleState (true, NotificationType::dontSendNotification);
-    button1.onStateChange = [this] { if (component1) component1->setVisible (button1.getToggleState()); };
-    button2.onStateChange = [this] { if (component2) component2->setVisible (button2.getToggleState()); };
+
+    button1.onStateChange = [this]
+    {
+        if (! component1->isVisible() && button1.getToggleState())
+        {
+            component1->setVisible (true);
+            grabKeyboardFocus();
+        }
+        else if (component1->isVisible() && ! button1.getToggleState())
+        {
+            component1->setVisible (false);
+        }
+    };
+    button2.onStateChange = [this]
+    {
+        if (! component2->isVisible() && button2.getToggleState())
+        {
+            component2->setVisible (true);
+            grabKeyboardFocus();
+        }
+        else if (component2->isVisible() && ! button2.getToggleState())
+        {
+            component2->setVisible (false);
+        }
+    };
 }
 
 void EitherOrComponent::setComponent1 (Component* componentToShow)
@@ -28,6 +51,7 @@ void EitherOrComponent::setComponent1 (Component* componentToShow)
         button1.setButtonText (component1->getName());
         component1->setVisible (button1.getToggleState());
     }
+    button1.setEnabled (component1);
 }
 
 void EitherOrComponent::setComponent2 (Component* componentToShow)
@@ -39,6 +63,7 @@ void EitherOrComponent::setComponent2 (Component* componentToShow)
         button2.setButtonText (component2->getName());
         component2->setVisible (button2.getToggleState());
     }
+    button2.setEnabled (component2);
 }
 
 void EitherOrComponent::showComponent1()

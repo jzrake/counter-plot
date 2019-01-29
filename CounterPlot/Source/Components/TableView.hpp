@@ -116,6 +116,7 @@ public:
     void paint (Graphics& g) override;
     void resized() override;
     void mouseDown (const MouseEvent&) override;
+    void mouseDrag (const MouseEvent&) override;
     void mouseMove (const MouseEvent&) override;
     void mouseExit (const MouseEvent&) override;
     void mouseWheelMove (const MouseEvent&, const MouseWheelDetails&) override;
@@ -139,5 +140,5 @@ private:
     Controller* controller = &defaultController;
     TableModel model;
     Cell mouseOverCell;
-//    Point<float> upperLeftOfTable;
+    Point<float> mouseDownScrollPosition;
 };
