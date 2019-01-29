@@ -351,7 +351,7 @@ void PatchViewApplication::configureLookAndFeel()
     AppLookAndFeel::setLookAndFeelDefaults (laf, AppLookAndFeel::BackgroundScheme::dark);
     AppLookAndFeel::setLookAndFeelDefaults (laf, AppLookAndFeel::TextColourScheme::pastels1);
     FigureView    ::setLookAndFeelDefaults (laf, FigureView::ColourScheme::dark);
-    TableView     ::setLookAndFeelDefaults (laf);
+    TableView     ::setLookAndFeelDefaults (laf, TableView::ColourScheme::dark);
 }
 
 bool PatchViewApplication::presentOpenDirectoryDialog()

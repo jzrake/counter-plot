@@ -956,8 +956,9 @@ bool KernelRuleEntry::recallPrev()
 //=========================================================================
 void KernelRuleEntry::resized()
 {
+    auto indent = (getHeight() - editor.getFont().getHeight()) / 2;
+    editor.setIndents (indent / 2, indent);
     editor.setBounds (getLocalBounds());
-    editor.setIndents (16, (getHeight() - editor.getFont().getHeight()) / 2);
 }
 
 void KernelRuleEntry::colourChanged()
@@ -1505,15 +1506,14 @@ void MainComponent::layout (bool animated)
     setBounds (statusBar, statusBarArea);
     setBounds (sidebar, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
+    setBounds (kernelRuleEntry, kernelRuleEntryArea);
 
-    kernelRuleEntry.setBounds (kernelRuleEntryArea);
     viewers.setBounds (area, animated);
 
     for (auto control : viewerControls)
     {
-        control->setBounds (controlsArea);
+        setBounds (*control, controlsArea);
         control->setVisible (control == viewerControls.getFirst());
     }
-
     userExtensionsDirectoryEditor.setBounds (getLocalBounds().withSizeKeepingCentre (400, 300));
 }

@@ -99,8 +99,13 @@ public:
         int row, col;
     };
 
+    enum class ColourScheme
+    {
+        dark, light
+    };
+
     //=========================================================================
-    static void setLookAndFeelDefaults (LookAndFeel&);
+    static void setLookAndFeelDefaults (LookAndFeel&, ColourScheme scheme);
 
     //=========================================================================
     TableView();

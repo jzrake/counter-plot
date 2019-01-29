@@ -100,14 +100,27 @@ Rectangle<int> TableView::Geometry::getCellArea (int i, int j) const
 
 
 //=========================================================================
-void TableView::setLookAndFeelDefaults (LookAndFeel& laf)
+void TableView::setLookAndFeelDefaults (LookAndFeel& laf, ColourScheme scheme)
 {
-    laf.setColour (backgroundColourId, Colours::white);
-    laf.setColour (headerCellColourId, Colours::whitesmoke);
-    laf.setColour (selectedCellColourId, Colours::blue.withAlpha (0.1f));
-    laf.setColour (abscissaCellColourId, Colours::green.withAlpha (0.1f));
-    laf.setColour (gridlineColourId, Colours::lightgrey);
-    laf.setColour (textColourId, Colours::black);
+    switch (scheme)
+    {
+        case ColourScheme::dark:
+            laf.setColour (backgroundColourId,   Colour::fromFloatRGBA (0.15f, 0.15f, 0.16f, 1.00f));
+            laf.setColour (headerCellColourId,   Colour::fromFloatRGBA (0.10f, 0.10f, 0.12f, 1.00f));
+            laf.setColour (selectedCellColourId, Colour::fromFloatRGBA (0.00f, 0.00f, 1.00f, 0.10f));
+            laf.setColour (abscissaCellColourId, Colour::fromFloatRGBA (1.00f, 0.00f, 0.00f, 0.10f));
+            laf.setColour (gridlineColourId,     Colour::fromFloatRGBA (0.20f, 0.20f, 0.25f, 1.00f));
+            laf.setColour (textColourId,         Colour::fromFloatRGBA (0.65f, 0.60f, 0.60f, 1.00f));
+            break;
+        case ColourScheme::light:
+            laf.setColour (backgroundColourId, Colours::white);
+            laf.setColour (headerCellColourId, Colours::whitesmoke);
+            laf.setColour (selectedCellColourId, Colours::blue.withAlpha (0.1f));
+            laf.setColour (abscissaCellColourId, Colours::green.withAlpha (0.1f));
+            laf.setColour (gridlineColourId, Colours::lightgrey);
+            laf.setColour (textColourId, Colours::black);
+            break;
+    }
 }
 
 
@@ -294,7 +307,7 @@ void TableView::paintHeaderShadow (Graphics &g, const Geometry &geometry)
         auto y2 = model.headerHeight + 16;
         auto rect = Rectangle<int>::leftTopRightBottom (geometry.colEdges[1], y1,
                                                         geometry.colEdges.getLast(), y2);
-        ColourGradient grad (Colours::darkslateblue.withAlpha (0.2f), 0, y1,
+        ColourGradient grad (Colours::darkslateblue.withAlpha (0.3f), 0, y1,
                              Colours::darkslateblue.withAlpha (0.0f), 0, y2, false);
         g.setGradientFill (grad);
         g.fillRect (rect);
@@ -310,9 +323,20 @@ void TableView::paintHeader (Graphics& g, const Geometry& geometry)
         auto area = geometry.getCellArea (0, j + 1);
         auto& column = model.columns.getReference(j);
 
+//        if (column.selected)
+//        {
+//            g.setColour (findColour (ColourIds::selectedCellColourId).withAlpha (0.8f));
+//            g.drawHorizontalLine (area.getBottom(), area.getX(), area.getRight());
+//        }
+//        else if (model.abscissa == j + 1)
+//        {
+//            g.setColour (findColour (ColourIds::abscissaCellColourId).withAlpha (0.8f));
+//            g.drawHorizontalLine (area.getBottom(), area.getX(), area.getRight());
+//        }
+
         if (   mouseOverCell.row == 0
             && mouseOverCell.col == j + 1)
-            g.setColour (findColour (ColourIds::headerCellColourId).darker (0.1f));
+            g.setColour (findColour (ColourIds::headerCellColourId).brighter (0.05f));
         else
             g.setColour (findColour (ColourIds::headerCellColourId));
 
