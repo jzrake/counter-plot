@@ -7,6 +7,46 @@
 
 
 //=============================================================================
+class TableViewAgent : public TableView::Controller, public KernelAgent
+{
+public:
+    //=========================================================================
+    void tableViewMakeColumnAbscissa (TableView*, int column) override {}
+    void tableViewSetColumnSelected (TableView*, int column, bool shouldBeSelected) override {}
+    void tableViewSetScrollPosition (TableView*, Point<float> newScrollPosition) override {}
+
+    //=========================================================================
+    Component& getComponent() override
+    {
+        return view;
+    }
+
+    void setModel (const var& model) override
+    {
+        view.setModel (TableModel::fromVar (model));
+    }
+private:
+    std::map<std::string, std::string> capture;
+    TableView view;
+};
+
+
+
+
+//=============================================================================
+static std::unique_ptr<KernelAgent> agentFactory (const var& value)
+{
+    if (value["type"] == "table")
+    {
+        return std::make_unique<TableViewAgent>();
+    }
+    return nullptr;
+};
+
+
+
+
+//=============================================================================
 UserExtensionView::UserExtensionView() : taskPool (4)
 {
     reset();
@@ -32,6 +72,7 @@ void UserExtensionView::configure (const var& config)
     // -----------------------------------------------------------------------
     taskPool.cancelAll();
     figures.clear();
+    controls.clear();
     layout.items.clear();
 
 
@@ -81,6 +122,7 @@ void UserExtensionView::configure (const var& config)
     // -----------------------------------------------------------------------
     loadExpressionsFromDictIntoKernel (kernel, config["environment"]);
     loadExpressionsFromDictIntoKernel (kernel, DataHelpers::makeDictFromList (config["figures"], "figure-"));
+    loadExpressionsFromDictIntoKernel (kernel, DataHelpers::makeDictFromList (config["controls"], "control-"));
 
 
     // Update kernel definitions (synchronously on config)
@@ -102,6 +144,22 @@ void UserExtensionView::configure (const var& config)
         addAndMakeVisible (figure.get());
         layout.items.add (GridItem());
         figures.add (figure.release());
+    }
+
+
+    // Create the kernel agents
+    // -----------------------------------------------------------------------
+    for (int n = 0; n < config["controls"].size(); ++n)
+    {
+        auto id = "control-" + std::to_string(n);
+
+        if (auto control = agentFactory (kernel.at (id)))
+        {
+            control->addListener (this);
+            control->setAgentID (id);
+            control->setModel (kernel.at (id));
+            controls.add (control.release());
+        }
     }
 
 
@@ -225,6 +283,17 @@ Image UserExtensionView::createViewerSnapshot()
     return createComponentSnapshot (getLocalBounds(), false, 2.f);
 }
 
+Array<Component*> UserExtensionView::getControls()
+{
+    auto result = Array<Component*>();
+
+    for (auto control : controls)
+    {
+        result.add (&control->getComponent());
+    }
+    return result;
+}
+
 
 
 
@@ -282,6 +351,25 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 
 
 //=============================================================================
+void UserExtensionView::kernelAgentInsert (const std::string& key, const var& value)
+{
+    kernel.insert (key, value);
+}
+
+void UserExtensionView::kernelAgentInsert (const std::string& key, const crt::expression& expr)
+{
+    kernel.insert (key, expr);
+}
+
+void UserExtensionView::kernelAgentSuggestResolve()
+{
+    resolveKernel();
+}
+
+
+
+
+//=============================================================================
 void UserExtensionView::getAllCommands (Array<CommandID>& commands)
 {
     Viewer::getAllCommands (commands);
@@ -328,6 +416,7 @@ void UserExtensionView::taskCompleted (const String& taskName, const var& result
     kernel.update_directly (key, result, error);
     kernel.mark (kernel.downstream (key));
     loadFromKernelIfFigure (key);
+    loadFromKernelIfControl (key);
     resolveKernel();
     sendAsyncTaskCompleted (taskName);
 }
@@ -363,6 +452,7 @@ void UserExtensionView::resolveKernel()
             {
                 kernel.update (rule);
                 loadFromKernelIfFigure (rule);
+                loadFromKernelIfControl (rule);
                 ++numUpdatedRules;
             }
         }
@@ -414,7 +504,7 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
     if (auto figure = dynamic_cast<FigureView*> (findChildWithID (id)))
     {
         try {
-            auto model = FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent());
+            auto model = FigureModel::fromVar (kernel.at (id), figure->getModel().withoutContent()); // Need the reference model?
             model.canEditTitle  = model.capture.count ("title");
             model.canEditXlabel = model.capture.count ("xlabel");
             model.canEditYlabel = model.capture.count ("ylabel");
@@ -424,6 +514,23 @@ void UserExtensionView::loadFromKernelIfFigure (const std::string& id)
         catch (const std::exception& e)
         {
             kernel.set_error (id, e.what());
+        }
+    }
+}
+
+void UserExtensionView::loadFromKernelIfControl (const std::string& id)
+{
+    for (auto control : controls)
+    {
+        if (control->getAgentID() == id)
+        {
+            try {
+                control->setModel (kernel.at (id));
+            }
+            catch (const std::exception& e)
+            {
+                kernel.set_error (id, e.what());
+            }
         }
     }
 }
@@ -449,7 +556,7 @@ void UserExtensionView::loadExpressionsFromDictIntoKernel (Runtime::Kernel& kern
             {
                 if (rethrowExceptions)
                 {
-                    throw std::runtime_error (e.what());
+                    throw;
                 }
                 kernel.insert (key, var());
                 kernel.set_error (key, e.what());

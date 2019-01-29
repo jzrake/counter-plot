@@ -16,6 +16,7 @@ environment:
   colors: [magenta, orange]
   styles: [dash, solid]
   widths: [1, 4]
+  x: [10, 14]
 
 control:
   selected-columns: toggle-array
@@ -38,8 +39,10 @@ figures:
     domain: domain
 
 controls:
-- type: table-selector
+- type: table
+  columns:
+    - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    - (map attr margin (list 'top' 'bottom' 'left' 'right'))
   capture:
     abscissa: x-index
     ordinate: y-indexes
-

@@ -367,6 +367,7 @@ private:
     //=========================================================================
     void layout (bool animated);
     void makeViewerCurrent (Viewer* viewer);
+    void loadControlsForViewer (Viewer* viewer);
 
     //=========================================================================
     File currentFile;
@@ -380,11 +381,10 @@ private:
     SourceList sourceList;
     ViewerCollection viewers;
     Viewer* currentViewer = nullptr;
+    Array<Component*> viewerControls;
     EnvironmentView environmentView;
     KernelRuleEntry kernelRuleEntry;
     UserExtensionsDirectoryEditor userExtensionsDirectoryEditor;
     EitherOrComponent sidebar;
     FilePoller filePoller;
-
-    // TableView testTableView;
 };

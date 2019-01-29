@@ -1,30 +1,11 @@
 #include "TableView.hpp"
+#include "../Core/DataHelpers.hpp"
 
 
 
 
 //=========================================================================
-int TableModel::Series::size() const
-{
-    switch (type)
-    {
-        case Type::Int: return integerData.size();
-        case Type::Double: return doubleData.size();
-        case Type::Time: return timeData.size();
-        case Type::String: return stringData.size();
-    }
-}
-
-int TableModel::maxRows() const
-{
-    int max = 0;
-
-    for (const auto& series : columns)
-        max = jmax (max, series.size());
-    return max;
-}
-
-TableModel::Series::Series (const String& name, const Array<double>& data)
+TableModel::Series::Series (const String& name, nd::array<double, 1> data)
 : name (name)
 , doubleData (data)
 , type (Type::Double)
@@ -42,9 +23,60 @@ TableModel::Series::Series (const String& name, const Array<double>& data)
     }
 }
 
-const GlyphArrangement& TableModel::Series::getGlyphs (int i) const
+int TableModel::Series::size() const
 {
-    return glyphsCache.getReference(i);
+    switch (type)
+    {
+        case Type::Double: return int (doubleData.size());
+    }
+}
+
+void TableModel::add (const String& name, nd::array<double, 1> data)
+{
+    columns.add ({name, data});
+}
+
+
+
+
+//=========================================================================
+TableModel TableModel::fromVar (const var& value)
+{
+    TableModel model;
+
+    if (auto columns = value["columns"].getArray())
+    {
+        int n = 0;
+
+        for (auto column : *columns)
+        {
+            auto data = DataHelpers::ndarrayDouble1FromVar (column);
+            model.add ("Column " + String (n++), data);
+        }
+    }
+    else if (auto columns = value["columns"].getDynamicObject())
+    {
+        for (const auto& item : columns->getProperties())
+        {
+            auto data = DataHelpers::ndarrayDouble1FromVar (item.value);
+            model.add (item.name.toString(), data);
+        }
+    }
+    return model;
+}
+
+const GlyphArrangement& TableModel::getGlyphs (int i, int j) const
+{
+    return columns.getReference(j).glyphsCache.getReference(i);
+}
+
+int TableModel::maxRows() const
+{
+    int max = 0;
+
+    for (const auto& series : columns)
+        max = jmax (max, series.size());
+    return max;
 }
 
 
@@ -86,12 +118,20 @@ void TableView::DefaultController::tableViewMakeColumnAbscissa (TableView* table
 {
     auto model = table->getModel();
     model.abscissa = column;
+
+    if (column != 0)
+        model.columns.getReference (column - 1).selected = false;
+
     table->setModel (model);
 }
 
 void TableView::DefaultController::tableViewSetColumnSelected (TableView* table, int column, bool shouldBeSelected)
 {
     auto model = table->getModel();
+
+    if (model.abscissa == column)
+        model.abscissa = 0;
+
     model.columns.getReference (column - 1).selected = shouldBeSelected;
     table->setModel (model);
 }
@@ -164,28 +204,33 @@ void TableView::resized()
 
 void TableView::mouseDown (const MouseEvent& e)
 {
-    auto c = mouseOverCell.col;
-    auto& column = model.columns.getReference (c - 1);
-
-    if (mouseOverCell.row == 0 && mouseOverCell.col != model.abscissa)
+    if (mouseOverCell.col != 0)
     {
-        if (e.mods.isPopupMenu())
-        {
-            auto menu = PopupMenu();
-            menu.addItem (1, "Make Column Abscissa");
-            menu.addItem (2, column.selected ? "Unselect Column" : "Select Column");
+        auto c = mouseOverCell.col;
+        auto& column = model.columns.getReference (c - 1);
 
-            switch (menu.show())
-            {
-                case 1: controller->tableViewMakeColumnAbscissa (this, c); break;
-                case 2: controller->tableViewSetColumnSelected (this, c, ! column.selected); break;
-            }
-        }
-        else
+        if (mouseOverCell.row == 0)
         {
-            controller->tableViewSetColumnSelected (this, c, ! column.selected);
+            if (e.mods.isPopupMenu())
+            {
+                auto menu = PopupMenu();
+                menu.addItem (c == model.abscissa ? 1 : 2, "Abscissa", true, c == model.abscissa);
+                menu.addItem (column.selected     ? 3 : 4, "Selected", c != model.abscissa, column.selected);
+
+                switch (menu.show())
+                {
+                    case 1: controller->tableViewMakeColumnAbscissa (this, 0); break;
+                    case 2: controller->tableViewMakeColumnAbscissa (this, c); break;
+                    case 3: controller->tableViewSetColumnSelected (this, c, false); break;
+                    case 4: controller->tableViewSetColumnSelected (this, c, true); break;
+                }
+            }
+            else if (c != model.abscissa)
+            {
+                controller->tableViewSetColumnSelected (this, c, ! column.selected);
+            }
+            repaint();
         }
-        repaint();
     }
 }
 
@@ -197,7 +242,7 @@ void TableView::mouseMove (const MouseEvent& e)
 
 void TableView::mouseExit (const MouseEvent& e)
 {
-    mouseOverCell = {-1, -1};
+    mouseOverCell = {0, 0};
     repaint();
 }
 
@@ -205,7 +250,7 @@ void TableView::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wh
 {
     auto dy = wheel.deltaY * getHeight();
     auto ymin = float (-model.maxRows() * model.rowHeight - model.headerHeight + getHeight());
-    Point<float> newScrollPosition = {0.f, jlimit (ymin, 0.f, model.scrollPosition.y + dy)};
+    Point<float> newScrollPosition = {0.f, jlimit (jmin (0.f, ymin), 0.f, model.scrollPosition.y + dy)};
     controller->tableViewSetScrollPosition (this, newScrollPosition);
     mouseOverCell = cellAtPosition (e.position);
     repaint();
@@ -266,8 +311,7 @@ void TableView::paintHeader (Graphics& g, const Geometry& geometry)
         auto& column = model.columns.getReference(j);
 
         if (   mouseOverCell.row == 0
-            && mouseOverCell.col == j + 1
-            && model.abscissa    != j + 1)
+            && mouseOverCell.col == j + 1)
             g.setColour (findColour (ColourIds::headerCellColourId).darker (0.1f));
         else
             g.setColour (findColour (ColourIds::headerCellColourId));
@@ -301,9 +345,7 @@ void TableView::paintColumn (Graphics& g, const Geometry& geometry, int j, const
             }
 
             g.setColour (findColour (ColourIds::textColourId));
-            model.columns.getReference(j).getGlyphs(i).draw (g, transform);
-            // g.setFont (model.numberFont);
-            // g.drawText (String (column.doubleData.getReference(j), 8), area, Justification::centred);
+            model.getGlyphs (i, j).draw (g, transform);
         }
     }
 }
@@ -346,19 +388,23 @@ TableView::Cell TableView::cellAtPosition (Point<float> pos)
 {
     // If the mouse is over a header cell, we return {0, col}.
     // -----------------------------------------------------------
-    int col = 1 + (pos.x - model.gutterWidth) / model.columnWidth;
-
-    if (pos.y < model.headerHeight && 1 <= col && col <= model.columns.size())
     {
-        return {0, col};
+        int col = 1 + (pos.x - model.gutterWidth) / model.columnWidth;
+
+        if (pos.y < model.headerHeight && 1 <= col && col <= model.columns.size())
+        {
+            return {0, col};
+        }
     }
 
     // Otherwise, we return the index of the cell the mouse is
     // in (row/col starting from 1).
     // -----------------------------------------------------------
-    int i = 1 + (-model.scrollPosition.y + pos.y - model.headerHeight) / model.rowHeight;
-    int j = 1 + (-model.scrollPosition.x + pos.x - model.gutterWidth) / model.columnWidth;
-    return {i, j};
+    {
+        int row = 1 + (-model.scrollPosition.y + pos.y - model.headerHeight) / model.rowHeight;
+        int col = 1 + (-model.scrollPosition.x + pos.x - model.gutterWidth) / model.columnWidth;
+        return col <= model.columns.size() ? Cell {row, col} : Cell {0, 0};
+    }
 }
 
 Point<float> TableView::tableToComponent (Point<float> tablePosition) const

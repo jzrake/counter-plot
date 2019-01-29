@@ -11,28 +11,29 @@ struct TableModel
     //=========================================================================
     enum class Type
     {
-        Int, Double, Time, String,
+        Double,
     };
 
     //=========================================================================
     struct Series
     {
-        Series (const String& name, const Array<double>& data);
+        //=====================================================================
+        Series (const String& name, nd::array<double, 1> data);
         int size() const;
-        const GlyphArrangement& getGlyphs (int i) const;
 
+        //=====================================================================
         String name;
-        Array<int> integerData;
-        Array<double> doubleData;
-        Array<Time> timeData;
-        StringArray stringData;
+        nd::array<double, 1> doubleData;
         bool selected = false;
         Type type;
         Array<GlyphArrangement> glyphsCache;
     };
 
     //=========================================================================
+    static TableModel fromVar (const var&);
+    const GlyphArrangement& getGlyphs (int i, int j) const;
     int maxRows() const;
+    void add (const String& name, nd::array<double, 1> data);
 
     //=========================================================================
     Array<Series> columns;

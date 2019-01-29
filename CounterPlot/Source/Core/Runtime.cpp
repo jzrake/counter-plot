@@ -450,7 +450,7 @@ namespace builtin
 
         if (vertices.size != scalars.size)
         {
-            throw std::runtime_error("vertices and scalars have different sizes");
+            throw std::runtime_error ("vertices and scalars have different sizes");
         }
         return Runtime::make_data (std::dynamic_pointer_cast<PlotArtist> (trimesh));
     }

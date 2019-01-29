@@ -188,9 +188,7 @@ void AsciiTableViewer::reloadFile()
     for (int n = 0; n < loader.getNumColumns(); ++n)
     {
         auto name = loader.getColumnName(n);
-        Array<double> data;
-        data.resize (int (loader.getNumRows()));
-
+        auto data = nd::array<double, 1> (int (loader.getNumRows()));
         loader.column (n, data.begin());
         model.columns.add ({name, data});
     }

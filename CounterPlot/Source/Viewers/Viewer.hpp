@@ -117,6 +117,8 @@ public:
 
     virtual Image createViewerSnapshot() { return createComponentSnapshot (getLocalBounds()); }
 
+    virtual Array<Component*> getControls() { return {}; }
+
 private:
     MessageSink* messageSink = nullptr;
 };

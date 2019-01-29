@@ -1062,9 +1062,6 @@ MainComponent::MainComponent()
     addChildComponent (kernelRuleEntry);
     addChildComponent (userExtensionsDirectoryEditor);
 
-    ///////
-    // addAndMakeVisible (testTableView);
-
     setSize (1024, 768 - 64);
 }
 
@@ -1235,13 +1232,32 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
             statusBar.setCurrentViewerName ("Viewer List");
             environmentView.setKernel (nullptr);
         }
-        if ((! viewer) || (isKernelRuleEntryShowing() && ! viewer->canReceiveMessages()))
+        if (isKernelRuleEntryShowing() && (! viewer || ! viewer->canReceiveMessages()))
         {
             toggleKernelRuleEntryShown();
         }
+
+        loadControlsForViewer (viewer);
         viewers.showOnly (viewer);
         currentViewer = viewer;
         PatchViewApplication::getApp().getCommandManager().commandStatusChanged();
+    }
+}
+
+void MainComponent::loadControlsForViewer (Viewer* viewer)
+{
+    auto newViewerControls = viewer->getControls();
+
+    if (newViewerControls != viewerControls)
+    {
+        for (auto control : viewerControls)
+            removeChildComponent (control);
+
+        for (auto control : newViewerControls)
+            addChildComponent (control);
+
+        viewerControls = newViewerControls;
+        layout (false);
     }
 }
 
@@ -1408,7 +1424,6 @@ void MainComponent::viewerAsyncTaskCompleted (const String& name)
 void MainComponent::viewerAsyncTaskCancelled (const String& name)
 {
     statusBar.decrementAsyncTaskCount();
-    // statusBar.setCurrentInfoMessage ("Cancelled " + name);
 }
 
 void MainComponent::viewerLogErrorMessage (const String& what)
@@ -1441,6 +1456,9 @@ void MainComponent::viewerCollectionViewerReconfigured (Viewer *viewer)
     if (viewer == currentViewer)
         if (! isViewerSuitable (viewer))
             makeViewerCurrent (viewers.findViewerForFile (currentFile));
+
+    if (viewer == currentViewer)
+        loadControlsForViewer (viewer);
 }
 
 void MainComponent::viewerCollectionViewerAdded (Viewer *viewer)
@@ -1478,22 +1496,24 @@ void MainComponent::layout (bool animated)
     auto area = getLocalBounds();
     auto statusBarArea = area.removeFromBottom (22);
     auto directoryTreeArea = directoryTreeShowing ? area.removeFromLeft (300) : area.withWidth (300).translated (-300, 0);
+    auto kernelRuleEntryArea = area.removeFromBottom (kernelRuleEntryShowing ? 32 : 0);
+    auto controlsArea = area.removeFromBottom (viewerControls.isEmpty() ? 0 : 200);
     auto environmentViewArea = Rectangle<int> (0, 0, 300, 330)
     .withBottomY (statusBarArea.getY())
     .translated (0, environmentViewShowing ? 0 : 330 + 22); // the 22 is to ensure it's offscreen, so not painted
 
-    if (kernelRuleEntryShowing)
-    {
-        kernelRuleEntry.setBounds (area.removeFromBottom (32));
-    }
-
     setBounds (statusBar, statusBarArea);
     setBounds (sidebar, directoryTreeArea);
     setBounds (environmentView, environmentViewArea);
+
+    kernelRuleEntry.setBounds (kernelRuleEntryArea);
     viewers.setBounds (area, animated);
 
-    ///////
-    // testTableView.setBounds (area);
+    for (auto control : viewerControls)
+    {
+        control->setBounds (controlsArea);
+        control->setVisible (control == viewerControls.getFirst());
+    }
 
     userExtensionsDirectoryEditor.setBounds (getLocalBounds().withSizeKeepingCentre (400, 300));
 }
