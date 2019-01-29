@@ -63,6 +63,7 @@ void UserExtensionView::reset()
 
     taskPool.cancelAll();
     figures.clear();
+    controls.clear();
     layout.items.clear();
 }
 

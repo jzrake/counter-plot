@@ -152,7 +152,7 @@ public:
                                                int index=-1)
     {
         return std::runtime_error ((caller ? std::string (caller) + ": " : "")
-                                   + "wrong data type "
+                                   + "expected "
                                    + expected
                                    + ", got "
                                    + type_name (value)

@@ -134,7 +134,7 @@ namespace builtin
     }
     var item (var::NativeFunctionArgs args)
     {
-        auto arr = checkArg<Array<var>>("item", args, 0);
+        auto arr = checkArg<Array<var>> ("item", args, 0);
         auto ind = checkArg<int> ("item", args, 1);
         return arr[ind];
     }
@@ -476,14 +476,14 @@ namespace builtin
             throw std::runtime_error (loader.getStatusMessage());
         }
 
-        auto columns = var();
+        auto columns = Array<var>();
 
         for (int n = 0; n < loader.getNumColumns(); ++n)
         {
             auto name = loader.getColumnName(n);
             auto data = nd::array<double, 1> (loader.getNumRows());
             loader.column (n, data.begin());
-            columns.append (Runtime::make_data (data));
+            columns.add (Runtime::make_data (data));
         }
         return columns;
     }
