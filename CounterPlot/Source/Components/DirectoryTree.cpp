@@ -33,8 +33,9 @@ public:
     {
         Font font;
 
-        if (auto laf = dynamic_cast<AppLookAndFeel*> (&getOwnerView()->getLookAndFeel()))
-            font = laf->getDefaultFont();
+        if (auto tree = getOwnerView())
+            if (auto laf = dynamic_cast<AppLookAndFeel*> (&tree->getLookAndFeel()))
+                font = laf->getDefaultFont();
 
         auto text = file.getFileName();
         itemHeight = font.getHeight() * 11 / 5;

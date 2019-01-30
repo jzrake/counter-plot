@@ -1073,7 +1073,7 @@ MainComponent::MainComponent()
 
 #if (JUCE_DEBUG == 0)
      viewers.loadFromYamlString (BinaryData::BinaryTorque_yaml);
-     viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
+     // viewers.loadFromYamlString (BinaryData::JetInCloud_yaml);
 #warning("Loading hard-coded viewers")
 #endif
 
@@ -1272,17 +1272,18 @@ void MainComponent::makeViewerCurrent (Viewer* viewer)
 
 void MainComponent::loadControlsForViewer (Viewer* viewer)
 {
-    auto newViewerControls = viewer->getControls();
-
-    if (newViewerControls != viewerControls)
+    for (auto control : viewerControls)
     {
-        for (auto control : viewerControls)
-            removeChildComponent (control);
+        removeChildComponent (control);
+    }
 
-        for (auto control : newViewerControls)
+    if (viewer)
+    {
+        viewerControls = viewer->getControls();
+
+        for (auto control : viewerControls)
             addChildComponent (control);
 
-        viewerControls = newViewerControls;
         layout (false);
     }
 }
