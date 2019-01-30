@@ -407,8 +407,27 @@ namespace builtin
     var plot (var::NativeFunctionArgs args)
     {
         LinePlotModel model;
-        model.x.become (checkArg<nd::array<double, 1>> ("plot", args, 0));
-        model.y.become (checkArg<nd::array<double, 1>> ("plot", args, 1));
+
+        if (args.numArguments == 1)
+        {
+            auto y = checkArg<nd::array<double, 1>> ("plot", args, 0);
+            model.x.become (nd::linspace<double> (0.0, double (y.size()), int (y.size())));
+            model.y.become (y);
+        }
+        else if (args.numArguments == 2)
+        {
+            if (args.arguments[0].isVoid())
+            {
+                auto y = checkArg<nd::array<double, 1>> ("plot", args, 1);
+                model.x.become (nd::linspace<double> (0.0, double (y.size()), int (y.size())));
+                model.y.become (y);
+            }
+            else
+            {
+                model.x.become (checkArg<nd::array<double, 1>> ("plot", args, 0));
+                model.y.become (checkArg<nd::array<double, 1>> ("plot", args, 1));
+            }
+        }
         model.lineWidth        = optKeywordArg (args, "lw", 2.f);
         model.markerSize       = optKeywordArg (args, "mw", model.markerSize);
         model.markerEdgeWidth  = optKeywordArg (args, "mew", model.markerEdgeWidth);

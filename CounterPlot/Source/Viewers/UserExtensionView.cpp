@@ -81,7 +81,9 @@ public:
             for (const auto& item : obj->getProperties())
                 capture[item.name.toString().toStdString()] = item.value.toString().toStdString();
 
-        view.setModel (TableModel::fromVar (model));
+        auto m = TableModel::fromVar (model);
+
+        view.setModel (m);
     }
 
 private:
@@ -413,12 +415,14 @@ void UserExtensionView::figureViewSetTitle (FigureView* figure, const String& ti
 //=============================================================================
 void UserExtensionView::kernelAgentInsertValue (const std::string& key, const var& value)
 {
-    kernel.insert (key, value);
+    if (! kernel.contains (key) || kernel.at (key) != value)
+        kernel.insert (key, value);
 }
 
 void UserExtensionView::kernelAgentInsertExpression (const std::string& key, const crt::expression& expr)
 {
-    kernel.insert (key, expr);
+    if (! kernel.contains (key) || kernel.expr_at (key) != expr)
+        kernel.insert (key, expr);
 }
 
 void UserExtensionView::kernelAgentSuggestResolve()
@@ -490,7 +494,7 @@ void UserExtensionView::taskCancelled (const String& taskName)
 
 
 //=========================================================================
-void UserExtensionView::resolveKernel()
+void UserExtensionView::resolveKernel (bool startAsyncTasks)
 {
 
     // Try to update all the rules that are dirty and not asynchronous.
@@ -524,6 +528,9 @@ void UserExtensionView::resolveKernel()
     }
 
     sendEnvironmentChanged();
+
+    if (! startAsyncTasks)
+        return;
 
 
     // After the synchronous updates are handled, we launch any

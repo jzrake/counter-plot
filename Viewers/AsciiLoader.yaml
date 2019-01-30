@@ -4,21 +4,21 @@
 
 
 name: Ascii
-file-patterns: ["*.dat"]
+file-patterns: ["*.dat", "*.cmap"]
 rows: [1]
 cols: [1]
 
 
 environment:
-  x-index: 1
-  y-indexes: []
+  x-index: 0
+  y-indexes: [1, 2]
   columns: (load-text file)
   t: (item columns x-index)
-  series: (take columns y-indexes) #[(item columns 1), (item columns 2)]
-  colors: [magenta, orange]
-  styles: [dash, solid]
-  widths: [1, 4]
-  x: [10, 14]
+  series: (take columns y-indexes)
+  colors: [magenta, orange, brown]
+  styles: [solid, solid, solid]
+  marker: ['circle', 'diamond', 'square']
+  widths: [1, 2, 4]
 
 
 figures:
@@ -32,7 +32,7 @@ figures:
   margin: $margin
   border-width: 2
   content:
-  - (map plot t series lw=widths ls=styles lc=colors)
+  - (map plot t series lw=widths ls=styles mw=30 lc=colors)
 
   capture:
     margin: margin
@@ -49,9 +49,3 @@ controls:
     scroll-position: scroll-position
     abscissa: x-index
     selected: y-indexes
-
-  # columns:
-    # - [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    # - (map attr margin (list 'top' 'bottom' 'left' 'right'))
-    # - (item columns 1)
-    # - $y-indexes

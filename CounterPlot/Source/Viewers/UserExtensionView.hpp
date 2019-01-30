@@ -150,7 +150,7 @@ private:
 
     //=========================================================================
     void applyLayout();
-    void resolveKernel();
+    void resolveKernel (bool startAsyncTasks=true);
     void loadFromKernelIfFigure (const std::string& id);
     void loadFromKernelIfControl (const std::string& id);
     void loadExpressionsFromDictIntoKernel (Runtime::Kernel& kernel, const var& dict, bool rethrowExceptions=false) const;
