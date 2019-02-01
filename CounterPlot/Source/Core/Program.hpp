@@ -9,6 +9,7 @@
 namespace cp {
     class Program;
     class View;
+    class ViewHolder;
 }
 
 
@@ -19,13 +20,26 @@ class cp::View : public Component
 {
 public:
     virtual ~View() {}
-    virtual void load (const crt::expression&) = 0;
+    virtual void load (const crt::expression& newValue) = 0;
+};
 
+
+
+
+//=============================================================================
+class cp::ViewHolder : public Component
+{
+public:
+    void setValue (const crt::expression& newValue);
     void setExpression (const crt::expression& newExpression);
     const crt::expression& getExpression() const;
 
+    void resized() override;
+
 private:
-    crt::expression expression;
+    crt::expression expr;
+    crt::expression value;
+    std::unique_ptr<View> view;
 };
 
 
@@ -60,10 +74,12 @@ public:
 
 
 private:
-    std::unique_ptr<View> createView (const crt::expression&);
     class RootComponent;
+    void loadEnvironmentEntry (const crt::expression&);
+    void loadViewEntry (const crt::expression&);
+
     crt::kernel kernel;
     crt::call_adapter adapter;
-    OwnedArray<View> views;
+    OwnedArray<ViewHolder> viewHolders;
     std::unique_ptr<RootComponent> root;
 };

@@ -31,7 +31,8 @@ void crt::core::import(crt::kernel& k)
     k.define("unparse",   unparse);
     k.define("zip",       zip);
 
-    k.define ("grid", crt::init<Grid>());
+    k.define("div",       crt::init<DivModel>());
+    k.define("grid",      crt::init<Grid>());
 }
 
 
@@ -232,38 +233,29 @@ crt::expression crt::fromYamlFile (File source)
     return fromYamlNode (YAML::LoadFile (source.getFullPathName().toStdString()));
 }
 
-crt::expression crt::fromYamlNode (const YAML::Node &node)
+crt::expression crt::fromYamlNode (const YAML::Node &value)
 {
-    switch (node.Type())
+    std::vector<crt::expression> result;
+
+    switch (value.Type())
     {
         case YAML::NodeType::value::Null: return crt::expression::none();
         case YAML::NodeType::value::Undefined: return crt::expression::none();
-        case YAML::NodeType::value::Scalar: return fromYamlScalar (node.Scalar());
+        case YAML::NodeType::value::Scalar: return fromYamlScalar (value.Scalar());
         case YAML::NodeType::value::Sequence:
         {
-            std::vector<crt::expression> list;
-
-            for (const auto& elem : node)
-            {
-                list.push_back (fromYamlNode (elem));
-            }
-            return list;
+            for (const auto& elem : value)
+                result.push_back (fromYamlNode (elem));
+            break;
         }
         case YAML::NodeType::value::Map:
         {
-            std::vector<crt::expression> list;
-            std::vector<crt::expression> dict;
-
-            for (const auto& item : node)
-            {
-                if (item.first.IsNull())
-                    list.push_back (fromYamlNode (item.second));
-                else
-                    dict.push_back (fromYamlNode (item.second).keyed (item.first.Scalar()));
-            }
-            return crt::expression(list).concat (dict);
+            for (const auto& item : value)
+                result.push_back (fromYamlNode (item.second).keyed (item.first.Scalar()));
+            break;
         }
     }
+    return result;
 }
 
 crt::expression crt::fromYamlScalar (const std::string& source)
@@ -457,4 +449,38 @@ Grid crt::type_info<Grid>::from_expr (const expression& e)
             grid.templateColumns.add (getTrackInfo (elem));
 
     return grid;
+}
+
+
+
+
+//=============================================================================
+const char* crt::type_info<DivModel>::name()
+{
+    return "Div";
+}
+
+crt::expression crt::type_info<DivModel>::to_table (const DivModel& div)
+{
+    return crt::expression({
+        crt::expression::from (div.background)     .keyed ("background"),
+        crt::expression::from (div.border)         .keyed ("border"),
+        crt::expression (double (div.borderWidth)) .keyed ("border-width"),
+        crt::expression (double (div.cornerRadius)).keyed ("corner-radius"),
+    });
+}
+
+DivModel crt::type_info<DivModel>::from_expr (const crt::expression& e)
+{
+    if (e.has_type (crt::data_type::data))
+    {
+        return e.check_data<DivModel>();
+    }
+
+    DivModel div;
+    div.background   = e.attr ("background")   .to<Colour>();
+    div.border       = e.attr ("border")       .to<Colour>();
+    div.borderWidth  = e.attr ("border-width") .as_f64();
+    div.cornerRadius = e.attr ("corner-radius").as_f64();
+    return div;
 }

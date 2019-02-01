@@ -1,41 +1,29 @@
 
 
+environment:
+  a: [1, 2, 3, 4]
+  b: 46
+
+
 views:
-- type: rect
-  background: [40, 40, 60]
-- type: rect
-  background: [60, 40, 40]
-- type: rect
-  background: [40, 60, 40]
-- type: rect
-  background: [40, 40, 60]
-- type: rect
-  background: [60, 40, 40]
-- type: rect
-  background: [40, 60, 40]
-- type: rect
-  background: [40, 40, 60]
-- type: rect
-  background: [60, 40, 40]
-- type: rect
-  background: [40, 60, 40]
-- type: rect
-  background: [40, 40, 60]
-- type: rect
-  background: [60, 40, 40]
-- type: rect
-  background: [40, 60, 40]
-- type: rect
-  background: [40, 40, 60]
-- type: rect
-  background: [60, 40, 40]
-- type: rect
-  background: [40, 60, 40]
-- type: rect
-  background: [50, 50, 50]
+- (div background=(10 40 240))
+- (div background=(240 40 80))
+- (div background=(80 40 240))
+- (div background=(40 80 40))
+- type: $div
+  background: [80, 10, 100]
+  border: white
+  border-width: 10
+  corner-radius: $b
+- type: $div
+  background: [80, 80, 10]
+- type: $div
+  background: [10, 80, 200]
+- (div background=(80 40 40))
+- (div background=(0 40 180))
 
 
 layout:
-  : $grid
-  rows: [100px, 1, 1, 100px]
-  cols: [100px, 1, 1, 100px]
+  type: $grid
+  rows: [150px, 1, 150px]
+  cols: [150px, 1, 150px]

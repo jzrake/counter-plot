@@ -6,6 +6,17 @@ namespace YAML { class Node; }
 
 
 
+struct DivModel
+{
+    Colour background;
+    Colour border;
+    float borderWidth;
+    float cornerRadius = 0.f;
+};
+
+
+
+
 //=============================================================================
 namespace crt {
 
@@ -94,5 +105,15 @@ namespace core {
         static const char* name();
         static expression to_table (const Grid&);
         static Grid from_expr (const expression&);
+    };
+
+
+    //=========================================================================
+    template<>
+    struct crt::type_info<DivModel>
+    {
+        static const char* name();
+        static expression to_table (const DivModel&);
+        static DivModel from_expr (const expression&);
     };
 }
