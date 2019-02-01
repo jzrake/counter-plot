@@ -1,0 +1,41 @@
+
+
+views:
+- type: rect
+  background: [40, 40, 60]
+- type: rect
+  background: [60, 40, 40]
+- type: rect
+  background: [40, 60, 40]
+- type: rect
+  background: [40, 40, 60]
+- type: rect
+  background: [60, 40, 40]
+- type: rect
+  background: [40, 60, 40]
+- type: rect
+  background: [40, 40, 60]
+- type: rect
+  background: [60, 40, 40]
+- type: rect
+  background: [40, 60, 40]
+- type: rect
+  background: [40, 40, 60]
+- type: rect
+  background: [60, 40, 40]
+- type: rect
+  background: [40, 60, 40]
+- type: rect
+  background: [40, 40, 60]
+- type: rect
+  background: [60, 40, 40]
+- type: rect
+  background: [40, 60, 40]
+- type: rect
+  background: [50, 50, 50]
+
+
+layout:
+  : $grid
+  rows: [100px, 1, 1, 100px]
+  cols: [100px, 1, 1, 100px]

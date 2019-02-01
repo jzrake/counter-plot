@@ -33,24 +33,28 @@
     <GROUP id="{B598C4C2-9FA1-7CA8-758B-F1B244C19DD5}" name="Core">
       <FILE id="EmRS2T" name="AsciiLoader.cpp" compile="1" resource="0" file="Source/Core/AsciiLoader.cpp"/>
       <FILE id="mMzrQM" name="AsciiLoader.hpp" compile="0" resource="0" file="Source/Core/AsciiLoader.hpp"/>
-      <FILE id="fO8AXk" name="MovieWriter.cpp" compile="1" resource="0" file="Source/Core/MovieWriter.cpp"/>
-      <FILE id="t2iZ64" name="MovieWriter.hpp" compile="0" resource="0" file="Source/Core/MovieWriter.hpp"/>
-      <FILE id="xXzUSx" name="EditorKeyMappings.cpp" compile="1" resource="0"
-            file="Source/Core/EditorKeyMappings.cpp"/>
-      <FILE id="XHRPiy" name="EditorKeyMappings.hpp" compile="0" resource="0"
-            file="Source/Core/EditorKeyMappings.hpp"/>
-      <FILE id="ZBKd0R" name="Runtime.cpp" compile="1" resource="0" file="Source/Core/Runtime.cpp"/>
-      <FILE id="I8a2om" name="Runtime.hpp" compile="0" resource="0" file="Source/Core/Runtime.hpp"/>
-      <FILE id="G4JAko" name="TaskPool.cpp" compile="1" resource="0" file="Source/Core/TaskPool.cpp"/>
-      <FILE id="yvniHa" name="TaskPool.hpp" compile="0" resource="0" file="Source/Core/TaskPool.hpp"/>
       <FILE id="VajpLx" name="ConfigurableFileFilter.cpp" compile="1" resource="0"
             file="Source/Core/ConfigurableFileFilter.cpp"/>
       <FILE id="wfyAVr" name="ConfigurableFileFilter.hpp" compile="0" resource="0"
             file="Source/Core/ConfigurableFileFilter.hpp"/>
+      <FILE id="xXzUSx" name="EditorKeyMappings.cpp" compile="1" resource="0"
+            file="Source/Core/EditorKeyMappings.cpp"/>
+      <FILE id="XHRPiy" name="EditorKeyMappings.hpp" compile="0" resource="0"
+            file="Source/Core/EditorKeyMappings.hpp"/>
+      <FILE id="LZ02gV" name="FileWatcher.cpp" compile="1" resource="0" file="Source/Core/FileWatcher.cpp"/>
+      <FILE id="RlOz9x" name="FileWatcher.hpp" compile="0" resource="0" file="Source/Core/FileWatcher.hpp"/>
       <FILE id="vAyfG9" name="LookAndFeel.cpp" compile="1" resource="0" file="Source/Core/LookAndFeel.cpp"/>
       <FILE id="fAMC19" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Core/LookAndFeel.hpp"/>
       <FILE id="r0cb3N" name="Main.cpp" compile="1" resource="0" file="Source/Core/Main.cpp"/>
       <FILE id="aM5cVk" name="Main.hpp" compile="0" resource="0" file="Source/Core/Main.hpp"/>
+      <FILE id="fO8AXk" name="MovieWriter.cpp" compile="1" resource="0" file="Source/Core/MovieWriter.cpp"/>
+      <FILE id="t2iZ64" name="MovieWriter.hpp" compile="0" resource="0" file="Source/Core/MovieWriter.hpp"/>
+      <FILE id="mE39eN" name="Program.cpp" compile="1" resource="0" file="Source/Core/Program.cpp"/>
+      <FILE id="iQm3aO" name="Program.hpp" compile="0" resource="0" file="Source/Core/Program.hpp"/>
+      <FILE id="ZBKd0R" name="Runtime.cpp" compile="1" resource="0" file="Source/Core/Runtime.cpp"/>
+      <FILE id="I8a2om" name="Runtime.hpp" compile="0" resource="0" file="Source/Core/Runtime.hpp"/>
+      <FILE id="G4JAko" name="TaskPool.cpp" compile="1" resource="0" file="Source/Core/TaskPool.cpp"/>
+      <FILE id="yvniHa" name="TaskPool.hpp" compile="0" resource="0" file="Source/Core/TaskPool.hpp"/>
     </GROUP>
     <GROUP id="{5A420E7E-4900-A138-6F00-634E7A3A41F9}" name="Plotting">
       <FILE id="BrgrJ3" name="Artists.cpp" compile="1" resource="0" file="Source/Plotting/Artists.cpp"/>

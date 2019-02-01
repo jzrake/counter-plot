@@ -566,8 +566,11 @@ MainComponent::MainComponent()
     sidebar.setComponent1 (&directoryTree);
     sidebar.setComponent2 (&sourceList);
 
+    fileWatcher.setCallback ([this] (auto file) { reloadCurrentFile(); });
+
     addAndMakeVisible (sidebar);
     addAndMakeVisible (statusBar);
+    addAndMakeVisible (program.getRootComponent());
 
     setSize (1024, 768 - 64);
 }
@@ -583,10 +586,20 @@ void MainComponent::setCurrentDirectory (File newCurrentDirectory)
 
 void MainComponent::setCurrentFile (File newCurrentFile)
 {
+    currentFile = newCurrentFile;
+    fileWatcher.setFileToWatch (newCurrentFile);
+    reloadCurrentFile();
 }
 
 void MainComponent::reloadCurrentFile()
 {
+    try {
+        program.loadCommandsFromFile (currentFile);
+    }
+    catch (std::exception& e)
+    {
+        logErrorMessage (e.what());
+    }
 }
 
 void MainComponent::reloadDirectoryTree()
@@ -745,6 +758,7 @@ void MainComponent::layout (bool animated)
     auto statusBarArea = area.removeFromBottom (22);
     auto directoryTreeArea = directoryTreeShowing ? area.removeFromLeft (300) : area.withWidth (300).translated (-300, 0);
 
+    setBounds (program.getRootComponent(), area);
     setBounds (statusBar, statusBarArea);
     setBounds (sidebar, directoryTreeArea);
 }

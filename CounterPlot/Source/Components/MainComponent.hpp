@@ -3,6 +3,8 @@
 #include "DirectoryTree.hpp"
 #include "TableView.hpp"
 #include "../Core/EditorKeyMappings.hpp"
+#include "../Core/FileWatcher.hpp"
+#include "../Core/Program.hpp"
 #include "../Plotting/FigureView.hpp"
 
 
@@ -232,7 +234,6 @@ private:
     void layout (bool animated);
 
     //=========================================================================
-    File currentFile;
     bool directoryTreeShowing = true;
     bool environmentViewShowing = false;
     bool kernelRuleEntryShowing = false;
@@ -242,4 +243,7 @@ private:
     DirectoryTree directoryTree;
     SourceList sourceList;
     EitherOrComponent sidebar;
+    FileWatcher fileWatcher;
+    File currentFile;
+    cp::Program program;
 };
