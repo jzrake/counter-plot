@@ -1,7 +1,6 @@
 #pragma once
 #include "JuceHeader.h"
 #include "LookAndFeel.hpp"
-#include "../Viewers/UserExtensionView.hpp"
 
 
 
@@ -41,6 +40,8 @@ public:
     static PatchViewApplication& getApp();
     ApplicationCommandManager& getCommandManager();
     void configureCommandButton (Button& button, int commandId) const;
+    CriticalSection& getCriticalSectionForHDF5();
+
 
     //=========================================================================
     const String getApplicationName() override;
@@ -97,4 +98,5 @@ private:
     AppLookAndFeel lookAndFeel;
     ApplicationProperties applicationProperties;
     File currentDirectory;
+    CriticalSection hdf5CriticalSection;
 };

@@ -1,9 +1,7 @@
 #include "Main.hpp"
-#include "DataHelpers.hpp"
 #include "../Components/MainComponent.hpp"
 #include "../Components/TableView.hpp"
 #include "../Plotting/FigureView.hpp"
-#include "../Viewers/Viewer.hpp"
 
 
 
@@ -93,8 +91,8 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
         menu.addCommandItem (manager, Commands::openDirectory);
         menu.addCommandItem (manager, Commands::reloadCurrentFile);
         menu.addSeparator();
-        menu.addCommandItem (manager, Viewer::Commands::makeSnapshotAndOpen);
-        menu.addCommandItem (manager, Viewer::Commands::saveSnapshotAs);
+        //menu.addCommandItem (manager, Viewer::Commands::makeSnapshotAndOpen);
+        //menu.addCommandItem (manager, Viewer::Commands::saveSnapshotAs);
         menu.addCommandItem (manager, Commands::makeAnimationAndOpen);
         menu.addCommandItem (manager, Commands::saveAnimationAs);
         return menu;
@@ -110,9 +108,9 @@ PopupMenu PatchViewApplication::MainMenu::getMenuForIndex (int /*topLevelMenuInd
         menu.addCommandItem (manager, Commands::increaseFontSize);
         menu.addCommandItem (manager, Commands::decreaseFontSize);
         menu.addSeparator();
-        menu.addCommandItem (manager, Viewer::Commands::nextColourMap);
-        menu.addCommandItem (manager, Viewer::Commands::prevColourMap);
-        menu.addCommandItem (manager, Viewer::Commands::resetScalarRange);
+        //menu.addCommandItem (manager, Viewer::Commands::nextColourMap);
+        //menu.addCommandItem (manager, Viewer::Commands::prevColourMap);
+        //menu.addCommandItem (manager, Viewer::Commands::resetScalarRange);
         return menu;
     }
     jassertfalse;
@@ -148,6 +146,11 @@ void PatchViewApplication::configureCommandButton (Button& button, int commandId
         button.setTooltip (info.defaultKeypresses.getFirst().getTextDescriptionWithIcons());
     }
     button.onClick = [this, commandId] { commandManager->invokeDirectly (commandId, false); };
+}
+
+CriticalSection& PatchViewApplication::getCriticalSectionForHDF5()
+{
+    return hdf5CriticalSection;
 }
 
 PatchViewApplication::PatchViewApplication()
@@ -188,7 +191,7 @@ void PatchViewApplication::initialise (const String& commandLine)
 
     commandManager = std::make_unique<ApplicationCommandManager>();
     commandManager->registerAllCommandsForTarget (this);
-    Viewer::registerCommands (*commandManager);
+//    Viewer::registerCommands (*commandManager);
 
     menu           = std::make_unique<MainMenu>();
     mainWindow     = std::make_unique<MainWindow> (getApplicationName());
@@ -196,8 +199,9 @@ void PatchViewApplication::initialise (const String& commandLine)
 
     if (directoryTreeState)
         mainWindow->content->getDirectoryTree().restoreRootOpenness (*directoryTreeState);
-    if (userExtensionDirectories)
-        mainWindow->content->getViewerCollection().setWatchedDirectories (*userExtensionDirectories);
+
+//    if (userExtensionDirectories)
+//        mainWindow->content->getViewerCollection().setWatchedDirectories (*userExtensionDirectories);
 
     MenuBarModel::setMacMainMenu (menu.get(), nullptr);
 }
@@ -211,7 +215,7 @@ void PatchViewApplication::shutdown()
     settings.setValue ("CurrentDirectory", currentDirectory.getFullPathName());
     settings.setValue ("Font", lookAndFeel.getDefaultFont().toString());
     settings.setValue ("DirectoryTreeState",  mainWindow->content->getDirectoryTree().getRootOpennessState().get());
-    settings.setValue ("UserExtensionDirectories",  mainWindow->content->getViewerCollection().getWatchedDirectoriesAsXml().get());
+    //settings.setValue ("UserExtensionDirectories",  mainWindow->content->getViewerCollection().getWatchedDirectoriesAsXml().get());
 
     MenuBarModel::setMacMainMenu (nullptr, nullptr);
 }
@@ -240,7 +244,7 @@ void PatchViewApplication::getAllCommands (Array<CommandID>& commands)
         Commands::toggleDirectoryView,
         Commands::reloadDirectoryView,
         Commands::toggleEnvironmentView,
-        Commands::toggleKernelRuleEntry,
+        //Commands::toggleKernelRuleEntry,
         Commands::increaseFontSize,
         Commands::decreaseFontSize,
         Commands::makeAnimationAndOpen,
@@ -280,12 +284,12 @@ void PatchViewApplication::getCommandInfo (CommandID commandID, ApplicationComma
                             mainWindow && mainWindow->content->isEnvironmentViewShowing() ? ApplicationCommandInfo::isTicked : 0);
             result.defaultKeypresses.add (KeyPress ('B', ModifierKeys::commandModifier, 0));
             break;
-        case Commands::toggleKernelRuleEntry:
-            result.setInfo ("Show Rule Entry", "", "View",
-                            (  mainWindow &&   mainWindow->content->isKernelRuleEntryShowing()       ? ApplicationCommandInfo::isTicked : 0 |
-                             ! mainWindow || ! mainWindow->content->canSendMessagesToCurrentViewer() ? ApplicationCommandInfo::isDisabled : 0));
-            result.defaultKeypresses.add (KeyPress ('G', ModifierKeys::commandModifier, 0));
-            break;
+//        case Commands::toggleKernelRuleEntry:
+//            result.setInfo ("Show Rule Entry", "", "View",
+//                            (  mainWindow &&   mainWindow->content->isKernelRuleEntryShowing()       ? ApplicationCommandInfo::isTicked : 0 |
+//                             ! mainWindow || ! mainWindow->content->canSendMessagesToCurrentViewer() ? ApplicationCommandInfo::isDisabled : 0));
+//            result.defaultKeypresses.add (KeyPress ('G', ModifierKeys::commandModifier, 0));
+//            break;
         case Commands::increaseFontSize:
             result.setInfo ("Increase Font Size", "", "View", 0);
             result.defaultKeypresses.add (KeyPress ('=', ModifierKeys::commandModifier, '+'));

@@ -1,6 +1,4 @@
 #include "TableView.hpp"
-#include "../Core/DataHelpers.hpp"
-#include "../Core/Runtime.hpp"
 #define PROFILE_PAINT 1
 
 
@@ -62,27 +60,27 @@ void TableModel::add (const String& name, nd::array<double, 1> data)
 TableModel TableModel::fromVar (const var& value)
 {
     auto model = TableModel();
-    auto columns = DataHelpers::makeDictFromList (value["columns"], "Column ");
-
-    for (const auto& item : columns.getDynamicObject()->getProperties())
-        if (item.value.isArray())
-            model.add (item.name.toString(), DataHelpers::ndarrayDouble1FromVar (item.value));
-        else if (auto data = Runtime::opt_data<nd::array<double, 1>> (item.value))
-            model.add (item.name.toString(), *data);
-
-    model.scrollPosition.x = 0.f;
-    model.scrollPosition.y = value["scroll-position"];
-    model.abscissa = int (value["abscissa"]) + 1;
-
-    for (int n = 0; n < value["selected"].size(); ++n)
-    {
-        int col = int (value["selected"][n]) + 1;
-
-        if (1 <= col && col <= model.columns.size())
-        {
-            model.columns.getReference (col - 1).selected = true;
-        }
-    }
+//    auto columns = DataHelpers::makeDictFromList (value["columns"], "Column ");
+//
+//    for (const auto& item : columns.getDynamicObject()->getProperties())
+//        if (item.value.isArray())
+//            model.add (item.name.toString(), DataHelpers::ndarrayDouble1FromVar (item.value));
+//        else if (auto data = Runtime::opt_data<nd::array<double, 1>> (item.value))
+//            model.add (item.name.toString(), *data);
+//
+//    model.scrollPosition.x = 0.f;
+//    model.scrollPosition.y = value["scroll-position"];
+//    model.abscissa = int (value["abscissa"]) + 1;
+//
+//    for (int n = 0; n < value["selected"].size(); ++n)
+//    {
+//        int col = int (value["selected"][n]) + 1;
+//
+//        if (1 <= col && col <= model.columns.size())
+//        {
+//            model.columns.getReference (col - 1).selected = true;
+//        }
+//    }
     return model;
 }
 

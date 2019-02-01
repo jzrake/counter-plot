@@ -32,6 +32,12 @@ public:
 
 
     /**
+     * Add a file pattern.
+     */
+    void addFilePattern (const String& pattern);
+
+
+    /**
      * Add a requirement that the file is HDF5, and contains a group at the
      * given location.
      */
@@ -53,11 +59,26 @@ public:
     void requirePatches2dField (const String& fieldThatMustExist);
 
 
+    /**
+     * Use this optional method if you wish to preserve a string that was used to
+     * configure this object.
+     */
+    void setSourceString (const String& source) { sourceString = source; }
+
+    
+    /**
+     * Return the optional source string.
+     */
+    const String& getSourceString() const { return sourceString; }
+
+
     //=========================================================================
     bool isFileSuitable (const File&) const override;
     bool isDirectorySuitable (const File&) const override;
 
+
 private:
+
 
     //=========================================================================
     bool isPathSuitable (const File&) const;
@@ -73,5 +94,7 @@ private:
     WildcardFileFilter wildcardFilter;
     Array<HDF5Requirements> hdf5Requirements;
     StringArray pathches2dFieldRequirements;
+    StringArray filePatterns;
+    String sourceString;
     bool rejectAllFiles = false;
 };

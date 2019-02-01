@@ -11,7 +11,6 @@
       <FILE id="DuPY1e" name="Durian.png" compile="0" resource="1" file="../Resources/Durian.png"/>
       <FILE id="y1t0Kg" name="fire.cmap" compile="0" resource="1" file="../resources/fire.cmap"/>
       <FILE id="Vnm15D" name="inferno.cmap" compile="0" resource="1" file="../Resources/inferno.cmap"/>
-      <FILE id="jmWxyK" name="JetInCloud.yaml" compile="0" resource="1" file="../Viewers/JetInCloud.yaml"/>
       <FILE id="j0Y4Sw" name="magma.cmap" compile="0" resource="1" file="../Resources/magma.cmap"/>
       <FILE id="s2L352" name="plasma.cmap" compile="0" resource="1" file="../Resources/plasma.cmap"/>
       <FILE id="eyIT1E" name="seashore.cmap" compile="0" resource="1" file="../resources/seashore.cmap"/>
@@ -32,18 +31,18 @@
       <FILE id="siOuWT" name="VariantTree.hpp" compile="0" resource="0" file="Source/Components/VariantTree.hpp"/>
     </GROUP>
     <GROUP id="{B598C4C2-9FA1-7CA8-758B-F1B244C19DD5}" name="Core">
-      <FILE id="mMzrQM" name="AsciiLoader.hpp" compile="0" resource="0" file="Source/Core/AsciiLoader.hpp"/>
       <FILE id="EmRS2T" name="AsciiLoader.cpp" compile="1" resource="0" file="Source/Core/AsciiLoader.cpp"/>
+      <FILE id="mMzrQM" name="AsciiLoader.hpp" compile="0" resource="0" file="Source/Core/AsciiLoader.hpp"/>
       <FILE id="fO8AXk" name="MovieWriter.cpp" compile="1" resource="0" file="Source/Core/MovieWriter.cpp"/>
       <FILE id="t2iZ64" name="MovieWriter.hpp" compile="0" resource="0" file="Source/Core/MovieWriter.hpp"/>
       <FILE id="xXzUSx" name="EditorKeyMappings.cpp" compile="1" resource="0"
             file="Source/Core/EditorKeyMappings.cpp"/>
       <FILE id="XHRPiy" name="EditorKeyMappings.hpp" compile="0" resource="0"
             file="Source/Core/EditorKeyMappings.hpp"/>
+      <FILE id="ZBKd0R" name="Runtime.cpp" compile="1" resource="0" file="Source/Core/Runtime.cpp"/>
+      <FILE id="I8a2om" name="Runtime.hpp" compile="0" resource="0" file="Source/Core/Runtime.hpp"/>
       <FILE id="G4JAko" name="TaskPool.cpp" compile="1" resource="0" file="Source/Core/TaskPool.cpp"/>
       <FILE id="yvniHa" name="TaskPool.hpp" compile="0" resource="0" file="Source/Core/TaskPool.hpp"/>
-      <FILE id="tIUuZ3" name="DataHelpers.cpp" compile="1" resource="0" file="Source/Core/DataHelpers.cpp"/>
-      <FILE id="Kx9e4b" name="DataHelpers.hpp" compile="0" resource="0" file="Source/Core/DataHelpers.hpp"/>
       <FILE id="VajpLx" name="ConfigurableFileFilter.cpp" compile="1" resource="0"
             file="Source/Core/ConfigurableFileFilter.cpp"/>
       <FILE id="wfyAVr" name="ConfigurableFileFilter.hpp" compile="0" resource="0"
@@ -52,12 +51,6 @@
       <FILE id="fAMC19" name="LookAndFeel.hpp" compile="0" resource="0" file="Source/Core/LookAndFeel.hpp"/>
       <FILE id="r0cb3N" name="Main.cpp" compile="1" resource="0" file="Source/Core/Main.cpp"/>
       <FILE id="aM5cVk" name="Main.hpp" compile="0" resource="0" file="Source/Core/Main.hpp"/>
-      <FILE id="yDoSBI" name="Runtime.cpp" compile="1" resource="0" file="Source/Core/Runtime.cpp"/>
-      <FILE id="B2aO6O" name="Runtime.hpp" compile="0" resource="0" file="Source/Core/Runtime.hpp"/>
-      <FILE id="swSH5s" name="ViewerCollection.cpp" compile="1" resource="0"
-            file="Source/Core/ViewerCollection.cpp"/>
-      <FILE id="R4SLrp" name="ViewerCollection.hpp" compile="0" resource="0"
-            file="Source/Core/ViewerCollection.hpp"/>
     </GROUP>
     <GROUP id="{5A420E7E-4900-A138-6F00-634E7A3A41F9}" name="Plotting">
       <FILE id="BrgrJ3" name="Artists.cpp" compile="1" resource="0" file="Source/Plotting/Artists.cpp"/>
@@ -75,18 +68,7 @@
       <FILE id="gEXntN" name="ResizerFrame.hpp" compile="0" resource="0"
             file="Source/Plotting/ResizerFrame.hpp"/>
     </GROUP>
-    <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers">
-      <FILE id="AlD8AC" name="ColourMapViewer.cpp" compile="1" resource="0"
-            file="Source/Viewers/ColourMapViewer.cpp"/>
-      <FILE id="pbZzX4" name="ColourMapViewer.hpp" compile="0" resource="0"
-            file="Source/Viewers/ColourMapViewer.hpp"/>
-      <FILE id="Hv1u5F" name="Viewer.cpp" compile="1" resource="0" file="Source/Viewers/Viewer.cpp"/>
-      <FILE id="rrtFGL" name="Viewer.hpp" compile="0" resource="0" file="Source/Viewers/Viewer.hpp"/>
-      <FILE id="o97Nc0" name="UserExtensionView.cpp" compile="1" resource="0"
-            file="Source/Viewers/UserExtensionView.cpp"/>
-      <FILE id="oyO9TP" name="UserExtensionView.hpp" compile="0" resource="0"
-            file="Source/Viewers/UserExtensionView.hpp"/>
-    </GROUP>
+    <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers"/>
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5&#10;yaml-cpp&#10;"

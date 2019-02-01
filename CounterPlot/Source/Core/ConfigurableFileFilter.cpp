@@ -1,5 +1,5 @@
 #include "ConfigurableFileFilter.hpp"
-#include "../Core/DataHelpers.hpp"
+#include "Main.hpp"
 
 
 
@@ -28,8 +28,17 @@ void ConfigurableFileFilter::setFilePatterns (StringArray patterns)
     {
         patterns = {"*"};
     }
-    wildcardFilter = WildcardFileFilter (patterns.joinIntoString (";"),
-                                         patterns.joinIntoString (";"), "");
+
+    filePatterns = patterns;
+    wildcardFilter = WildcardFileFilter (filePatterns.joinIntoString (";"),
+                                         filePatterns.joinIntoString (";"), "");
+}
+
+void ConfigurableFileFilter::addFilePattern (const String& pattern)
+{
+    filePatterns.add (pattern);
+    wildcardFilter = WildcardFileFilter (filePatterns.joinIntoString (";"),
+                                         filePatterns.joinIntoString (";"), "");
 }
 
 void ConfigurableFileFilter::requireHDF5Group (const String& groupThatMustExist)
@@ -70,7 +79,7 @@ bool ConfigurableFileFilter::isPathSuitable (const File& file) const
 
     for (const auto& requirement : hdf5Requirements)
     {
-        ScopedLock lock (DataHelpers::getCriticalSectionForHDF5());
+        ScopedLock lock (PatchViewApplication::getApp().getCriticalSectionForHDF5());
 
         if (! h5::File::exists (file.getFullPathName().toStdString()))
         {
