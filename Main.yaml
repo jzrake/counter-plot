@@ -1,26 +1,33 @@
 
+colors:
+- darkgreen
+- slateblue
+- turquoise
+- cornflowerblue
+- orange
+- teal
+- purple
+- magenta
+- chocolate
 
-environment:
-  a: [1, 2, 3, 4]
-  b: 46
+
+# views: |
+#   (map div (range 9)
+#   border-width=10
+#   corner-radius=75
+#   border='black'
+#   background=colors)
 
 
 views:
-- (div background=(10 40 240))
-- (div background=(240 40 80))
-- (div background=(80 40 240))
-- (div background=(40 80 40))
-- type: $div
-  background: [80, 10, 100]
-  border: white
+- : $div
+  background: (item colors 2)
+  border: black
   border-width: 10
-  corner-radius: $b
-- type: $div
-  background: [80, 80, 10]
-- type: $div
-  background: [10, 80, 200]
-- (div background=(80 40 40))
-- (div background=(0 40 180))
+  corner-radius: 30
+  capture:
+    move: div1-mouse-pos
+    down: div1-mouse-down
 
 
 layout:

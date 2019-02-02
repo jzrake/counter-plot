@@ -1,87 +1,72 @@
 #include "Program.hpp"
+#include "../Views/Division.hpp"
 
 
 
 
 //=============================================================================
-class Division : public cp::View
+static std::unique_ptr<cp::View> factory (const std::string& type_name)
 {
-public:
-
-    void load (const crt::expression& e) override
+    if (type_name == "Div")
     {
-        model = e.to<DivModel>();
-        repaint();
+        return std::make_unique<Division>();
     }
-
-    void paint (Graphics& g) override
-    {
-        auto area = getLocalBounds().toFloat();
-        g.setColour (model.background);
-
-        if (model.cornerRadius > 0.f)
-        {
-            g.fillRoundedRectangle (area.reduced (model.borderWidth / 2), model.cornerRadius);
-        }
-        else
-        {
-            g.fillRect (area);
-        }
-
-        if (! model.border.isTransparent() && model.borderWidth > 0.f)
-        {
-            g.setColour (model.border);
-
-            if (model.cornerRadius > 0.f)
-            {
-                g.drawRoundedRectangle (area.reduced (model.borderWidth / 2), model.cornerRadius, model.borderWidth);
-            }
-            else
-            {
-                g.drawRect (area.reduced (model.borderWidth / 2), model.borderWidth);
-            }
-        }
-    }
-
-private:
-    DivModel model;
-};
+    return nullptr;
+}
 
 
 
 
 //=============================================================================
+void cp::View::setActionSink (ActionSink* sinkToUse)
+{
+    actionSink = sinkToUse;
+}
+
+void cp::View::sink (const crt::expression& action)
+{
+    if (actionSink)
+        actionSink->dispatch (action);
+}
+
+
+
+
+//=============================================================================
+cp::ViewHolder::ViewHolder (Program& program) : program (program)
+{
+}
+
 void cp::ViewHolder::setValue (const crt::expression& newValue)
 {
-    value = newValue;
-
-    if (value.type_name() == std::string ("Div"))
+    if (value != newValue)
     {
-        view = std::make_unique<Division>();
-        view->load (value);
-        view->setBounds (getLocalBounds());
-        addAndMakeVisible (*view);
-    }
-    else
-    {
-        view.reset();
-    }
-}
+        if (value.type_name() != newValue.type_name())
+        {
+            view = factory (newValue.type_name());
 
-void cp::ViewHolder::setExpression (const crt::expression& newExpression)
-{
-    expr = newExpression;
-}
-
-const crt::expression& cp::ViewHolder::getExpression() const
-{
-    return expr;
+            if (view)
+            {
+                view->setBounds (getLocalBounds());
+                view->setActionSink (&program);
+                view->load (newValue);
+                addAndMakeVisible (*view);
+            }
+        }
+        else if (view)
+        {
+            view->load (newValue);
+        }
+        value = newValue;
+    }
 }
 
 void cp::ViewHolder::resized()
 {
     if (view)
+    {
         view->setBounds (getLocalBounds());
+    }
 }
 
 
@@ -126,36 +111,11 @@ cp::Program::~Program()
 
 void cp::Program::loadCommandsFromFile (File file)
 {
-    auto commands = crt::fromYamlFile (file);
-
-    viewHolders.clear();
-
-    for (const auto& expr : commands.attr ("views"))
+    for (const auto& expr : crt::fromYamlFile (file))
     {
-        loadViewEntry (expr);
+        kernel.insert (expr);
     }
-    for (const auto& expr : commands.attr ("environment"))
-    {
-        loadEnvironmentEntry (expr);
-    }
-    if (! commands.attr ("layout").empty())
-    {
-        kernel.insert ("layout", commands.attr ("layout"));
-    }
-
-
-    auto updated = kernel.dirty_rules();
-    kernel.update_all (updated, adapter);
-
-
-    for (auto holder : viewHolders)
-    {
-        const auto& expr = holder->getExpression();
-        holder->setValue (expr.resolve (kernel, adapter));
-    }
-
-    root->grid = kernel.at ("layout").to<Grid>();
-    root->layout();
+    resolve();
 }
 
 void cp::Program::clear()
@@ -173,22 +133,63 @@ Component& cp::Program::getRootComponent()
 
 
 //=============================================================================
-void cp::Program::loadEnvironmentEntry (const crt::expression& e)
+void cp::Program::dispatch (const crt::expression& action)
 {
-    if (e.empty())
+    kernel.insert (action);
+    resolve();
+}
+
+
+
+
+//=============================================================================
+void cp::Program::resolve()
+{
+    for (const auto& rule : kernel.update_all (kernel.dirty_rules(), adapter))
     {
-        kernel.erase (e.key());
-    }
-    else
-    {
-        kernel.insert (e.key(), e);
+        if (rule == "views")
+            changeToViewModelList();
+        
+        else if (rule == "layout")
+            changeToLayout();
     }
 }
 
-void cp::Program::loadViewEntry (const crt::expression& e)
+void cp::Program::changeToViewModelList()
 {
-    auto holder = std::make_unique<ViewHolder>();
-    holder->setExpression (e);
-    root->addAndMakeVisible (holder.get());
-    viewHolders.add (holder.release());
+    int n = 0;
+    bool childrenChanged = false;
+
+    for (const auto& viewModel : kernel.at ("views"))
+    {
+        if (n < viewHolders.size())
+        {
+            viewHolders[n]->setValue (viewModel);
+        }
+        else
+        {
+            auto holder = std::make_unique<ViewHolder> (*this);
+            holder->setValue (viewModel);
+            root->addAndMakeVisible (*holder);
+            viewHolders.add (holder.release());
+            childrenChanged = true;
+        }
+        ++n;
+    }
+
+    if (viewHolders.size() > n)
+    {
+        viewHolders.removeLast (viewHolders.size() - n);
+    }
+
+    if (childrenChanged)
+    {
+        root->layout();
+    }
+}
+
+void cp::Program::changeToLayout()
+{
+    root->grid = kernel.at ("layout").to<Grid>();
+    root->layout();
 }

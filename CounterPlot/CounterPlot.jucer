@@ -72,7 +72,10 @@
       <FILE id="gEXntN" name="ResizerFrame.hpp" compile="0" resource="0"
             file="Source/Plotting/ResizerFrame.hpp"/>
     </GROUP>
-    <GROUP id="{3EA3244F-EEA7-9F3B-178E-D45F556E4042}" name="Viewers"/>
+    <GROUP id="{C097EFF3-FB08-20A6-B6F5-180081435332}" name="Views">
+      <FILE id="dUEybD" name="Division.cpp" compile="1" resource="0" file="Source/Views/Division.cpp"/>
+      <FILE id="mvVqzV" name="Division.hpp" compile="0" resource="0" file="Source/Views/Division.hpp"/>
+    </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" externalLibraries="hdf5&#10;yaml-cpp&#10;"

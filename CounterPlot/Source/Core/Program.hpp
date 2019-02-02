@@ -7,10 +7,22 @@
 
 //=============================================================================
 namespace cp {
+    class ActionSink;
     class Program;
     class View;
     class ViewHolder;
 }
+
+
+
+
+//=============================================================================
+class cp::ActionSink
+{
+public:
+    virtual ~ActionSink() {}
+    virtual void dispatch (const crt::expression& action) = 0;
+};
 
 
 
@@ -21,6 +33,12 @@ class cp::View : public Component
 public:
     virtual ~View() {}
     virtual void load (const crt::expression& newValue) = 0;
+
+    void setActionSink (ActionSink* sinkToUse);
+
+protected:
+    void sink (const crt::expression& action);
+    ActionSink* actionSink = nullptr;
 };
 
 
@@ -30,6 +48,7 @@ public:
 class cp::ViewHolder : public Component
 {
 public:
+    ViewHolder (Program&);
     void setValue (const crt::expression& newValue);
     void setExpression (const crt::expression& newExpression);
     const crt::expression& getExpression() const;
@@ -37,8 +56,8 @@ public:
     void resized() override;
 
 private:
-    crt::expression expr;
     crt::expression value;
+    Program& program;
     std::unique_ptr<View> view;
 };
 
@@ -46,10 +65,11 @@ private:
 
 
 //=============================================================================
-class cp::Program
+class cp::Program : public ActionSink
 {
 public:
 
+    //=========================================================================
     Program();
     ~Program();
 
@@ -73,11 +93,18 @@ public:
     Component& getRootComponent();
 
 
-private:
-    class RootComponent;
-    void loadEnvironmentEntry (const crt::expression&);
-    void loadViewEntry (const crt::expression&);
+    //=========================================================================
+    void dispatch (const crt::expression& action) override;
 
+private:
+
+    //=========================================================================
+    class RootComponent;
+    void resolve();
+    void changeToViewModelList();
+    void changeToLayout();
+
+    //=========================================================================
     crt::kernel kernel;
     crt::call_adapter adapter;
     OwnedArray<ViewHolder> viewHolders;
