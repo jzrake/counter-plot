@@ -26,12 +26,14 @@ void crt::core::import(crt::kernel& k)
     k.define("second",    second);
     k.define("slice",     slice);
     k.define("sort",      sort);
+    k.define("switch",    switch_);
     k.define("table",     table);
     k.define("type",      type);
     k.define("unparse",   unparse);
     k.define("zip",       zip);
 
     k.define("div",       crt::init<DivModel>());
+    k.define("text",      crt::init<TextModel>());
     k.define("grid",      crt::init<Grid>());
 }
 
@@ -59,14 +61,14 @@ crt::expression crt::core::item(const crt::expression& e)
     auto arg = e.first();
     auto ind = e.second();
 
-    if (e.second().has_type(crt::data_type::i32))
+    if (ind.has_type(crt::data_type::i32))
     {
-        return arg.item(ind.get_i32());
+        return arg.item(int(ind));
     }
     if (ind.has_type(crt::data_type::table))
     {
         std::vector<crt::expression> result;
-        
+
         for (const auto& i : ind)
         {
             result.push_back(arg.item(int(i)).keyed(i.key()));
@@ -191,6 +193,11 @@ crt::expression crt::core::last(const crt::expression& e)
 crt::expression crt::core::len(const crt::expression& e)
 {
     return int(e.first().size());
+}
+
+crt::expression crt::core::switch_(const crt::expression& e)
+{
+    return e.first() ? e.second() : e.third();
 }
 
 crt::expression crt::core::sort(const crt::expression& e)
@@ -467,6 +474,8 @@ crt::expression crt::type_info<DivModel>::to_table (const DivModel& div)
         crt::expression::from (div.border)         .keyed ("border"),
         crt::expression (double (div.borderWidth)) .keyed ("border-width"),
         crt::expression (double (div.cornerRadius)).keyed ("corner-radius"),
+        crt::expression (div.onDown.toStdString()).keyed ("on-down"),
+        crt::expression (div.onMove.toStdString()).keyed ("on-move"),
     });
 }
 
@@ -482,5 +491,56 @@ DivModel crt::type_info<DivModel>::from_expr (const crt::expression& e)
     div.border       = e.attr ("border")       .to<Colour>();
     div.borderWidth  = e.attr ("border-width") .as_f64();
     div.cornerRadius = e.attr ("corner-radius").as_f64();
+    div.onDown       = e.attr ("on-down").as_str();
+    div.onMove       = e.attr ("on-move").as_str();
     return div;
+}
+
+
+
+
+//=============================================================================
+const char* crt::type_info<TextModel>::name()
+{
+    return "Text";
+}
+
+crt::expression crt::type_info<TextModel>::to_table (const TextModel& div)
+{
+    return {};
+}
+
+TextModel crt::type_info<TextModel>::from_expr (const crt::expression& e)
+{
+    if (e.has_type (crt::data_type::data))
+    {
+        return e.check_data<TextModel>();
+    }
+
+    auto justificationValues = std::unordered_map<std::string, int>
+    {
+        {"left",                   Justification::left},
+        {"right",                  Justification::right},
+        {"horizontally-centered",  Justification::horizontallyCentred},
+        {"top",                    Justification::top},
+        {"bottom",                 Justification::bottom},
+        {"vertically-centered",    Justification::verticallyCentred},
+        {"horizontally-justified", Justification::horizontallyJustified},
+        {"centered",               Justification::centred},
+        {"centered-right",         Justification::centredRight},
+        {"centered-top",           Justification::centredTop},
+        {"centered-bottom",        Justification::centredBottom},
+        {"top-left",               Justification::topLeft},
+        {"top-right",              Justification::topRight},
+        {"bottom-left",            Justification::bottomLeft},
+        {"bottom-right",           Justification::bottomRight},
+    };
+
+    TextModel text;
+    text.content       = e.attr ("content").otherwise (e.item(0)).as_str();
+    text.color         = e.attr ("color").to<Colour>();
+    text.font          = Font::fromString (e.attr ("font").as_str());
+    text.justification = justificationValues[e.attr ("justification").as_str()];
+
+    return text;
 }

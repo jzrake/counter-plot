@@ -6,12 +6,27 @@ namespace YAML { class Node; }
 
 
 
+//=============================================================================
 struct DivModel
 {
-    Colour background;
-    Colour border;
     float borderWidth;
     float cornerRadius = 0.f;
+    Colour background;
+    Colour border;
+    String onMove;
+    String onDown;
+};
+
+
+
+
+//=============================================================================
+struct TextModel
+{
+    String content;
+    Colour color;
+    Font font;
+    Justification justification = Justification::centred;
 };
 
 
@@ -29,6 +44,7 @@ namespace core {
     expression table   (const expression& e);
     expression list    (const expression& e);
     expression dict    (const expression& e);
+    expression switch_ (const expression& e);
     expression item    (const expression& e);
     expression attr    (const expression& e);
     expression range   (const expression& e);
@@ -115,5 +131,15 @@ namespace core {
         static const char* name();
         static expression to_table (const DivModel&);
         static DivModel from_expr (const expression&);
+    };
+
+
+    //=========================================================================
+    template<>
+    struct crt::type_info<TextModel>
+    {
+        static const char* name();
+        static expression to_table (const TextModel&);
+        static TextModel from_expr (const expression&);
     };
 }

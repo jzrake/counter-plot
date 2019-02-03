@@ -8,9 +8,9 @@
 static std::unique_ptr<cp::View> factory (const std::string& type_name)
 {
     if (type_name == "Div")
-    {
-        return std::make_unique<Division>();
-    }
+        return std::make_unique<cp::Div>();
+    if (type_name == "Text")
+        return std::make_unique<cp::Text>();
     return nullptr;
 }
 
@@ -135,7 +135,20 @@ Component& cp::Program::getRootComponent()
 //=============================================================================
 void cp::Program::dispatch (const crt::expression& action)
 {
-    kernel.insert (action);
+    auto which = action.first().as_str();
+    auto rule = action.second().as_str();
+
+    if (false) {}
+
+    else if (which == "set")
+        kernel.insert_literal (rule, action.item(2).resolve (kernel, adapter));
+    else if (which == "inc")
+        kernel.insert_literal (rule, kernel.attr (rule).inc());
+    else if (which == "dec")
+        kernel.insert_literal (rule, kernel.attr (rule).dec());
+    else if (which == "toggle")
+        kernel.insert_literal (rule, kernel.attr (rule).toggle());
+
     resolve();
 }
 
@@ -147,20 +160,25 @@ void cp::Program::resolve()
 {
     for (const auto& rule : kernel.update_all (kernel.dirty_rules(), adapter))
     {
-        if (rule == "views")
-            changeToViewModelList();
-        
+        if (! kernel.error_at (rule).empty())
+        {
+            DBG(kernel.error_at(rule));
+        }
+
+        if (rule == "content")
+            changeToContent();
+
         else if (rule == "layout")
             changeToLayout();
     }
 }
 
-void cp::Program::changeToViewModelList()
+void cp::Program::changeToContent()
 {
     int n = 0;
     bool childrenChanged = false;
 
-    for (const auto& viewModel : kernel.at ("views"))
+    for (const auto& viewModel : kernel.at ("content"))
     {
         if (n < viewHolders.size())
         {

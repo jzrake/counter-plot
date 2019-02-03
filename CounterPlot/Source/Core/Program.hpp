@@ -69,6 +69,7 @@ class cp::Program : public ActionSink
 {
 public:
 
+
     //=========================================================================
     Program();
     ~Program();
@@ -101,7 +102,7 @@ private:
     //=========================================================================
     class RootComponent;
     void resolve();
-    void changeToViewModelList();
+    void changeToContent();
     void changeToLayout();
 
     //=========================================================================
