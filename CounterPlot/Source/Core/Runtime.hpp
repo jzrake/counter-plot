@@ -15,6 +15,11 @@ struct DivModel
     Colour border;
     String onMove;
     String onDown;
+
+    //Grid grid;
+    //FlexBox flex;
+    crt::expression content;
+    crt::expression layout;
 };
 
 
@@ -113,6 +118,16 @@ namespace core {
         static ConfigurableFileFilter from_expr (const expression&);
     };
 
+
+    //=========================================================================
+    template<>
+    struct crt::type_info<FlexBox>
+    {
+        static const char* name();
+        static expression to_table (const FlexBox&);
+        static FlexBox from_expr (const expression&);
+    };
+    
 
     //=========================================================================
     template<>

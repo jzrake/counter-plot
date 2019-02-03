@@ -5,14 +5,201 @@
 
 
 //=============================================================================
-static std::unique_ptr<cp::View> factory (const std::string& type_name)
+class cp::Text : public cp::View
 {
-    if (type_name == "Div")
-        return std::make_unique<cp::Div>();
-    if (type_name == "Text")
-        return std::make_unique<cp::Text>();
-    return nullptr;
-}
+public:
+
+    void load (const crt::expression& e) override
+    {
+        if (e != expr)
+        {
+            model = (expr = e).to<TextModel>();
+            repaint();
+        }
+    }
+
+    void paint (Graphics& g) override
+    {
+        g.setFont (model.font);
+        g.setColour (model.color);
+        g.drawText (model.content, getLocalBounds(), model.justification);
+    }
+
+private:
+    TextModel model;
+    crt::expression expr;
+};
+
+
+
+
+//=============================================================================
+class cp::Div : public cp::View
+{
+public:
+
+    void load (const crt::expression& e) override
+    {
+        if (getLastModel() != e)
+        {
+            model = e.to<DivModel>();
+            content();
+            layout();
+            repaint();
+        }
+    }
+
+    void paint (Graphics& g) override
+    {
+        auto area = getLocalBounds().toFloat();
+        g.setColour (model.background);
+
+        if (model.cornerRadius > 0.f)
+        {
+            g.fillRoundedRectangle (area.reduced (model.borderWidth / 2),
+                                    model.cornerRadius);
+        }
+        else
+        {
+            g.fillRect (area);
+        }
+
+        if (! model.border.isTransparent() && model.borderWidth > 0.f)
+        {
+            g.setColour (model.border);
+
+            if (model.cornerRadius > 0.f)
+            {
+                g.drawRoundedRectangle (area.reduced (model.borderWidth / 2),
+                                        model.cornerRadius,
+                                        model.borderWidth);
+            }
+            else
+            {
+                g.drawRect (area, model.borderWidth);
+            }
+        }
+    }
+
+    void mouseMove (const MouseEvent& e) override
+    {
+        if (model.onMove.isNotEmpty())
+        {
+            sink (crt::parse (model.onMove.toRawUTF8())
+                  .replace ("x", e.position.x)
+                  .replace ("y", e.position.y));
+        }
+    }
+
+    void mouseDown (const MouseEvent& e) override
+    {
+        if (model.onDown.isNotEmpty())
+        {
+            sink (crt::parse (model.onDown.toRawUTF8())
+                  .replace ("x", e.position.x)
+                  .replace ("y", e.position.y));
+        }
+    }
+
+    void resized() override
+    {
+        layout();
+    }
+
+    void content (const crt::expression& e)
+    {
+        if (model.content != e)
+        {
+            model.content = e;
+            content();
+        }
+    }
+
+    void content()
+    {
+        // Step 1: ensure the same number of views as content items.
+        if (views.size() > model.content.size())
+        {
+            views.removeLast (views.size() - int (model.content.size()));
+        }
+        while (views.size() < model.content.size())
+        {
+            views.add (new View);
+        }
+
+        // Step 2: ensure the views all have the correct types.
+        int n = 0;
+
+        for (const auto& item : model.content)
+        {
+            if (! views[n]->hasSameType (item))
+            {
+                views.set (n, factory (item.type_name()));
+                views[n]->setActionSink (actionSink);
+            }
+            ++n;
+        }
+
+        // Step 3: pass values to views.
+        n = 0;
+
+        for (const auto& item : model.content)
+        {
+            views[n++]->load (item);
+        }
+
+        for (auto view : views)
+        {
+            addAndMakeVisible (view);
+        }
+        layout();
+    }
+
+    void layout (const crt::expression& e)
+    {
+        model.layout = e;
+        layout();
+    }
+
+    void layout()
+    {
+        if (model.layout.has_type<Grid>())
+        {
+            auto grid = model.layout.to<Grid>();
+
+            for (auto child : getChildren())
+            {
+                grid.items.add (child);
+            }
+            grid.performLayout (getLocalBounds());
+        }
+        else if (model.layout.has_type<FlexBox>())
+        {
+            FlexBox flex = model.layout.to<FlexBox>();
+
+            for (auto child : getChildren())
+            {
+                auto item = FlexItem (*child).withFlex (1.f);
+
+                flex.items.add (item);
+            }
+            flex.performLayout (getLocalBounds());
+        }
+    }
+
+    View* factory (const std::string& type_name)
+    {
+        if (type_name == crt::type_info<DivModel>::name())
+            return new cp::Div;
+        if (type_name == crt::type_info<TextModel>::name())
+            return new cp::Text;
+        return new cp::View;
+    }
+
+    DivModel model;
+    crt::expression expr;
+    OwnedArray<View> views;
+};
 
 
 
@@ -29,71 +216,15 @@ void cp::View::sink (const crt::expression& action)
         actionSink->dispatch (action);
 }
 
-
-
-
-//=============================================================================
-cp::ViewHolder::ViewHolder (Program& program) : program (program)
+bool cp::View::hasSameType (const crt::expression& e) const
 {
+    return lastModel.type_name() == e.type_name();
 }
 
-void cp::ViewHolder::setValue (const crt::expression& newValue)
+const crt::expression& cp::View::getLastModel() const
 {
-    if (value != newValue)
-    {
-        if (value.type_name() != newValue.type_name())
-        {
-            view = factory (newValue.type_name());
-
-            if (view)
-            {
-                view->setBounds (getLocalBounds());
-                view->setActionSink (&program);
-                view->load (newValue);
-                addAndMakeVisible (*view);
-            }
-        }
-        else if (view)
-        {
-            view->load (newValue);
-        }
-        value = newValue;
-    }
+    return lastModel;
 }
-
-void cp::ViewHolder::resized()
-{
-    if (view)
-    {
-        view->setBounds (getLocalBounds());
-    }
-}
-
-
-
-
-//=============================================================================
-class cp::Program::RootComponent : public Component
-{
-public:
-    void layout()
-    {
-        grid.items.clear();
-
-        for (auto child : getChildren())
-        {
-            grid.items.add (child);
-        }
-        grid.performLayout (getLocalBounds());
-    }
-
-    void resized() override
-    {
-        layout();
-    }
-
-    Grid grid;
-};
 
 
 
@@ -101,7 +232,8 @@ public:
 //=============================================================================
 cp::Program::Program()
 {
-    root = std::make_unique<RootComponent>();
+    root = std::make_unique<Div>();
+    root->setActionSink (this);
     crt::core::import (kernel);
 }
 
@@ -116,12 +248,6 @@ void cp::Program::loadCommandsFromFile (File file)
         kernel.insert (expr);
     }
     resolve();
-}
-
-void cp::Program::clear()
-{
-    kernel.clear();
-    viewHolders.clear();
 }
 
 Component& cp::Program::getRootComponent()
@@ -166,48 +292,12 @@ void cp::Program::resolve()
         }
 
         if (rule == "content")
-            changeToContent();
-
+        {
+            root->content (kernel.at ("content"));
+        }
         else if (rule == "layout")
-            changeToLayout();
-    }
-}
-
-void cp::Program::changeToContent()
-{
-    int n = 0;
-    bool childrenChanged = false;
-
-    for (const auto& viewModel : kernel.at ("content"))
-    {
-        if (n < viewHolders.size())
         {
-            viewHolders[n]->setValue (viewModel);
+            root->layout (kernel.at ("layout"));
         }
-        else
-        {
-            auto holder = std::make_unique<ViewHolder> (*this);
-            holder->setValue (viewModel);
-            root->addAndMakeVisible (*holder);
-            viewHolders.add (holder.release());
-            childrenChanged = true;
-        }
-        ++n;
     }
-
-    if (viewHolders.size() > n)
-    {
-        viewHolders.removeLast (viewHolders.size() - n);
-    }
-
-    if (childrenChanged)
-    {
-        root->layout();
-    }
-}
-
-void cp::Program::changeToLayout()
-{
-    root->grid = kernel.at ("layout").to<Grid>();
-    root->layout();
 }

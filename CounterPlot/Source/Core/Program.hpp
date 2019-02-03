@@ -11,6 +11,8 @@ namespace cp {
     class Program;
     class View;
     class ViewHolder;
+    class Div;
+    class Text;
 }
 
 
@@ -32,33 +34,17 @@ class cp::View : public Component
 {
 public:
     virtual ~View() {}
-    virtual void load (const crt::expression& newValue) = 0;
-
+    virtual void load (const crt::expression& newValue) {}
     void setActionSink (ActionSink* sinkToUse);
+    bool hasSameType (const crt::expression&) const;
+    const crt::expression& getLastModel() const;
 
 protected:
     void sink (const crt::expression& action);
     ActionSink* actionSink = nullptr;
-};
-
-
-
-
-//=============================================================================
-class cp::ViewHolder : public Component
-{
-public:
-    ViewHolder (Program&);
-    void setValue (const crt::expression& newValue);
-    void setExpression (const crt::expression& newExpression);
-    const crt::expression& getExpression() const;
-
-    void resized() override;
 
 private:
-    crt::expression value;
-    Program& program;
-    std::unique_ptr<View> view;
+    crt::expression lastModel;
 };
 
 
@@ -83,12 +69,6 @@ public:
 
 
     /**
-     * Reset the kernel and delete all components.
-     */
-    void clear();
-
-
-    /**
      * Return the root component, in which child views are mounted.
      */
     Component& getRootComponent();
@@ -100,14 +80,10 @@ public:
 private:
 
     //=========================================================================
-    class RootComponent;
     void resolve();
-    void changeToContent();
-    void changeToLayout();
 
     //=========================================================================
     crt::kernel kernel;
     crt::call_adapter adapter;
-    OwnedArray<ViewHolder> viewHolders;
-    std::unique_ptr<RootComponent> root;
+    std::unique_ptr<Div> root;
 };

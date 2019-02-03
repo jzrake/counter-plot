@@ -24,23 +24,6 @@ content: |
   on-down='toggle enabled')
 
 
-# content:
-# - : $div
-#   background: (item colors 2)
-#   border: black
-#   border-width: 20
-#   corner-radius: 30
-#   on-move: set mouse-pos x
-# - : $text
-#   content: Cats!
-#   justification: centered-bottom
-#   font: Monaco; 22
-#   color: black
-# - : $text
-#   content: Hey there
-#   justification: centered
-#   font: Monaco; 22
-#   color: black
 # - : $div
 #   background: (item colors 2)
 #   border: black
@@ -53,3 +36,7 @@ layout:
   type: $grid
   rows: [150px, 1, 150px]
   cols: [150px, 1, 150px]
+
+
+# layout:
+#   type: $flex

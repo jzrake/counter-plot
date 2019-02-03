@@ -34,6 +34,7 @@ void crt::core::import(crt::kernel& k)
 
     k.define("div",       crt::init<DivModel>());
     k.define("text",      crt::init<TextModel>());
+    k.define("flex",      crt::init<FlexBox>());
     k.define("grid",      crt::init<Grid>());
 }
 
@@ -405,6 +406,31 @@ ConfigurableFileFilter crt::type_info<ConfigurableFileFilter>::from_expr (const 
 
 
 //=============================================================================
+const char* crt::type_info<FlexBox>::name()
+{
+    return "FlexBox";
+}
+
+crt::expression crt::type_info<FlexBox>::to_table (const FlexBox&)
+{
+    return {};
+}
+
+FlexBox crt::type_info<FlexBox>::from_expr (const expression& e)
+{
+    if (e.has_type (crt::data_type::data))
+    {
+        return e.check_data<FlexBox>();
+    }
+
+    FlexBox flex;
+    return flex;
+}
+
+
+
+
+//=============================================================================
 const char* crt::type_info<Grid>::name()
 {
     return "Grid";
@@ -493,6 +519,8 @@ DivModel crt::type_info<DivModel>::from_expr (const crt::expression& e)
     div.cornerRadius = e.attr ("corner-radius").as_f64();
     div.onDown       = e.attr ("on-down").as_str();
     div.onMove       = e.attr ("on-move").as_str();
+    div.content      = e.attr ("content");
+    div.layout       = e.attr ("layout");
     return div;
 }
 
@@ -541,6 +569,5 @@ TextModel crt::type_info<TextModel>::from_expr (const crt::expression& e)
     text.color         = e.attr ("color").to<Colour>();
     text.font          = Font::fromString (e.attr ("font").as_str());
     text.justification = justificationValues[e.attr ("justification").as_str()];
-
     return text;
 }
