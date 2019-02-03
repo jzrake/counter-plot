@@ -176,12 +176,14 @@ public:
         else if (model.layout.has_type<FlexBox>())
         {
             FlexBox flex = model.layout.to<FlexBox>();
+            int n = 0;
 
-            for (auto child : getChildren())
+            for (const auto& viewModel : model.content)
             {
-                auto item = FlexItem (*child).withFlex (1.f);
-
+                auto item = crt::try_protocol<FlexItem> (viewModel);
+                item.associatedComponent = getChildComponent(n);
                 flex.items.add (item);
+                ++n;
             }
             flex.performLayout (getLocalBounds());
         }
@@ -197,7 +199,6 @@ public:
     }
 
     DivModel model;
-    crt::expression expr;
     OwnedArray<View> views;
 };
 

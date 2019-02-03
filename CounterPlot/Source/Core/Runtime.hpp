@@ -15,9 +15,8 @@ struct DivModel
     Colour border;
     String onMove;
     String onDown;
-
-    //Grid grid;
-    //FlexBox flex;
+    FlexItem flexItem;
+    GridItem gridItem;
     crt::expression content;
     crt::expression layout;
 };
@@ -75,7 +74,6 @@ namespace core {
 }
 
 
-
     /**
      * Return an expression from a YAML file.
      */
@@ -127,7 +125,17 @@ namespace core {
         static expression to_table (const FlexBox&);
         static FlexBox from_expr (const expression&);
     };
-    
+
+
+    //=========================================================================
+    template<>
+    struct crt::type_info<FlexItem>
+    {
+        static const char* name();
+        static expression to_table (const FlexItem&);
+        static FlexItem from_expr (const expression&);
+    };
+
 
     //=========================================================================
     template<>
@@ -141,9 +149,20 @@ namespace core {
 
     //=========================================================================
     template<>
+    struct crt::type_info<GridItem>
+    {
+        static const char* name();
+        static expression to_table (const GridItem&);
+        static GridItem from_expr (const expression&);
+    };
+
+
+    //=========================================================================
+    template<>
     struct crt::type_info<DivModel>
     {
         static const char* name();
+        static expression as_type (const DivModel&, const char*);
         static expression to_table (const DivModel&);
         static DivModel from_expr (const expression&);
     };
@@ -154,7 +173,20 @@ namespace core {
     struct crt::type_info<TextModel>
     {
         static const char* name();
+        static expression as_type (const TextModel&, const char*) { return {}; }
         static expression to_table (const TextModel&);
         static TextModel from_expr (const expression&);
     };
+
+
+    //=========================================================================
+    template<typename T>
+    T try_protocol(const expression& e)
+    {
+        if (e.has_type<TextModel>())
+            return crt::type_info<TextModel>::as_type (e.to<TextModel>(), crt::type_info<T>::name()).template to<T>();
+        if (e.has_type<DivModel>())
+            return crt::type_info<DivModel>::as_type (e.to<DivModel>(), crt::type_info<T>::name()).template to<T>();
+        return T();
+    }
 }

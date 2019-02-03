@@ -423,8 +423,99 @@ FlexBox crt::type_info<FlexBox>::from_expr (const expression& e)
         return e.check_data<FlexBox>();
     }
 
+    auto directionValues = std::unordered_map<std::string, FlexBox::Direction>
+    {
+        {"row",            FlexBox::Direction::row},
+        {"row-reverse",    FlexBox::Direction::rowReverse},
+        {"column",         FlexBox::Direction::column},
+        {"column-reverse", FlexBox::Direction::columnReverse},
+    };
+
+    auto wrapValues = std::unordered_map<std::string, FlexBox::Wrap>
+    {
+        {"no-wrap",        FlexBox::Wrap::noWrap},
+        {"wrap",           FlexBox::Wrap::wrap},
+        {"wrap-reverse",   FlexBox::Wrap::wrapReverse},
+    };
+
+    auto alignContentValues = std::unordered_map<std::string, FlexBox::AlignContent>
+    {
+        {"stretch",        FlexBox::AlignContent::stretch},
+        {"flex-start",     FlexBox::AlignContent::flexStart},
+        {"flex-end",       FlexBox::AlignContent::flexEnd},
+        {"center",         FlexBox::AlignContent::center},
+        {"space-between",  FlexBox::AlignContent::spaceBetween},
+        {"space-around",   FlexBox::AlignContent::spaceAround},
+    };
+
+    auto alignItemsValues = std::unordered_map<std::string, FlexBox::AlignItems>
+    {
+        {"stretch",        FlexBox::AlignItems::stretch},
+        {"flex-start",     FlexBox::AlignItems::flexStart},
+        {"flex-end",       FlexBox::AlignItems::flexEnd},
+        {"center",         FlexBox::AlignItems::center},
+    };
+
+    auto justifyContentValues = std::unordered_map<std::string, FlexBox::JustifyContent>
+    {
+        {"flex-start",     FlexBox::JustifyContent::flexStart},
+        {"flex-end",       FlexBox::JustifyContent::flexEnd},
+        {"center",         FlexBox::JustifyContent::center},
+        {"space-between",  FlexBox::JustifyContent::spaceBetween},
+        {"space-around",   FlexBox::JustifyContent::spaceAround},
+    };
+
     FlexBox flex;
+    flex.flexDirection  = directionValues     [e.attr ("flex-direction")];
+    flex.flexWrap       = wrapValues          [e.attr ("flex-wrap")];
+    flex.alignContent   = alignContentValues  [e.attr ("align-content")];
+    flex.alignItems     = alignItemsValues    [e.attr ("align-items")];
+    flex.justifyContent = justifyContentValues[e.attr ("justify-content")];
     return flex;
+}
+
+
+
+
+//=============================================================================
+const char* crt::type_info<FlexItem>::name()
+{
+    return "FlexItem";
+}
+
+crt::expression crt::type_info<FlexItem>::to_table (const FlexItem&)
+{
+    return {};
+}
+
+FlexItem crt::type_info<FlexItem>::from_expr (const expression& e)
+{
+    if (e.has_type (crt::data_type::data))
+    {
+        return e.check_data<FlexItem>();
+    }
+
+    auto alignSelfValues = std::unordered_map<std::string, FlexItem::AlignSelf>
+    {
+        {"auto-align", FlexItem::AlignSelf::autoAlign},
+        {"flex-start", FlexItem::AlignSelf::flexStart},
+        {"flex-end",   FlexItem::AlignSelf::flexEnd},
+        {"center",     FlexItem::AlignSelf::center},
+        {"stretch",    FlexItem::AlignSelf::stretch},
+    };
+
+    FlexItem item;
+    item.alignSelf  = alignSelfValues[e.attr ("align-self")];
+    item.width      = e.attr ("width")      .otherwise (item.width);
+    item.height     = e.attr ("height")     .otherwise (item.height);
+    item.minWidth   = e.attr ("min-width")  .otherwise (item.minWidth);
+    item.maxWidth   = e.attr ("max-width")  .otherwise (item.maxWidth);
+    item.minHeight  = e.attr ("min-height") .otherwise (item.minHeight);
+    item.maxHeight  = e.attr ("max-height") .otherwise (item.maxHeight);
+    item.flexGrow   = e.attr ("flex-grow")  .otherwise (item.flexGrow);
+    item.flexShrink = e.attr ("flex-shrink").otherwise (item.flexShrink);
+    item.flexBasis  = e.attr ("flex-basis") .otherwise (item.flexBasis);
+    return item;
 }
 
 
@@ -488,9 +579,45 @@ Grid crt::type_info<Grid>::from_expr (const expression& e)
 
 
 //=============================================================================
+const char* crt::type_info<GridItem>::name()
+{
+    return "GridItem";
+}
+
+crt::expression crt::type_info<GridItem>::to_table (const GridItem&)
+{
+    return {};
+}
+
+GridItem crt::type_info<GridItem>::from_expr (const expression& e)
+{
+    if (e.has_type (crt::data_type::data))
+    {
+        return e.check_data<GridItem>();
+    }
+    return GridItem();
+}
+
+
+
+
+//=============================================================================
 const char* crt::type_info<DivModel>::name()
 {
     return "Div";
+}
+
+crt::expression crt::type_info<DivModel>::as_type (const DivModel& div, const char* type_name)
+{
+    if (type_name == crt::type_info<FlexItem>::name())
+    {
+        return crt::make_data (div.flexItem);
+    }
+    if (type_name == crt::type_info<GridItem>::name())
+    {
+        return crt::make_data (div.gridItem);
+    }
+    return {};
 }
 
 crt::expression crt::type_info<DivModel>::to_table (const DivModel& div)
@@ -498,10 +625,10 @@ crt::expression crt::type_info<DivModel>::to_table (const DivModel& div)
     return crt::expression({
         crt::expression::from (div.background)     .keyed ("background"),
         crt::expression::from (div.border)         .keyed ("border"),
-        crt::expression (double (div.borderWidth)) .keyed ("border-width"),
-        crt::expression (double (div.cornerRadius)).keyed ("corner-radius"),
-        crt::expression (div.onDown.toStdString()).keyed ("on-down"),
-        crt::expression (div.onMove.toStdString()).keyed ("on-move"),
+        crt::expression (div.borderWidth)          .keyed ("border-width"),
+        crt::expression (div.cornerRadius)         .keyed ("corner-radius"),
+        crt::expression (div.onDown.toStdString()) .keyed ("on-down"),
+        crt::expression (div.onMove.toStdString()) .keyed ("on-move"),
     });
 }
 
@@ -521,6 +648,8 @@ DivModel crt::type_info<DivModel>::from_expr (const crt::expression& e)
     div.onMove       = e.attr ("on-move").as_str();
     div.content      = e.attr ("content");
     div.layout       = e.attr ("layout");
+    div.gridItem     = e.to<GridItem>();
+    div.flexItem     = e.to<FlexItem>();
     return div;
 }
 

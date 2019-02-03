@@ -16,27 +16,23 @@ enabled: null
 
 
 content: |
-  (map div (range 9)
+  (map div (range 3)
   border-width=10
   corner-radius=mouse-pos
   border=(switch enabled 'black' 'grey')
   background=colors
-  on-down='toggle enabled')
-
-
-# - : $div
-#   background: (item colors 2)
-#   border: black
-#   border-width: 20
-#   corner-radius: 30
-#   on-move: set mouse-pos x
-
-
-layout:
-  type: $grid
-  rows: [150px, 1, 150px]
-  cols: [150px, 1, 150px]
+  on-down='toggle enabled'
+  on-move='set mouse-pos x'
+  height=200)
 
 
 # layout:
-#   type: $flex
+#   type: $grid
+#   rows: [150px, 1, 150px]
+#   cols: [150px, 1, 150px]
+
+
+layout:
+  type: $flex
+  flex-direction: column
+
