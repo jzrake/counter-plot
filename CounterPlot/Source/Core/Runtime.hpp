@@ -30,6 +30,8 @@ struct TextModel
     String content;
     Colour color;
     Font font;
+    FlexItem flexItem;
+    GridItem gridItem;
     Justification justification = Justification::centred;
 };
 
@@ -173,7 +175,7 @@ namespace core {
     struct crt::type_info<TextModel>
     {
         static const char* name();
-        static expression as_type (const TextModel&, const char*) { return {}; }
+        static expression as_type (const TextModel&, const char*);
         static expression to_table (const TextModel&);
         static TextModel from_expr (const expression&);
     };
@@ -183,10 +185,8 @@ namespace core {
     template<typename T>
     T try_protocol(const expression& e)
     {
-        if (e.has_type<TextModel>())
-            return crt::type_info<TextModel>::as_type (e.to<TextModel>(), crt::type_info<T>::name()).template to<T>();
-        if (e.has_type<DivModel>())
-            return crt::type_info<DivModel>::as_type (e.to<DivModel>(), crt::type_info<T>::name()).template to<T>();
+        if (e.has_type<TextModel>()) return type_info<TextModel>::as_type (e.to<TextModel>(), type_info<T>::name()).template to<T>();
+        if (e.has_type<DivModel>())  return type_info<DivModel> ::as_type (e.to<DivModel>(),  type_info<T>::name()).template to<T>();
         return T();
     }
 }

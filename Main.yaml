@@ -31,7 +31,6 @@ content: |
 #   rows: [150px, 1, 150px]
 #   cols: [150px, 1, 150px]
 
-
 layout:
   type: $flex
   flex-direction: column

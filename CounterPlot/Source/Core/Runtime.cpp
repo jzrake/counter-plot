@@ -515,6 +515,10 @@ FlexItem crt::type_info<FlexItem>::from_expr (const expression& e)
     item.flexGrow   = e.attr ("flex-grow")  .otherwise (item.flexGrow);
     item.flexShrink = e.attr ("flex-shrink").otherwise (item.flexShrink);
     item.flexBasis  = e.attr ("flex-basis") .otherwise (item.flexBasis);
+    item.margin.left   = e.attr ("margin-left")  .otherwise (e.attr ("margin"));
+    item.margin.right  = e.attr ("margin-right") .otherwise (e.attr ("margin"));
+    item.margin.top    = e.attr ("margin-top")   .otherwise (e.attr ("margin"));
+    item.margin.bottom = e.attr ("margin-bottom").otherwise (e.attr ("margin"));
     return item;
 }
 
@@ -662,6 +666,19 @@ const char* crt::type_info<TextModel>::name()
     return "Text";
 }
 
+crt::expression crt::type_info<TextModel>::as_type (const TextModel& text, const char* type_name)
+{
+    if (type_name == crt::type_info<FlexItem>::name())
+    {
+        return crt::make_data (text.flexItem);
+    }
+    if (type_name == crt::type_info<GridItem>::name())
+    {
+        return crt::make_data (text.gridItem);
+    }
+    return {};
+}
+
 crt::expression crt::type_info<TextModel>::to_table (const TextModel& div)
 {
     return {};
@@ -693,10 +710,21 @@ TextModel crt::type_info<TextModel>::from_expr (const crt::expression& e)
         {"bottom-right",           Justification::bottomRight},
     };
 
+    auto content       = e.attr ("content").otherwise (e.item(0)).as_str();
+    auto color         = e.attr ("color").otherwise ("black").to<Colour>();
+    auto font          = Font::fromString (e.attr ("font").otherwise ("Helvetica; 14").as_str());
+    auto justification = justificationValues[e.attr ("justification").as_str()];
+    auto gridItem      = e.to<GridItem>();
+    auto flexItem      = e.to<FlexItem>();
+    gridItem.minWidth  = flexItem.minWidth  = font.getStringWidthFloat (content);
+    gridItem.minHeight = flexItem.minHeight = font.getHeight();
+
     TextModel text;
-    text.content       = e.attr ("content").otherwise (e.item(0)).as_str();
-    text.color         = e.attr ("color").to<Colour>();
-    text.font          = Font::fromString (e.attr ("font").as_str());
-    text.justification = justificationValues[e.attr ("justification").as_str()];
+    text.content = content;
+    text.color = color;
+    text.font = font;
+    text.justification = justification;
+    text.flexItem = flexItem;
+    text.gridItem = gridItem;
     return text;
 }
