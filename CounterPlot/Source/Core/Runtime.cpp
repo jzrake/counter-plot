@@ -287,6 +287,31 @@ namespace builtin
 
 
     //=========================================================================
+    var noscale (var::NativeFunctionArgs args)
+    {
+        auto value = checkArg ("noscale", args, 0);
+
+        if (value.isDouble())
+        {
+            return std::log10 (double (value));
+        }
+        if (auto A = Runtime::opt_data<nd::array<double, 1>> (value))
+        {
+            return Runtime::make_data (*A);
+        }
+        if (auto A = Runtime::opt_data<nd::array<double, 2>> (value))
+        {
+            return Runtime::make_data (*A);
+        }
+        if (auto A = Runtime::opt_data<nd::array<double, 3>> (value))
+        {
+            return Runtime::make_data (*A);
+        }
+        throw std::runtime_error ("noscale requires an array of type double");
+    }
+
+
+    //=========================================================================
     var min (var::NativeFunctionArgs args)
     {
         auto value = checkArg ("min", args, 0);
@@ -599,6 +624,7 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("basename",       var::NativeFunction (builtin::basename),       Flags::builtin);
     kernel.insert ("format",         var::NativeFunction (builtin::format),         Flags::builtin);
     kernel.insert ("log10",          var::NativeFunction (builtin::log10),          Flags::builtin);
+    kernel.insert ("noscale",        var::NativeFunction (builtin::noscale),        Flags::builtin);
     kernel.insert ("min",            var::NativeFunction (builtin::min),            Flags::builtin);
     kernel.insert ("max",            var::NativeFunction (builtin::max),            Flags::builtin);
     kernel.insert ("linspace",       var::NativeFunction (builtin::linspace),       Flags::builtin);
