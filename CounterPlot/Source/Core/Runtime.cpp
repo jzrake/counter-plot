@@ -312,6 +312,85 @@ namespace builtin
 
 
     //=========================================================================
+    var add (var::NativeFunctionArgs args)
+    {
+        auto A = checkArg ("add", args, 0);
+        auto B = checkArg ("add", args, 1);
+        if (A.isDouble() && B.isDouble())
+            return double (A) + double (B);
+        if (auto a = Runtime::opt_data<nd::array<double, 1>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 1>> (B))
+                return Runtime::make_data (*a + *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 2>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 2>> (B))
+                return Runtime::make_data (*a + *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 3>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 3>> (B))
+                return Runtime::make_data (*a + *b);
+        throw std::runtime_error ("add could not understand arguments");
+    }
+
+    //=========================================================================
+    var sub (var::NativeFunctionArgs args)
+    {
+        auto A = checkArg ("sub", args, 0);
+        auto B = checkArg ("sub", args, 1);
+        if (A.isDouble() && B.isDouble())
+            return double (A) - double (B);
+        if (auto a = Runtime::opt_data<nd::array<double, 1>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 1>> (B))
+                return Runtime::make_data (*a - *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 2>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 2>> (B))
+                return Runtime::make_data (*a - *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 3>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 3>> (B))
+                return Runtime::make_data (*a - *b);
+        throw std::runtime_error ("sub could not understand arguments");
+    }
+
+
+    //=========================================================================
+    var mul (var::NativeFunctionArgs args)
+    {
+        auto A = checkArg ("mul", args, 0);
+        auto B = checkArg ("mul", args, 1);
+        if (A.isDouble() && B.isDouble())
+            return double (A) * double (B);
+        if (auto a = Runtime::opt_data<nd::array<double, 1>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 1>> (B))
+                return Runtime::make_data (*a * *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 2>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 2>> (B))
+                return Runtime::make_data (*a * *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 3>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 3>> (B))
+                return Runtime::make_data (*a * *b);
+        throw std::runtime_error ("mul could not understand arguments");
+    }
+
+
+    //=========================================================================
+    var div (var::NativeFunctionArgs args)
+    {
+        auto A = checkArg ("div", args, 0);
+        auto B = checkArg ("div", args, 1);
+        if (A.isDouble() && B.isDouble())
+            return double (A) / double (B);
+        if (auto a = Runtime::opt_data<nd::array<double, 1>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 1>> (B))
+                return Runtime::make_data (*a / *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 2>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 2>> (B))
+                return Runtime::make_data (*a / *b);
+        if (auto a = Runtime::opt_data<nd::array<double, 3>> (A))
+            if (auto b = Runtime::opt_data<nd::array<double, 3>> (B))
+                return Runtime::make_data (*a / *b);
+        throw std::runtime_error ("div could not understand arguments");
+    }
+
+
+    //=========================================================================
     var min (var::NativeFunctionArgs args)
     {
         auto value = checkArg ("min", args, 0);
@@ -625,6 +704,10 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("format",         var::NativeFunction (builtin::format),         Flags::builtin);
     kernel.insert ("log10",          var::NativeFunction (builtin::log10),          Flags::builtin);
     kernel.insert ("noscale",        var::NativeFunction (builtin::noscale),        Flags::builtin);
+    kernel.insert ("add",            var::NativeFunction (builtin::add),            Flags::builtin);
+    kernel.insert ("sub",            var::NativeFunction (builtin::sub),            Flags::builtin);
+    kernel.insert ("mul",            var::NativeFunction (builtin::mul),            Flags::builtin);
+    kernel.insert ("div",            var::NativeFunction (builtin::div),            Flags::builtin);
     kernel.insert ("min",            var::NativeFunction (builtin::min),            Flags::builtin);
     kernel.insert ("max",            var::NativeFunction (builtin::max),            Flags::builtin);
     kernel.insert ("linspace",       var::NativeFunction (builtin::linspace),       Flags::builtin);
