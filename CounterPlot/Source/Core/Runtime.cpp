@@ -684,6 +684,39 @@ namespace builtin
         }
         return res;
     }
+
+    var jic_energy_flux(var::NativeFunctionArgs args)
+    {
+        // This function computes energy fluxes for jet-in-cloud formatted data.
+        // The result is the energy flux, T-0r, multiplied to r^2.
+        auto cellCoords  = checkArgData<nd::array<double, 3>>("jic-energy-flux", args, 0);
+        auto pressure    = checkArgData<nd::array<double, 2>>("jic-energy-flux", args, 1);
+        auto density     = checkArgData<nd::array<double, 2>>("jic-energy-flux", args, 2);
+        auto gammaBetaR  = checkArgData<nd::array<double, 2>>("jic-energy-flux", args, 3);
+        auto gammaBetaQ  = checkArgData<nd::array<double, 2>>("jic-energy-flux", args, 4);
+
+        int ni = cellCoords.shape(0);
+        int nj = cellCoords.shape(1);
+        auto result = nd::array<double, 2>(ni, nj);
+
+        for (int i = 0; i < ni; ++i)
+        {
+            for (int j = 0; j < nj; ++j)
+            {
+                double r  = cellCoords (i, j, 0);
+                double q  = cellCoords (i, j, 1);
+                double p  = pressure   (i, j);
+                double d  = density    (i, j);
+                double ur = gammaBetaR (i, j);
+                double uq = gammaBetaQ (i, j);
+                double u0 = std::sqrt (1.0 + ur * ur +  uq * uq);
+                double T0r = (d + 4.0 * p) * u0 * ur; // assuming gamma = 4/3
+                double dLdOmega = T0r * r * r * std::sin(q);
+                result (i, j) = dLdOmega;
+            }
+        }
+        return Runtime::make_data (result);
+    }
 }
 
 
@@ -720,6 +753,7 @@ void Runtime::load_builtins (Kernel& kernel)
     kernel.insert ("load-text",      var::NativeFunction (builtin::load_text),      Flags::builtin);
     kernel.insert ("load-hdf5",      var::NativeFunction (builtin::load_hdf5),      Flags::builtin);
     kernel.insert ("load-patches2d", var::NativeFunction (builtin::load_patches2d), Flags::builtin);
+    kernel.insert ("jic-energy-flux", var::NativeFunction (builtin::jic_energy_flux), Flags::builtin);
 
     kernel.insert ("to-gpu-triangulate", var::NativeFunction (builtin::to_gpu_triangulate), Flags::builtin);
     kernel.insert ("to-gpu",             var::NativeFunction (builtin::to_gpu),             Flags::builtin);
