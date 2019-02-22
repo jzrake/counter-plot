@@ -704,14 +704,14 @@ namespace builtin
             for (int j = 0; j < nj; ++j)
             {
                 double r  = cellCoords (i, j, 0);
-                double q  = cellCoords (i, j, 1);
+                // double q  = cellCoords (i, j, 1);
                 double p  = pressure   (i, j);
                 double d  = density    (i, j);
                 double ur = gammaBetaR (i, j);
                 double uq = gammaBetaQ (i, j);
                 double u0 = std::sqrt (1.0 + ur * ur +  uq * uq);
                 double T0r = (d + 4.0 * p) * u0 * ur; // assuming gamma = 4/3
-                double dLdOmega = T0r * r * r * std::sin(q);
+                double dLdOmega = T0r * r * r;// * std::sin(q);
                 result (i, j) = dLdOmega;
             }
         }
